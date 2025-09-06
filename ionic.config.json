@@ -1,0 +1,7 @@
+{
+  "name": "losFritosHermanos",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
