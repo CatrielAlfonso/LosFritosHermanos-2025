@@ -1,0 +1,15 @@
+al dia 08/09 se descargó:
+
+## icono y splash
+
+npm i @capacitor/android
+ionic build
+npx cap add android
+npm install @capacitor/assets
+npx capacitor-assets generate
+ 
+
+ com.android.tools.build:gradle.
+ classpath 'com.android.tools.build:gradle:8.6.0'
+
+cambiamos version porque rompia el android
