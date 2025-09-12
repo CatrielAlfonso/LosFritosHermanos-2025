@@ -13,3 +13,8 @@ npx capacitor-assets generate
  classpath 'com.android.tools.build:gradle:8.6.0'
 
 cambiamos version porque rompia el android
+
+colores:
+#efbf2d
+#dc2234
+#4666de
