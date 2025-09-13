@@ -5,7 +5,7 @@ const routes: Routes = [
   
   {
     path: '',
-    redirectTo: 'screen-splash',
+    redirectTo: 'screen',
     pathMatch: 'full'
   },
    {
@@ -15,6 +15,10 @@ const routes: Routes = [
   {
     path: 'home',
     loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
+  },
+  {
+    path: 'screen',
+    loadChildren: () => import('./pages/screen/screen.module').then( m => m.ScreenPageModule)
   },
  
 ];
