@@ -1,0 +1,150 @@
+.splash-screen {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+
+  .logo-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: fadeZoomIn 1.2s ease-out;
+  }
+
+  .logo {
+    width: 350px;
+    border-radius: 20px;
+    animation: spin 2s linear 1;
+    animation-fill-mode: forwards;
+  }
+
+.app-name {
+  font-size: 30px;
+  font-weight: bold;
+  color: #ffffff;
+  font-family: 'Segoe UI', sans-serif;
+  width: 100%;          
+  text-align: center;   
+  white-space: nowrap;   
+  overflow: hidden;      
+  text-overflow: ellipsis; 
+  box-sizing: border-box;
+}
+
+  @keyframes fadeZoomIn {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.6);
+    }
+    60% {
+      opacity: 0.8;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+ion-content.splash-screen {
+  --background: #1942d7;
+}
+
+.splash-top-img {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+  animation: slideDown 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+
+  img {
+    max-width: 340px;
+    width: 70vw;
+    min-width: 180px;
+    transition: max-width 0.3s;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(100px);
+  }
+}
+
+.splash-nombres {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  text-align: center;
+  font-size: 2.5em;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  animation: slideInLeft 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+
+  div {
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+
+  .nombre-verde {
+    color: #efbf2d;
+  }
+
+  .nombre-blanco {
+    color: #efbf2d;
+  }
+
+  .nombre-rojo {
+    color: #efbf2d;
+  }
+}
+
+.splash-division {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  text-align: center;
+  color: #ffffff;
+  font-size: 2.5em;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  animation: slideInLeft 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  letter-spacing: 1px;
+}
+
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-100vw);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
