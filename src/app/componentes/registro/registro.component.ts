@@ -23,7 +23,7 @@ export class RegistroComponent implements OnInit {
   empleadoForm: FormGroup;
   supervisorForm: FormGroup;
   mesaForm: FormGroup;
-
+  clienteForm: FormGroup;
 
   mensajeExito: string = '';
   mensajeError: string = '';
@@ -58,23 +58,15 @@ export class RegistroComponent implements OnInit {
   mesaTipoError: string = '';
   mesaImagenError: string = '';
 
-  productoNombreError: string = '';
-  productoDescripcionError: string = '';
-  productoTiempoError: string = '';
-  productoPrecioError: string = '';
-  productoImagenesError: string = '';
-
-  bebidaNombreError: string = '';
-  bebidaDescripcionError: string = '';
-  bebidaTiempoError: string = '';
-  bebidaPrecioError: string = '';
-  bebidaImagenesError: string = '';
 
   imagenEmpleadoURL: string | null = null;
   imagenSupervisorURL: string | null = null;
   imagenMesaURL: string | null = null;
   imagenClienteURL: string | null = null;
-
+  imagenesProductoURLs: string[] = [];
+  imagenesBebidaURLs: string[] = [];
+  imagenesProductoArchivos: File[] = [];
+  imagenesBebidaArchivos: File[] = [];
 
   qrMesaURL: string | null = null;
 
@@ -125,11 +117,22 @@ export class RegistroComponent implements OnInit {
 
 
  
+    
+
     this.mesaForm = this.fb.group({
       numero: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
       comensales: ['', [Validators.required, Validators.min(1), Validators.max(20)]],
       tipo: ['', Validators.required],
       imagen: [null, Validators.required]
+    });
+
+    this.clienteForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.pattern(/^[A-Za-zÀ-ÿ\s]+$/)]],
+      apellido: ['', [Validators.required, Validators.pattern(/^[A-Za-zÀ-ÿ\s]+$/)]],
+      correo: ['', [Validators.required, Validators.email]],
+      contrasenia: ['', [Validators.required, Validators.minLength(6)]],
+      dni: ['', [Validators.required, Validators.pattern(/^\d{7,8}$/)]],
+      imagenPerfil: [null, Validators.required]
     });
 
 
@@ -336,8 +339,50 @@ export class RegistroComponent implements OnInit {
     }
   }
 
- 
+  
 
+  async registrarCliente() {
+    if (this.clienteForm.invalid) {
+      this.mensajeError = 'Por favor completa todos los campos correctamente';
+      return;
+    }
+    this.loadingService.show();
+    try {
+      const { nombre, apellido, correo, contrasenia, dni } = this.clienteForm.value;
+      const archivo: File = this.clienteForm.value.imagenPerfil;
+      const { data: clienteExistente } = await this.sb.supabase.from('clientes').select('id').eq('correo', correo).single();
+      if (clienteExistente) {
+        this.mensajeError = 'Este correo electrónico ya está registrado';
+        this.loadingService.hide();
+        return;
+      }
+      const usuario = await this.authService.registro(correo, contrasenia);
+      if (!usuario) {
+        this.mensajeError = 'Error al crear el usuario';
+        this.loadingService.hide();
+        return;
+      }
+      let imagenPerfil = '';
+      if (archivo) {
+        const path = await this.sb.subirImagenPerfil(archivo);
+        imagenPerfil = this.sb.supabase.storage.from('usuarios.img').getPublicUrl(path).data.publicUrl;
+      }
+      const { error } = await this.sb.supabase.from('clientes').insert([{ nombre, apellido, correo, dni, imagenPerfil, validado: null, aceptado: null }]);
+      if (error) throw new Error(error.message);
+      try {
+        await this.pushNotificationService.notificarSupervisoresNuevoCliente(nombre, apellido);
+      } catch (error) {
+        console.error('Error al enviar notificación:', error);
+      }
+      this.mensajeExito = 'Cliente registrado exitosamente! Estado: Pendiente de aprobación.';
+      this.clienteForm.reset();
+      this.imagenClienteURL = null;
+      this.loadingService.hide();
+    } catch (e) {
+      this.mensajeError = 'Error: ' + (e as Error).message;
+      this.loadingService.hide();
+    }
+  }
 
   async registrarMesa() {
     if (this.mesaForm.invalid) {
@@ -418,7 +463,40 @@ export class RegistroComponent implements OnInit {
 
  
 
- 
+
+  async escanearDNI() {
+    try {
+      const result = await BarcodeScanner.scan();
+
+      if (result.barcodes.length > 0) {
+        const codigo = result.barcodes[0].rawValue;
+        this.procesarDatosDNI(codigo);
+      } else {
+        this.mensajeError = 'No se detectó ningún código.';
+      }
+    } catch (error) {
+      this.mensajeError = 'Error al escanear DNI';
+    }
+  }
+
+  procesarDatosDNI(codigo: string) {
+    const partes = codigo.split('@');
+    if (partes.length > 5) {
+      const apellido = this.capitalizar(partes[1]);
+      const nombre = this.capitalizar(partes[2]);
+      const dni = this.capitalizar(partes[4]);
+
+      if (this.tipoRegistro === 'cliente') {
+        this.clienteForm.patchValue({ nombre, apellido, dni });
+      } else if (this.tipoRegistro === 'empleado') {
+        this.empleadoForm.patchValue({ nombre, apellido, dni });
+      } else if (this.tipoRegistro === 'supervisor') {
+        this.supervisorForm.patchValue({ nombre, apellido, dni });
+      }
+    } else {
+      this.mensajeError = 'El formato del DNI no es válido.';
+    }
+  }
 
   private capitalizar(str: string): string {
     return str
@@ -426,6 +504,21 @@ export class RegistroComponent implements OnInit {
       .replace(/(^|\s)\S/g, l => l.toUpperCase());
   }
 
+
+  tomarFoto() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+
+    if (this.tipoRegistro === 'producto' || this.tipoRegistro === 'bebida') {
+      input.multiple = true;
+    }
+
+   
+
+    input.click();
+  }
 
   procesarImagenUnica(archivo: File) {
     const reader = new FileReader();
@@ -443,13 +536,38 @@ export class RegistroComponent implements OnInit {
           this.imagenMesaURL = reader.result as string;
           this.mesaForm.patchValue({ imagen: archivo });
           break;
-      
+        case 'cliente':
+          this.imagenClienteURL = reader.result as string;
+          this.clienteForm.patchValue({ imagenPerfil: archivo });
+          break;
       }
     };
     reader.readAsDataURL(archivo);
   }
 
   
+
+  actualizarPreviewProducto() {
+    this.imagenesProductoURLs = [];
+    this.imagenesProductoArchivos.forEach((archivo, index) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagenesProductoURLs[index] = reader.result as string;
+      };
+      reader.readAsDataURL(archivo);
+    });
+  }
+
+  actualizarPreviewBebida() {
+    this.imagenesBebidaURLs = [];
+    this.imagenesBebidaArchivos.forEach((archivo, index) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagenesBebidaURLs[index] = reader.result as string;
+      };
+      reader.readAsDataURL(archivo);
+    });
+  }
 
   // Cambiar tipo de registro
   setTipoRegistro(tipo: 'empleado' | 'supervisor' | 'producto' | 'bebida' | 'mesa' | 'cliente') {
@@ -472,7 +590,7 @@ export class RegistroComponent implements OnInit {
     this.router.navigate(['/home']);
   }
 
-  // Método para validar campos de empleado en tiempo real
+
   validarCampoEmpleado(campo: string) {
     const control = this.empleadoForm.get(campo);
     if (!control) return;
