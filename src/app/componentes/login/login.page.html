@@ -1,0 +1,75 @@
+<ion-content class="login-page fritos-theme" fullscreen="true" [scrollEvents]="true" scroll="true">
+  <div class="center-wrapper">
+    <div class="login-container fritos-card">
+      <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Logo" class="login-logo fritos-bounce" />
+
+      <h2 class="login-subtitle fritos-logo">¡INICIA SESIÓN!</h2>
+
+      <form [formGroup]="loginForm" (ngSubmit)="ingresar()">
+        <ion-item>
+          <ion-icon slot="start" name="mail-outline"></ion-icon>
+          <ion-label position="floating">Correo electrónico</ion-label>
+          <ion-input type="email" formControlName="correo"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="correoError">{{ correoError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input [type]="showPassword ? 'text' : 'password'" formControlName="contrasenia"></ion-input>
+          <ion-button fill="clear" slot="end" size="small" (click)="showPassword = !showPassword" tabindex="-1">
+            <ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon>
+          </ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="contraseniaError">{{ contraseniaError }}</div>
+
+        <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+        <ion-button expand="block" type="submit" [disabled]="loginForm.invalid" color="fritos-red">
+          INGRESAR
+        </ion-button>
+
+        <div class="quick-access-container">
+          <h3 class="quick-access-title fritos-subtitle">ACCESOS RÁPIDOS</h3>
+          <div class="quick-access">
+
+            <ion-button shape="round" (click)="accesoRapido('supervisor')" class="fritos-button">
+              <ion-icon name="eye" slot="start"></ion-icon>
+              Supervisor
+            </ion-button>
+
+            <ion-button shape="round" (click)="accesoRapido('dueno')" class="fritos-button">
+              <ion-icon name="person" slot="start"></ion-icon>
+              Dueño
+            </ion-button>
+
+            <ion-button id="empleados-trigger" shape="round" class="fritos-button">
+              <ion-icon name="people" slot="start"></ion-icon>
+              Empleados
+              <ion-icon name="chevron-up-outline" slot="end"></ion-icon>
+            </ion-button>
+            <ion-popover trigger="empleados-trigger" triggerAction="click" showBackdrop="false">
+              <ng-template>
+                <ion-list>
+                  <ion-item button (click)="accesoRapido('maitre')">Maître</ion-item>
+                  <ion-item button (click)="accesoRapido('mozo')">Mozo</ion-item>
+                  <ion-item button (click)="accesoRapido('cocinero')">Cocinero</ion-item>
+                  <ion-item button (click)="accesoRapido('bartender')">Bartender</ion-item>
+                </ion-list>
+              </ng-template>
+            </ion-popover>
+
+            <ion-button shape="round" (click)="accesoRapido('cliente')" class="fritos-button">
+              <ion-icon name="person" slot="start"></ion-icon>
+              Cliente
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="register-link">
+          ¿No tenés cuenta? <a (click)="goToRegister()">Registrate</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</ion-content>
