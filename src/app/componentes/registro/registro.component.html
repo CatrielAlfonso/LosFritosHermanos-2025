@@ -55,7 +55,7 @@
           <ion-icon slot="start" name="person-circle-outline"></ion-icon>
           <ion-label>Perfil del empleado:</ion-label>
           <div class="perfil-empleado-container">
-    
+            <!-- Primera fila -->
             <div class="perfil-fila">
               <div class="perfil-opcion">
                 <ion-checkbox
@@ -72,7 +72,7 @@
                 <span class="texto-perfil">Bartender</span>
               </div>
             </div>
-        
+            <!-- Segunda fila -->
             <div class="perfil-fila">
               <div class="perfil-opcion">
                 <ion-checkbox
@@ -212,7 +212,134 @@
       </form>
 
 
-    
+      <!-- BEBIDA O PLATO - Formulario para registro de productos/platos -->
+      <form *ngIf="tipoRegistro==='producto'" [formGroup]="productoForm" (ngSubmit)="registrarProducto()">
+        <!-- BEBIDA O PLATO - Campo nombre del plato -->
+        <ion-item>
+          <ion-icon slot="start" name="restaurant-outline"></ion-icon>
+          <ion-label position="floating">Nombre del plato</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="productoNombreError">{{ productoNombreError }}</div>
+
+        <!-- BEBIDA O PLATO - Campo descripción del plato -->
+        <ion-item>
+          <ion-icon slot="start" name="document-text-outline"></ion-icon>
+          <ion-label position="floating">Descripción</ion-label>
+          <ion-textarea formControlName="descripcion" rows="3" placeholder="Describe el plato..."></ion-textarea>
+        </ion-item>
+        <div class="field-error" *ngIf="productoDescripcionError">{{ productoDescripcionError }}</div>
+
+        <!-- BEBIDA O PLATO - Campo tiempo de elaboración del plato -->
+        <ion-item>
+          <ion-icon slot="start" name="time-outline"></ion-icon>
+          <ion-label position="floating">Tiempo de elaboración (minutos)</ion-label>
+          <ion-input type="number" formControlName="tiempoElaboracion" min="1" max="60"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="productoTiempoError">{{ productoTiempoError }}</div>
+
+        <!-- BEBIDA O PLATO - Campo precio del plato -->
+        <ion-item>
+          <ion-icon slot="start" name="cash-outline"></ion-icon>
+          <ion-label position="floating">Precio ($)</ion-label>
+          <ion-input type="number" step="0.01" formControlName="precio"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="productoPrecioError">{{ productoPrecioError }}</div>
+
+        <!-- BEBIDA O PLATO - Botón para tomar fotos del plato -->
+        <ion-item>
+          <ion-icon slot="start" name="images-outline"></ion-icon>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="tomarFoto()">Tomar Fotos</ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="productoImagenesError">{{ productoImagenesError }}</div>
+
+        <!-- BEBIDA O PLATO - Preview de imágenes del plato -->
+        <div *ngIf="imagenesProductoURLs.length > 0" class="imagenes-preview">
+          <ion-label>Vista previa de imágenes ({{ imagenesProductoArchivos.length }}/3):</ion-label>
+          <div class="imagenes-grid">
+            <div *ngFor="let imagen of imagenesProductoURLs; let i = index" class="imagen-preview">
+              <img [src]="imagen" alt="Preview" />
+              <span class="imagen-numero">{{ i + 1 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <!-- BEBIDA O PLATO - Botón para registrar plato -->
+        <ion-button expand="block" type="submit" [disabled]="productoForm.invalid">
+          REGISTRAR PLATO
+        </ion-button>
+
+        <div *ngIf="mensajeExito" class="mensaje-exito">
+          {{ mensajeExito }}
+        </div>
+      </form>
+
+      <!-- BEBIDA O PLATO - Formulario para registro de bebidas -->
+      <form *ngIf="tipoRegistro==='bebida'" [formGroup]="bebidaForm" (ngSubmit)="registrarBebida()">
+        <!-- BEBIDA O PLATO - Campo nombre de la bebida -->
+        <ion-item>
+          <ion-icon slot="start" name="wine-outline"></ion-icon>
+          <ion-label position="floating">Nombre de la bebida</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="bebidaNombreError">{{ bebidaNombreError }}</div>
+
+        <!-- BEBIDA O PLATO - Campo descripción de la bebida -->
+        <ion-item>
+          <ion-icon slot="start" name="document-text-outline"></ion-icon>
+          <ion-label position="floating">Descripción</ion-label>
+          <ion-textarea formControlName="descripcion" rows="3" placeholder="Describe la bebida..."></ion-textarea>
+        </ion-item>
+        <div class="field-error" *ngIf="bebidaDescripcionError">{{ bebidaDescripcionError }}</div>
+
+        <!-- BEBIDA O PLATO - Campo tiempo de elaboración de la bebida -->
+        <ion-item>
+          <ion-icon slot="start" name="time-outline"></ion-icon>
+          <ion-label position="floating">Tiempo de elaboración (minutos)</ion-label>
+          <ion-input type="number" formControlName="tiempoElaboracion" min="1" max="60"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="bebidaTiempoError">{{ bebidaTiempoError }}</div>
+
+        <!-- BEBIDA O PLATO - Campo precio de la bebida -->
+        <ion-item>
+          <ion-icon slot="start" name="cash-outline"></ion-icon>
+          <ion-label position="floating">Precio ($)</ion-label>
+          <ion-input type="number" step="0.01" formControlName="precio"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="bebidaPrecioError">{{ bebidaPrecioError }}</div>
+
+        <!-- BEBIDA O PLATO - Botón para tomar fotos de la bebida -->
+        <ion-item>
+          <ion-icon slot="start" name="images-outline"></ion-icon>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="tomarFoto()">Tomar Fotos</ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="bebidaImagenesError">{{ bebidaImagenesError }}</div>
+
+        <!-- BEBIDA O PLATO - Preview de imágenes de la bebida -->
+        <div *ngIf="imagenesBebidaURLs.length > 0" class="imagenes-preview">
+          <ion-label>Vista previa de imágenes ({{ imagenesBebidaArchivos.length }}/3):</ion-label>
+          <div class="imagenes-grid">
+            <div *ngFor="let imagen of imagenesBebidaURLs; let i = index" class="imagen-preview">
+              <img [src]="imagen" alt="Preview" />
+              <span class="imagen-numero">{{ i + 1 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <!-- BEBIDA O PLATO - Botón para registrar bebida -->
+        <ion-button expand="block" type="submit" [disabled]="bebidaForm.invalid">
+          REGISTRAR BEBIDA
+        </ion-button>
+
+        <div *ngIf="mensajeExito" class="mensaje-exito">
+          {{ mensajeExito }}
+        </div>
+      </form>
+
       <form *ngIf="tipoRegistro==='mesa'" [formGroup]="mesaForm" (ngSubmit)="registrarMesa()">
         <ion-item>
           <ion-icon slot="start" name="grid-outline"></ion-icon>
@@ -352,7 +479,7 @@
         </div>
       </form>
 
- 
+      <!-- Selector de tipo de registro condicionado por roles -->
       <div *ngIf="esAdmin && (perfilUsuario === 'dueño' || perfilUsuario === 'supervisor')" class="registro-selector">
         <ion-button size="small" [color]="tipoRegistro==='supervisor' ? 'success' : 'medium'" (click)="setTipoRegistro('supervisor')">Supervisor</ion-button>
         <ion-button size="small" [color]="tipoRegistro==='empleado' ? 'success' : 'medium'" (click)="setTipoRegistro('empleado')">Empleado</ion-button>
@@ -363,9 +490,17 @@
         <ion-button size="small" [color]="tipoRegistro==='cliente' ? 'success' : 'medium'" (click)="setTipoRegistro('cliente')">Cliente</ion-button>
       </div>
 
-    
+      <div *ngIf="esCocinero && !esAdmin && !esMaitre" class="registro-selector">
+        <!-- BEBIDA O PLATO - Solo cocineros pueden registrar platos -->
+        <ion-button size="small" [color]="tipoRegistro==='producto' ? 'success' : 'medium'" (click)="setTipoRegistro('producto')">Plato</ion-button>
+      </div>
 
-  
+      <div *ngIf="esBartender && !esAdmin && !esMaitre" class="registro-selector">
+        <!-- BEBIDA O PLATO - Solo bartenders pueden registrar bebidas -->
+        <ion-button size="small" [color]="tipoRegistro==='bebida' ? 'success' : 'medium'" (click)="setTipoRegistro('bebida')">Bebida</ion-button>
+      </div>
+
+      <!-- Usuarios anónimos (sin login) solo pueden registrar clientes -->
       <div *ngIf="!esAdmin && !esMaitre && !esCocinero && !esBartender" class="registro-selector">
         <ion-button size="small" [color]="tipoRegistro==='cliente' ? 'success' : 'medium'" (click)="setTipoRegistro('cliente')">Cliente</ion-button>
       </div>

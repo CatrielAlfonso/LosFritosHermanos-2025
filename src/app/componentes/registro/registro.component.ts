@@ -22,6 +22,8 @@ import { PushNotificationService } from 'src/app/servicios/push-notification.ser
 export class RegistroComponent implements OnInit {
   empleadoForm: FormGroup;
   supervisorForm: FormGroup;
+  productoForm: FormGroup;
+  bebidaForm: FormGroup;
   mesaForm: FormGroup;
   clienteForm: FormGroup;
 
@@ -58,6 +60,17 @@ export class RegistroComponent implements OnInit {
   mesaTipoError: string = '';
   mesaImagenError: string = '';
 
+  productoNombreError: string = '';
+  productoDescripcionError: string = '';
+  productoTiempoError: string = '';
+  productoPrecioError: string = '';
+  productoImagenesError: string = '';
+
+  bebidaNombreError: string = '';
+  bebidaDescripcionError: string = '';
+  bebidaTiempoError: string = '';
+  bebidaPrecioError: string = '';
+  bebidaImagenesError: string = '';
 
   imagenEmpleadoURL: string | null = null;
   imagenSupervisorURL: string | null = null;
@@ -117,7 +130,23 @@ export class RegistroComponent implements OnInit {
 
 
  
-    
+    this.productoForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.pattern(/^[A-Za-zÀ-ÿ\s]+$/)]],
+      descripcion: ['', [Validators.required, Validators.minLength(10)]],
+      tiempoElaboracion: ['', [Validators.required, Validators.min(1), Validators.max(60)]],
+      precio: ['', [Validators.required, Validators.min(0.01)]],
+      tipo: ['comida', Validators.required],
+      imagenes: [null, [Validators.required, this.validarTresImagenes.bind(this)]]
+    });
+
+    this.bebidaForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.pattern(/^[A-Za-zÀ-ÿ\s]+$/)]],
+      descripcion: ['', [Validators.required, Validators.minLength(10)]],
+      tiempoElaboracion: ['', [Validators.required, Validators.min(1), Validators.max(60)]],
+      precio: ['', [Validators.required, Validators.min(0.01)]],
+      tipo: ['bebida', Validators.required],
+      imagenes: [null, [Validators.required, this.validarTresImagenes.bind(this)]]
+    });
 
     this.mesaForm = this.fb.group({
       numero: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
@@ -339,7 +368,61 @@ export class RegistroComponent implements OnInit {
     }
   }
 
-  
+  async registrarProducto() {
+    if (this.productoForm.invalid || this.imagenesProductoArchivos.length !== 3) {
+      this.mensajeError = 'Por favor completa todos los campos y selecciona 3 imágenes';
+      return;
+    }
+    this.loadingService.show();
+    try {
+      const { nombre, descripcion, tiempoElaboracion, precio, tipo } = this.productoForm.value;
+      const imagenesURLs: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        const archivo = this.imagenesProductoArchivos[i];
+        const { data, error } = await this.sb.supabase.storage.from('imagenes').upload(`producto-${nombre}-${i}-${archivo.name}`, archivo, { upsert: true });
+        if (error) throw new Error(error.message);
+        imagenesURLs.push(this.sb.supabase.storage.from('imagenes').getPublicUrl(data.path).data.publicUrl);
+      }
+      const { error } = await this.sb.supabase.from('productos').insert([{ nombre, descripcion, tiempo_elaboracion: tiempoElaboracion, precio: parseFloat(precio), tipo, imagenes: imagenesURLs }]);
+      if (error) throw new Error(error.message);
+      this.mensajeExito = 'Producto registrado exitosamente!';
+      this.productoForm.reset();
+      this.imagenesProductoURLs = [];
+      this.imagenesProductoArchivos = [];
+      this.loadingService.hide();
+    } catch (e) {
+      this.mensajeError = 'Error: ' + (e as Error).message;
+      this.loadingService.hide();
+    }
+  }
+
+  async registrarBebida() {
+    if (this.bebidaForm.invalid || this.imagenesBebidaArchivos.length !== 3) {
+      this.mensajeError = 'Por favor completa todos los campos y selecciona 3 imágenes';
+      return;
+    }
+    this.loadingService.show();
+    try {
+      const { nombre, descripcion, tiempoElaboracion, precio, tipo } = this.bebidaForm.value;
+      const imagenesURLs: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        const archivo = this.imagenesBebidaArchivos[i];
+        const { data, error } = await this.sb.supabase.storage.from('imagenes').upload(`bebida-${nombre}-${i}-${archivo.name}`, archivo, { upsert: true });
+        if (error) throw new Error(error.message);
+        imagenesURLs.push(this.sb.supabase.storage.from('imagenes').getPublicUrl(data.path).data.publicUrl);
+      }
+      const { error } = await this.sb.supabase.from('productos').insert([{ nombre, descripcion, tiempo_elaboracion: tiempoElaboracion, precio: parseFloat(precio), tipo, imagenes: imagenesURLs }]);
+      if (error) throw new Error(error.message);
+      this.mensajeExito = 'Bebida registrada exitosamente!';
+      this.bebidaForm.reset();
+      this.imagenesBebidaURLs = [];
+      this.imagenesBebidaArchivos = [];
+      this.loadingService.hide();
+    } catch (e) {
+      this.mensajeError = 'Error: ' + (e as Error).message;
+      this.loadingService.hide();
+    }
+  }
 
   async registrarCliente() {
     if (this.clienteForm.invalid) {
@@ -515,7 +598,24 @@ export class RegistroComponent implements OnInit {
       input.multiple = true;
     }
 
-   
+    input.onchange = (event: any) => {
+      if (this.tipoRegistro === 'producto') {
+        const files = event.target.files;
+        for (let i = 0; i < files.length && this.imagenesProductoArchivos.length < 3; i++) {
+          this.agregarFotoProducto(files[i]);
+        }
+      } else if (this.tipoRegistro === 'bebida') {
+        const files = event.target.files;
+        for (let i = 0; i < files.length && this.imagenesBebidaArchivos.length < 3; i++) {
+          this.agregarFotoBebida(files[i]);
+        }
+      } else {
+        const archivo = event.target.files[0];
+        if (archivo) {
+          this.procesarImagenUnica(archivo);
+        }
+      }
+    };
 
     input.click();
   }
@@ -545,7 +645,23 @@ export class RegistroComponent implements OnInit {
     reader.readAsDataURL(archivo);
   }
 
-  
+  agregarFotoProducto(archivo: File) {
+    if (this.imagenesProductoArchivos.length >= 3) {
+      this.mensajeError = 'Ya tienes 3 imágenes seleccionadas';
+      return;
+    }
+    this.imagenesProductoArchivos.push(archivo);
+    this.actualizarPreviewProducto();
+  }
+
+  agregarFotoBebida(archivo: File) {
+    if (this.imagenesBebidaArchivos.length >= 3) {
+      this.mensajeError = 'Ya tienes 3 imágenes seleccionadas';
+      return;
+    }
+    this.imagenesBebidaArchivos.push(archivo);
+    this.actualizarPreviewBebida();
+  }
 
   actualizarPreviewProducto() {
     this.imagenesProductoURLs = [];
@@ -582,7 +698,10 @@ export class RegistroComponent implements OnInit {
     this.imagenSupervisorURL = null;
     this.imagenMesaURL = null;
     this.imagenClienteURL = null;
-  
+    this.imagenesProductoURLs = [];
+    this.imagenesBebidaURLs = [];
+    this.imagenesProductoArchivos = [];
+    this.imagenesBebidaArchivos = [];
     this.qrMesaURL = null;
   }
 
@@ -590,7 +709,7 @@ export class RegistroComponent implements OnInit {
     this.router.navigate(['/home']);
   }
 
-
+  // Método para validar campos de empleado en tiempo real
   validarCampoEmpleado(campo: string) {
     const control = this.empleadoForm.get(campo);
     if (!control) return;
