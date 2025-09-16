@@ -16,7 +16,8 @@ log.txt
 /.sourcemaps
 /.versions
 /coverage
-
+login/
+servicios/push-notification.service.ts
 # Ionic
 /.ionic
 /www

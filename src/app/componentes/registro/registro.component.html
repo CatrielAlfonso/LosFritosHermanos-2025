@@ -1,0 +1,286 @@
+<ion-content class="register-page fritos-theme" fullscreen="true" [scrollEvents]="true" scroll="true">
+  <div class="center-wrapper">
+    <div class="register-container fritos-card">
+      <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Logo" class="login-logo fritos-bounce" />
+      <h2 class="register-subtitle fritos-logo">¡BIENVENIDO!</h2>
+
+
+      <form *ngIf="tipoRegistro==='empleado'" [formGroup]="empleadoForm" (ngSubmit)="registrarEmpleado()">
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Nombre</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="empleadoNombreError">{{ empleadoNombreError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Apellido</ion-label>
+          <ion-input formControlName="apellido"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="empleadoApellidoError">{{ empleadoApellidoError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="mail-outline"></ion-icon>
+          <ion-label position="floating">Correo electrónico</ion-label>
+          <ion-input type="email" formControlName="correo"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="empleadoCorreoError">{{ empleadoCorreoError }}</div>
+        
+        <ion-item>
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input type="password" formControlName="contrasenia"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="empleadoContraseniaError">{{ empleadoContraseniaError }}</div>
+
+     
+
+        <ion-item>
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          <ion-label position="floating">CUIL</ion-label>
+          <ion-input type="text" formControlName="cuil"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="empleadoCuilError">{{ empleadoCuilError }}</div>
+
+        <ion-item lines="none">
+          <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+          <ion-label>Perfil del empleado:</ion-label>
+          <div class="perfil-empleado-container">
+            <!-- Primera fila -->
+            <div class="perfil-fila">
+              <div class="perfil-opcion">
+                <ion-checkbox
+                  [checked]="empleadoForm.get('perfil')?.value === 'cocinero'"
+                  (ionChange)="empleadoForm.get('perfil')?.setValue('cocinero')"
+                ></ion-checkbox>
+                <span class="texto-perfil">Cocinero</span>
+              </div>
+              <div class="perfil-opcion">
+                <ion-checkbox
+                  [checked]="empleadoForm.get('perfil')?.value === 'bartender'"
+                  (ionChange)="empleadoForm.get('perfil')?.setValue('bartender')"
+                ></ion-checkbox>
+                <span class="texto-perfil">Bartender</span>
+              </div>
+            </div>
+            <!-- Segunda fila -->
+            <div class="perfil-fila">
+              <div class="perfil-opcion">
+                <ion-checkbox
+                  [checked]="empleadoForm.get('perfil')?.value === 'mozo'"
+                  (ionChange)="empleadoForm.get('perfil')?.setValue('mozo')"
+                ></ion-checkbox>
+                <span class="texto-perfil">Mozo</span>
+              </div>
+              <div class="perfil-opcion">
+                <ion-checkbox
+                  [checked]="empleadoForm.get('perfil')?.value === 'maitre'"
+                  (ionChange)="empleadoForm.get('perfil')?.setValue('maitre')"
+                ></ion-checkbox>
+                <span class="texto-perfil">Maitre</span>
+              </div>
+            </div>
+          </div>
+        </ion-item>
+        <div class="field-error" *ngIf="empleadoPerfilError">{{ empleadoPerfilError }}</div>
+
+      
+
+        <div *ngIf="imagenEmpleadoURL" class="imagen-preview-única">
+          <ion-label>Vista previa:</ion-label>
+          <div class="preview-wrapper">
+            <img [src]="imagenEmpleadoURL" alt="Preview" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"/>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <ion-button expand="block" type="submit" [disabled]="empleadoForm.invalid">
+          REGISTRAR EMPLEADO
+        </ion-button>
+
+        <div *ngIf="mensajeExito" class="mensaje-exito">
+          {{ mensajeExito }}
+        </div>
+      </form>
+
+  
+      <form *ngIf="tipoRegistro==='supervisor'" [formGroup]="supervisorForm" (ngSubmit)="registrarSupervisor()">
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Nombre</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorNombreError">{{ supervisorNombreError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Apellido</ion-label>
+          <ion-input formControlName="apellido"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorApellidoError">{{ supervisorApellidoError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="mail-outline"></ion-icon>
+          <ion-label position="floating">Correo electrónico</ion-label>
+          <ion-input type="email" formControlName="correo"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorCorreoError">{{ supervisorCorreoError }}</div>
+        
+        <ion-item>
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input type="password" formControlName="contrasenia"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorContraseniaError">{{ supervisorContraseniaError }}</div>
+
+    
+
+        <ion-item>
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          <ion-label position="floating">CUIL</ion-label>
+          <ion-input type="text" formControlName="cuil"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorCuilError">{{ supervisorCuilError }}</div>
+
+        <ion-item lines="none">
+          <ion-label>Perfil</ion-label>
+          <div class="perfil-checkboxes fila-horizontal">
+            <div class="perfil-opcion">
+              <ion-checkbox
+                [checked]="supervisorForm.get('perfil')?.value === 'dueño'"
+                (ionChange)="supervisorForm.get('perfil')?.setValue('dueño')"
+              ></ion-checkbox>
+              <span class="texto-perfil">Dueño</span>
+            </div>
+            <div class="perfil-opcion">
+              <ion-checkbox
+                [checked]="supervisorForm.get('perfil')?.value === 'supervisor'"
+                (ionChange)="supervisorForm.get('perfil')?.setValue('supervisor')"
+              ></ion-checkbox>
+              <span class="texto-perfil">Supervisor</span>
+            </div>
+          </div>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorPerfilError">{{ supervisorPerfilError }}</div>
+
+     
+
+        <div *ngIf="imagenSupervisorURL" class="imagen-preview-única">
+          <ion-label>Vista previa:</ion-label>
+          <div class="preview-wrapper">
+            <img [src]="imagenSupervisorURL" alt="Preview" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"/>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <ion-button expand="block" type="submit" [disabled]="supervisorForm.invalid">
+          REGISTRAR SUPERVISOR
+        </ion-button>
+
+        <div *ngIf="mensajeExito" class="mensaje-exito">
+          {{ mensajeExito }}
+        </div>
+      </form>
+
+
+  
+
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        
+
+      <form *ngIf="tipoRegistro==='mesa'" [formGroup]="mesaForm" (ngSubmit)="registrarMesa()">
+        <ion-item>
+          <ion-icon slot="start" name="grid-outline"></ion-icon>
+          <ion-label position="floating">Número de mesa</ion-label>
+          <ion-input formControlName="numero"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="mesaNumeroError">{{ mesaNumeroError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="people-outline"></ion-icon>
+          <ion-label position="floating">Cantidad de comensales</ion-label>
+          <ion-input type="number" formControlName="comensales"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="mesaComensalesError">{{ mesaComensalesError }}</div>
+
+        <ion-item lines="none">
+          <ion-label>Tipo de mesa:</ion-label>
+          <div class="perfil-checkboxes">
+            <label class="checkbox-label">
+              <ion-checkbox
+                [checked]="mesaForm.get('tipo')?.value === 'estandar'"
+                (ionChange)="mesaForm.get('tipo')?.setValue('estandar')"
+              ></ion-checkbox>
+              <span>Estándar</span>
+            </label>
+            <label class="checkbox-label">
+              <ion-checkbox
+                [checked]="mesaForm.get('tipo')?.value === 'vip'"
+                (ionChange)="mesaForm.get('tipo')?.setValue('vip')"
+              ></ion-checkbox>
+              <span>VIP</span>
+            </label>
+            <label class="checkbox-label">
+              <ion-checkbox
+                [checked]="mesaForm.get('tipo')?.value === 'discapacitados'"
+                (ionChange)="mesaForm.get('tipo')?.setValue('discapacitados')"
+              ></ion-checkbox>
+              <span>Movilidad reducida</span>
+            </label>
+          </div>
+        </ion-item>
+        <div class="field-error" *ngIf="mesaTipoError">{{ mesaTipoError }}</div>
+
+     
+
+        <div *ngIf="imagenMesaURL" class="imagen-preview-única">
+          <ion-label>Vista previa:</ion-label>
+          <div class="preview-wrapper">
+            <img [src]="imagenMesaURL" alt="Preview" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"/>
+          </div>
+        </div>
+
+        <div *ngIf="qrMesaURL" class="imagen-preview-única">
+          <ion-label>QR Generado:</ion-label>
+          <div class="preview-wrapper">
+            <img [src]="qrMesaURL" alt="QR Code" style="width: 80px; height: 80px;"/>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <ion-button expand="block" type="submit" [disabled]="mesaForm.invalid">
+          REGISTRAR MESA
+        </ion-button>
+
+        <div *ngIf="mensajeExito" class="mensaje-exito">
+          {{ mensajeExito }}
+        </div>
+      </form>
+
+   
+
+      <div *ngIf="esAdmin && (perfilUsuario === 'dueño' || perfilUsuario === 'supervisor')" class="registro-selector">
+        <ion-button size="small" [color]="tipoRegistro==='supervisor' ? 'success' : 'medium'" (click)="setTipoRegistro('supervisor')">Supervisor</ion-button>
+        <ion-button size="small" [color]="tipoRegistro==='empleado' ? 'success' : 'medium'" (click)="setTipoRegistro('empleado')">Empleado</ion-button>
+        <ion-button size="small" [color]="tipoRegistro==='mesa' ? 'success' : 'medium'" (click)="setTipoRegistro('mesa')">Mesa</ion-button>
+      </div>
+
+      <div *ngIf="esMaitre && !esAdmin" class="registro-selector">
+        <ion-button size="small" [color]="tipoRegistro==='cliente' ? 'success' : 'medium'" (click)="setTipoRegistro('cliente')">Cliente</ion-button>
+      </div>
+
+    
+
+      <div class="register-link">
+        <a *ngIf="!estaAutenticado" (click)="irAlLogin()">¿Ya tenés cuenta? Iniciar sesión</a>
+        <br *ngIf="!estaAutenticado">
+        <a (click)="volverAlHome()">Volver al Home</a>
+      </div>
+    </div>
+  </div>
+</ion-content>

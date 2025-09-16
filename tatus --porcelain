@@ -1,0 +1,20 @@
+[1mdiff --git a/src/app/app.module.ts b/src/app/app.module.ts[m
+[1mindex 34b715b..44c2e72 100644[m
+[1m--- a/src/app/app.module.ts[m
+[1m+++ b/src/app/app.module.ts[m
+[36m@@ -1,5 +1,6 @@[m
+ import { NgModule } from '@angular/core';[m
+ import { BrowserModule } from '@angular/platform-browser';[m
+[32m+[m[32mimport { HttpClientModule } from '@angular/common/http';[m
+ import { RouteReuseStrategy } from '@angular/router';[m
+ [m
+ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';[m
+[36m@@ -9,7 +10,7 @@[m [mimport { AppRoutingModule } from './app-routing.module';[m
+ [m
+ @NgModule({[m
+   declarations: [AppComponent],[m
+[31m-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],[m
+[32m+[m[32m  imports: [BrowserModule, HttpClientModule, IonicModule.forRoot(), AppRoutingModule],[m
+   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],[m
+   bootstrap: [AppComponent],[m
+ })[m

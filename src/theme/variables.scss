@@ -1,2 +1,88 @@
 // For information on how to create your own theme, please see:
 // http://ionicframework.com/docs/theming/
+
+// Paleta de colores de LOS FRITOS HERMANOS
+:root {
+  // Colores principales de la marca
+  --ion-color-fritos-yellow: #F4C451;
+  --ion-color-fritos-yellow-rgb: 244, 196, 81;
+  --ion-color-fritos-yellow-contrast: #000000;
+  --ion-color-fritos-yellow-contrast-rgb: 0, 0, 0;
+  --ion-color-fritos-yellow-shade: #d7ac47;
+  --ion-color-fritos-yellow-tint: #f5ca63;
+
+  --ion-color-fritos-blue: #1B3769;
+  --ion-color-fritos-blue-rgb: 27, 55, 105;
+  --ion-color-fritos-blue-contrast: #ffffff;
+  --ion-color-fritos-blue-contrast-rgb: 255, 255, 255;
+  --ion-color-fritos-blue-shade: #18305c;
+  --ion-color-fritos-blue-tint: #324b78;
+
+  --ion-color-fritos-red: #E53E3E;
+  --ion-color-fritos-red-rgb: 229, 62, 62;
+  --ion-color-fritos-red-contrast: #ffffff;
+  --ion-color-fritos-red-contrast-rgb: 255, 255, 255;
+  --ion-color-fritos-red-shade: #ca3737;
+  --ion-color-fritos-red-tint: #e85151;
+
+  // Colores secundarios
+  --ion-color-fritos-orange: #FF8C00;
+  --ion-color-fritos-orange-rgb: 255, 140, 0;
+  --ion-color-fritos-orange-contrast: #ffffff;
+  --ion-color-fritos-orange-contrast-rgb: 255, 255, 255;
+  --ion-color-fritos-orange-shade: #e27b00;
+  --ion-color-fritos-orange-tint: #ff981a;
+
+  --ion-color-fritos-green: #38A169;
+  --ion-color-fritos-green-rgb: 56, 161, 105;
+  --ion-color-fritos-green-contrast: #ffffff;
+  --ion-color-fritos-green-contrast-rgb: 255, 255, 255;
+  --ion-color-fritos-green-shade: #318e5c;
+  --ion-color-fritos-green-tint: #4caa78;
+}
+
+// Definir las clases de color para Ionic
+.ion-color-fritos-yellow {
+  --ion-color-base: var(--ion-color-fritos-yellow);
+  --ion-color-base-rgb: var(--ion-color-fritos-yellow-rgb);
+  --ion-color-contrast: var(--ion-color-fritos-yellow-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-fritos-yellow-contrast-rgb);
+  --ion-color-shade: var(--ion-color-fritos-yellow-shade);
+  --ion-color-tint: var(--ion-color-fritos-yellow-tint);
+}
+
+.ion-color-fritos-blue {
+  --ion-color-base: var(--ion-color-fritos-blue);
+  --ion-color-base-rgb: var(--ion-color-fritos-blue-rgb);
+  --ion-color-contrast: var(--ion-color-fritos-blue-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-fritos-blue-contrast-rgb);
+  --ion-color-shade: var(--ion-color-fritos-blue-shade);
+  --ion-color-tint: var(--ion-color-fritos-blue-tint);
+}
+
+.ion-color-fritos-red {
+  --ion-color-base: var(--ion-color-fritos-red);
+  --ion-color-base-rgb: var(--ion-color-fritos-red-rgb);
+  --ion-color-contrast: var(--ion-color-fritos-red-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-fritos-red-contrast-rgb);
+  --ion-color-shade: var(--ion-color-fritos-red-shade);
+  --ion-color-tint: var(--ion-color-fritos-red-tint);
+}
+
+.ion-color-fritos-orange {
+  --ion-color-base: var(--ion-color-fritos-orange);
+  --ion-color-base-rgb: var(--ion-color-fritos-orange-rgb);
+  --ion-color-contrast: var(--ion-color-fritos-orange-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-fritos-orange-contrast-rgb);
+  --ion-color-shade: var(--ion-color-fritos-orange-shade);
+  --ion-color-tint: var(--ion-color-fritos-orange-tint);
+}
+
+.ion-color-fritos-green {
+  --ion-color-base: var(--ion-color-fritos-green);
+  --ion-color-base-rgb: var(--ion-color-fritos-green-rgb);
+  --ion-color-contrast: var(--ion-color-fritos-green-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-fritos-green-contrast-rgb);
+  --ion-color-shade: var(--ion-color-fritos-green-shade);
+  --ion-color-tint: var(--ion-color-fritos-green-tint);
+}
