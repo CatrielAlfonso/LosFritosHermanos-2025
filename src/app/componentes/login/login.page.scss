@@ -1,0 +1,230 @@
+.login-page {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
+  font-family: 'Poppins', sans-serif;
+
+  .center-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 0.5rem;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 340px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1.5rem 0.5rem 1.5rem 0.5rem;
+    box-shadow: 0 6px 18px rgba(27, 55, 105, 0.15);
+    border: 2px solid var(--ion-color-fritos-yellow);
+    padding: 1.5rem 1rem;
+    text-align: center;
+  }
+
+  .welcome-title {
+    color: var(--ion-color-fritos-red);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .login-subtitle {
+    font-size: 2.1rem;
+    color: var(--ion-color-fritos-red);
+    margin-bottom: 1.2rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+  }
+
+  form {
+    width: 100%;
+  }
+
+  ion-item {
+    --background: rgba(255, 255, 255, 0.9);
+    --border-radius: 12px;
+    --border: 2px solid var(--ion-color-fritos-yellow);
+    --highlight-color-focused: var(--ion-color-fritos-red);
+    --padding-start: 0.5rem;
+    margin-bottom: 0.8rem;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(27, 55, 105, 0.1);
+
+    ion-icon {
+      color: var(--ion-color-fritos-blue);
+      background: var(--ion-color-fritos-yellow);
+      padding: 6px;
+      border-radius: 50%;
+      font-size: 20px;
+      margin-right: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    ion-label {
+      color: var(--ion-color-fritos-blue) !important;
+      font-size: 1rem;
+      --color: var(--ion-color-fritos-blue) !important;
+      font-weight: 600;
+    }
+
+    ion-label[position="floating"] {
+      color: var(--ion-color-fritos-blue) !important;
+      --color: var(--ion-color-fritos-blue) !important;
+    }
+
+    ion-label.ion-focused {
+      color: var(--ion-color-fritos-red) !important;
+      --color: var(--ion-color-fritos-red) !important;
+    }
+
+    ion-label.ion-valid {
+      color: var(--ion-color-fritos-blue) !important;
+      --color: var(--ion-color-fritos-blue) !important;
+    }
+
+    ion-label.ion-invalid {
+      color: var(--ion-color-fritos-red) !important;
+      --color: var(--ion-color-fritos-red) !important;
+    }
+
+    ion-input {
+      color: var(--ion-color-fritos-blue);
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    ion-button[slot="end"] {
+      position: absolute;
+      right: 8px;
+      bottom: 6px;
+      z-index: 2;
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      min-width: 32px;
+      height: 32px;
+      background: transparent;
+      color: var(--ion-color-fritos-blue);
+    }
+  }
+
+  ion-button[type="submit"] {
+    margin-top: 0.8rem;
+    --background: var(--ion-color-fritos-red);
+    --background-hover: var(--ion-color-fritos-red-shade);
+    --color: var(--ion-color-fritos-red-contrast);
+    font-weight: bold;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+    height: 42px;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .error-message {
+    color: var(--ion-color-fritos-red);
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+    font-weight: 500;
+    background: rgba(229, 62, 62, 0.1);
+    padding: 0.5rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--ion-color-fritos-red);
+  }
+
+  .field-error {
+    color: var(--ion-color-fritos-red);
+    font-size: 0.75rem;
+    margin: -0.3rem 0 0.5rem 0.5rem;
+    text-align: left;
+    font-weight: 500;
+  }
+
+  .register-link {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    color: var(--ion-color-fritos-blue);
+    font-weight: 500;
+
+    a {
+      color: var(--ion-color-fritos-red);
+      font-weight: bold;
+      margin-left: 4px;
+      cursor: pointer;
+      text-decoration: underline;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: var(--ion-color-fritos-red-shade);
+      }
+    }
+  }
+
+  .quick-access-container {
+    margin-top: 2rem;
+
+    .quick-access-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--ion-color-fritos-blue);
+      margin-bottom: 0.7rem;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .quick-access {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+
+    ion-button {
+      --background: var(--ion-color-fritos-blue);
+      --background-hover: var(--ion-color-fritos-blue-shade);
+      --ion-color-base: var(--ion-color-fritos-blue);
+      --ion-color-contrast: var(--ion-color-fritos-blue-contrast);
+      --box-shadow: 0 2px 6px rgba(27, 55, 105, 0.3);
+      --background-activated: var(--ion-color-fritos-blue-shade);
+      --background-focused: var(--ion-color-fritos-blue-shade);
+      border: 2px solid var(--ion-color-fritos-yellow);
+      border-radius: 22px;
+      color: var(--ion-color-fritos-blue-contrast);
+      font-size: 0.8rem;
+      height: 42px;
+      min-width: 140px;
+      flex: 1 1 110px;
+      max-width: 120px;
+      text-align: center;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    ion-button::part(native) {
+      transition: all 0.2s ease;
+
+      &:active {
+        transform: scale(0.92);
+      }
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(27, 55, 105, 0.4);
+      }
+    }
+  }
+
+  .login-logo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--ion-color-fritos-yellow);
+    box-shadow: 0 4px 12px rgba(27, 55, 105, 0.2);
+    margin-bottom: 1rem;
+  }
+}
