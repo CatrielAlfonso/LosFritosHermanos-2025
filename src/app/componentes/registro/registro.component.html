@@ -34,7 +34,15 @@
         </ion-item>
         <div class="field-error" *ngIf="empleadoContraseniaError">{{ empleadoContraseniaError }}</div>
 
-     
+        <ion-item>
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          <ion-label position="floating">DNI</ion-label>
+          <ion-input type="text" formControlName="dni"></ion-input>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="escanearDNI()">
+            Escanear
+          </ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="empleadoDniError">{{ empleadoDniError }}</div>
 
         <ion-item>
           <ion-icon slot="start" name="card-outline"></ion-icon>
@@ -47,7 +55,7 @@
           <ion-icon slot="start" name="person-circle-outline"></ion-icon>
           <ion-label>Perfil del empleado:</ion-label>
           <div class="perfil-empleado-container">
-            <!-- Primera fila -->
+    
             <div class="perfil-fila">
               <div class="perfil-opcion">
                 <ion-checkbox
@@ -64,7 +72,7 @@
                 <span class="texto-perfil">Bartender</span>
               </div>
             </div>
-            <!-- Segunda fila -->
+        
             <div class="perfil-fila">
               <div class="perfil-opcion">
                 <ion-checkbox
@@ -85,7 +93,12 @@
         </ion-item>
         <div class="field-error" *ngIf="empleadoPerfilError">{{ empleadoPerfilError }}</div>
 
-      
+        <ion-item>
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          <ion-label>Foto</ion-label>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="tomarFoto()">Tomar Foto</ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="empleadoImagenError">{{ empleadoImagenError }}</div>
 
         <div *ngIf="imagenEmpleadoURL" class="imagen-preview-única">
           <ion-label>Vista previa:</ion-label>
@@ -135,7 +148,15 @@
         </ion-item>
         <div class="field-error" *ngIf="supervisorContraseniaError">{{ supervisorContraseniaError }}</div>
 
-    
+        <ion-item>
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          <ion-label position="floating">DNI</ion-label>
+          <ion-input type="text" formControlName="dni"></ion-input>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="escanearDNI()">
+            Escanear
+          </ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorDniError">{{ supervisorDniError }}</div>
 
         <ion-item>
           <ion-icon slot="start" name="card-outline"></ion-icon>
@@ -165,7 +186,12 @@
         </ion-item>
         <div class="field-error" *ngIf="supervisorPerfilError">{{ supervisorPerfilError }}</div>
 
-     
+        <ion-item>
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          <ion-label>Foto</ion-label>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="tomarFoto()">Tomar Foto</ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorImagenError">{{ supervisorImagenError }}</div>
 
         <div *ngIf="imagenSupervisorURL" class="imagen-preview-única">
           <ion-label>Vista previa:</ion-label>
@@ -186,12 +212,7 @@
       </form>
 
 
-  
-
-        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
-
-        
-
+    
       <form *ngIf="tipoRegistro==='mesa'" [formGroup]="mesaForm" (ngSubmit)="registrarMesa()">
         <ion-item>
           <ion-icon slot="start" name="grid-outline"></ion-icon>
@@ -235,7 +256,12 @@
         </ion-item>
         <div class="field-error" *ngIf="mesaTipoError">{{ mesaTipoError }}</div>
 
-     
+        <ion-item>
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          <ion-label>Foto</ion-label>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="tomarFoto()">Tomar Foto</ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="mesaImagenError">{{ mesaImagenError }}</div>
 
         <div *ngIf="imagenMesaURL" class="imagen-preview-única">
           <ion-label>Vista previa:</ion-label>
@@ -262,8 +288,71 @@
         </div>
       </form>
 
-   
+      <form *ngIf="tipoRegistro==='cliente'" [formGroup]="clienteForm" (ngSubmit)="registrarCliente()">
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Nombre</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="clienteNombreError">{{ clienteNombreError }}</div>
 
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Apellido</ion-label>
+          <ion-input formControlName="apellido"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="clienteApellidoError">{{ clienteApellidoError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="mail-outline"></ion-icon>
+          <ion-label position="floating">Correo electrónico</ion-label>
+          <ion-input type="email" formControlName="correo"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="clienteCorreoError">{{ clienteCorreoError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input type="password" formControlName="contrasenia"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="clienteContraseniaError">{{ clienteContraseniaError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          <ion-label position="floating">DNI</ion-label>
+          <ion-input type="text" formControlName="dni"></ion-input>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="escanearDNI()">
+            Escanear
+          </ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="clienteDniError">{{ clienteDniError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          <ion-label>Foto</ion-label>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="tomarFoto()">Tomar Foto</ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="clienteImagenError">{{ clienteImagenError }}</div>
+
+        <div *ngIf="imagenClienteURL" class="imagen-preview-única">
+          <ion-label>Vista previa:</ion-label>
+          <div class="preview-wrapper">
+            <img [src]="imagenClienteURL" alt="Preview" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"/>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <ion-button expand="block" type="submit" [disabled]="clienteForm.invalid">
+          REGISTRAR CLIENTE
+        </ion-button>
+
+        <div *ngIf="mensajeExito" class="mensaje-exito">
+          {{ mensajeExito }}
+        </div>
+      </form>
+
+ 
       <div *ngIf="esAdmin && (perfilUsuario === 'dueño' || perfilUsuario === 'supervisor')" class="registro-selector">
         <ion-button size="small" [color]="tipoRegistro==='supervisor' ? 'success' : 'medium'" (click)="setTipoRegistro('supervisor')">Supervisor</ion-button>
         <ion-button size="small" [color]="tipoRegistro==='empleado' ? 'success' : 'medium'" (click)="setTipoRegistro('empleado')">Empleado</ion-button>
@@ -275,6 +364,11 @@
       </div>
 
     
+
+  
+      <div *ngIf="!esAdmin && !esMaitre && !esCocinero && !esBartender" class="registro-selector">
+        <ion-button size="small" [color]="tipoRegistro==='cliente' ? 'success' : 'medium'" (click)="setTipoRegistro('cliente')">Cliente</ion-button>
+      </div>
 
       <div class="register-link">
         <a *ngIf="!estaAutenticado" (click)="irAlLogin()">¿Ya tenés cuenta? Iniciar sesión</a>
