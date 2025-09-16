@@ -13,13 +13,22 @@ const routes: Routes = [
     loadChildren: () => import('./pages/screen-splash/screen-splash.module').then( m => m.ScreenSplashPageModule)
   },
   {
+    path: 'login',
+    loadComponent: () => import('./componentes/login/login.page').then(m => m.LoginPage)
+  },
+  {
     path: 'home',
     loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
+  },
+  {
+    path: 'registro',
+    loadComponent: () => import('./componentes/registro/registro.component').then(m => m.RegistroComponent)
   },
   {
     path: 'screen',
     loadChildren: () => import('./pages/screen/screen.module').then( m => m.ScreenPageModule)
   },
+
  
 ];
 
