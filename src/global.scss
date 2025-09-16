@@ -36,108 +36,128 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
+/* Estilos personalizados para LOS FRITOS HERMANOS */
+:root {
+  // Configuración del tema principal
+  --ion-color-primary: var(--ion-color-fritos-red);
+  --ion-color-primary-rgb: var(--ion-color-fritos-red-rgb);
+  --ion-color-primary-contrast: var(--ion-color-fritos-red-contrast);
+  --ion-color-primary-contrast-rgb: var(--ion-color-fritos-red-contrast-rgb);
+  --ion-color-primary-shade: var(--ion-color-fritos-red-shade);
+  --ion-color-primary-tint: var(--ion-color-fritos-red-tint);
 
-ion-button {
-    text-transform: none;
+  --ion-color-secondary: var(--ion-color-fritos-yellow);
+  --ion-color-secondary-rgb: var(--ion-color-fritos-yellow-rgb);
+  --ion-color-secondary-contrast: var(--ion-color-fritos-yellow-contrast);
+  --ion-color-secondary-contrast-rgb: var(--ion-color-fritos-yellow-contrast-rgb);
+  --ion-color-secondary-shade: var(--ion-color-fritos-yellow-shade);
+  --ion-color-secondary-tint: var(--ion-color-fritos-yellow-tint);
+
+  --ion-color-tertiary: var(--ion-color-fritos-blue);
+  --ion-color-tertiary-rgb: var(--ion-color-fritos-blue-rgb);
+  --ion-color-tertiary-contrast: var(--ion-color-fritos-blue-contrast);
+  --ion-color-tertiary-contrast-rgb: var(--ion-color-fritos-blue-contrast-rgb);
+  --ion-color-tertiary-shade: var(--ion-color-fritos-blue-shade);
+  --ion-color-tertiary-tint: var(--ion-color-fritos-blue-tint);
+
+  // Colores de éxito y advertencia
+  --ion-color-success: var(--ion-color-fritos-green);
+  --ion-color-warning: var(--ion-color-fritos-orange);
 }
 
-// safe padding for ios
-.safe-p-bottom{
-    padding-bottom: constant(safe-area-inset-bottom); // for ios 13+
-    padding-bottom: env(safe-area-inset-bottom); // for previous ios versions
+/* Estilos globales para la aplicación */
+.fritos-theme {
+  // Fondo principal con gradiente
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
+  
+  // Colores de texto
+  --color: var(--ion-color-fritos-blue);
+  --color-rgb: var(--ion-color-fritos-blue-rgb);
+  
+  // Colores de elementos
+  --ion-toolbar-background: var(--ion-color-fritos-red);
+  --ion-toolbar-color: var(--ion-color-fritos-red-contrast);
+  
+  // Colores de botones
+  --ion-button-background: var(--ion-color-fritos-red);
+  --ion-button-color: var(--ion-color-fritos-red-contrast);
 }
 
-.submit {
-    margin-top: 40px;
+/* Estilos para cards y contenedores */
+.fritos-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(27, 55, 105, 0.1);
+  border: 2px solid var(--ion-color-fritos-yellow);
 }
 
-.empty {
-    text-align: center;
-    padding: 60px;
-    opacity: 30%;
-
-    ion-icon {
-        font-size: 100px;
-    }
+/* Estilos para botones personalizados */
+.fritos-button {
+  --background: var(--ion-color-fritos-red);
+  --background-hover: var(--ion-color-fritos-red-shade);
+  --color: var(--ion-color-fritos-red-contrast);
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.d-flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.fritos-button-secondary {
+  --background: var(--ion-color-fritos-yellow);
+  --background-hover: var(--ion-color-fritos-yellow-shade);
+  --color: var(--ion-color-fritos-yellow-contrast);
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(244, 196, 81, 0.3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-
-.custom-input {
-    --border-color: #e0e0e0;
-    --border-radius: 15px;
-    --border-style: solid;
-    --border-width: 1px;
-    margin: 20px 0;
-
-    ion-label {
-        position: relative;
-        bottom: 2px;
-    }
-
-    .eye-icon {
-        position: relative;
-        top: 13px;
-    }
+/* Estilos para inputs */
+.fritos-input {
+  --background: rgba(255, 255, 255, 0.9);
+  --color: var(--ion-color-fritos-blue);
+  --placeholder-color: var(--ion-color-fritos-blue);
+  --border-radius: 12px;
+  --border: 2px solid var(--ion-color-fritos-yellow);
+  --highlight-color-focused: var(--ion-color-fritos-red);
 }
 
-.validators {
-    color: var(--ion-color-danger);
-    font-size: 13px;
-    text-align: center;
+/* Estilos para el header */
+.fritos-header {
+  --background: linear-gradient(90deg, var(--ion-color-fritos-red) 0%, var(--ion-color-fritos-orange) 100%);
+  --color: white;
+  --border-color: var(--ion-color-fritos-yellow);
 }
 
-
-.auth-form {
-    width: 100%;
-    text-align: center;
-    padding: 20px;
+/* Animaciones personalizadas */
+@keyframes fritos-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
 }
 
-.product-item {
-    --padding-top: 20px;
-
-    ion-avatar {
-        width: 70px;
-        height: 80px;
-        --border-radius: 15px;
-    }
-
-    .name {
-        font-weight: 600;
-        padding-bottom: 5px;
-    }
-
-    .data {
-        font-size: 13px;
-
-        strong {
-            font-weight: 500;
-        }
-    }
-
-    .option-btn {
-        font-size: 27px;
-    }
-
-    ion-chip {
-        font-size: 14px;
-        border-radius: 10px;
-        margin-left: 0;
-    }
+.fritos-bounce {
+  animation: fritos-bounce 2s infinite;
 }
 
-@media (min-width: 769px) {
-    .auth-form {
-        width: 500px;
-    }
+/* Estilos para el logo y branding */
+.fritos-logo {
+  color: var(--ion-color-fritos-red);
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
 
-    .add-update-modal {
-        --height: 680px;
-    }
+.fritos-subtitle {
+  color: var(--ion-color-fritos-blue);
+  font-weight: 500;
+  opacity: 0.8;
 }
