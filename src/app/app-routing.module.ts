@@ -2,6 +2,16 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
+  
+  {
+    path: '',
+    redirectTo: 'screen',
+    pathMatch: 'full'
+  },
+   {
+    path: 'screen-splash',
+    loadChildren: () => import('./pages/screen-splash/screen-splash.module').then( m => m.ScreenSplashPageModule)
+  },
   {
     path: 'login',
     loadComponent: () => import('./componentes/login/login.page').then(m => m.LoginPage)
@@ -15,10 +25,11 @@ const routes: Routes = [
     loadComponent: () => import('./componentes/registro/registro.component').then(m => m.RegistroComponent)
   },
   {
-    path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
+    path: 'screen',
+    loadChildren: () => import('./pages/screen/screen.module').then( m => m.ScreenPageModule)
   },
+
+ 
 ];
 
 @NgModule({
