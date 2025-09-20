@@ -30,3 +30,40 @@
 - README se actualizará con fechas de inicio, finalización y branch de cada tarea.  
 
 ---
+
+## 📊 Seguimiento de tareas
+
+| Punto | Responsable | Rama                             |    Estado      |  Inicio    |     Fin     |
+|-------|-------------|----------------------------------|----------------|------------|-------------|
+| 1     | Tomas       | master/punto-1-empleado          | 🚧 En progreso  | 06/09/2025 | ... |
+| 2     | Lucas       | master/punto-2-plato             | 🚧 En progreso | 12/09/2025 | ... |
+| 3     | Catriel     | master/punto-3-bebida            | 🚧 En progreso | 12/09/2025 | ... |
+| 4     | Lucas       | master/punto-4-mesa              | ⏳ Pendiente    | 12/09/2025 | ... |
+| 5     | Lucas       | master/punto-5-cliente-registrado| ✅ Completado  | 06/09/2025 | 12/09/2025 |
+| 6     | Catriel     | master/punto-6-verificar-cliente | ✅ Completado  | 06/09/2025 | 12/09/2025 |
+| 7     | Tomas       | master/punto-7-rechazo-cliente   | ⏳ Pendiente | -- | -- |
+| 8     | Tomas       | master/punto-8-aceptacion-cliente| ⏳ Pendiente | -- | -- |
+| 9     | Catriel     | master/punto-9-cliente-anonimo   | 🚧 En progreso | 19/09/2025 | ... |
+| 10    | Tomas       | master/punto-10-asignacion-mesa  | ⏳ Pendiente | -- | -- |
+| 11    | Lucas       | master/punto-11-menu-consulta    | ⏳ Pendiente | -- | -- |
+| 12    | Catriel     | master/punto-12-pedido           | ⏳ Pendiente | -- | -- |
+| 13    | Tomas       | master/punto-13-rechazo-pedido   | ⏳ Pendiente | -- | -- |
+| 14    | Lucas       | master/punto-14-confirmar-pedido | ⏳ Pendiente | -- | -- |
+| 15    | Catriel     | master/punto-15-bar              | ⏳ Pendiente | -- | -- |
+| 16    | Tomas       | master/punto-16-cocina           | ⏳ Pendiente | -- | -- |
+| 17    | Lucas       | master/punto-17-juegos           | 🚧 En progreso | 12/09/2025 | ... |
+| 18    | Catriel     | master/punto-18-confirmar-sectores| ⏳ Pendiente | -- | -- |
+| 19    | Tomas       | master/punto-19-entrega-pedido   | ⏳ Pendiente | -- | -- |
+| 20    | Lucas       | master/punto-20-encuesta         | ⏳ Pendiente | -- | -- |
+| 21    | Catriel     | master/punto-21-cuenta-pago      | ⏳ Pendiente | -- | -- |
+| 22    | Catriel     | master/punto-22-confirmar-pago   | ⏳ Pendiente | -- | -- |
+
+---
+
+## ✅ Convenciones de estado
+- ⏳ Pendiente → no iniciado  
+- 🚧 En progreso → trabajando  
+- ✅ Completado → finalizado y mergeado a `develop`  
+- ❌ Bloqueado → requiere revisión o cambio de responsable  
+
+---
