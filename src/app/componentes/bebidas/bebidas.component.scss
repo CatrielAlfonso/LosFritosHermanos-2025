@@ -1,0 +1,108 @@
+.bebida-content {
+  --background: #4666de; /* azul como fondo principal */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  padding: 16px;
+}
+
+/* Header animado */
+.header-animado {
+  text-align: center;
+  color: #efbf2d;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+.header-animado h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #efbf2d;
+  text-shadow: 2px 2px #dc2234;
+}
+
+.header-animado p {
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.preview-fotos {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.preview-fotos img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 2px solid #efbf2d;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+}
+
+.preview-fotos img:hover {
+  transform: scale(1.1);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Formulario */
+.form-bebida ion-item {
+  --background: rgba(255, 255, 255, 0.1);
+  --color: #fff;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+ion-label {
+  color: #efbf2d !important;
+  font-weight: bold;
+}
+
+ion-input, ion-textarea {
+  color: #fff;
+}
+
+/* Upload de archivos */
+.file-upload {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(239, 191, 45, 0.2);
+  border: 2px dashed #efbf2d;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 20px;
+  color: #efbf2d;
+}
+
+/* Botón guardar */
+.btn-guardar {
+  --background: #dc2234;
+  --background-activated: #b81c29;
+  --color: #fff;
+  font-weight: bold;
+  font-size: 1.2rem;
+  border-radius: 16px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.4);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Mensajes */
+.mensaje {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+}

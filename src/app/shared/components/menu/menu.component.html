@@ -1,0 +1,17 @@
+<ion-menu side="start" contentId="main">
+  <ion-header>
+    <ion-toolbar color="tertiary">
+      <ion-title>Menu</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <ion-list>
+      <ion-menu-toggle>
+        <ion-item routerLink="/main/home"><strong>Home</strong></ion-item>
+        <ion-item routerLink="/main/perfil"><strong>Perfil</strong></ion-item>
+        <ion-item (click)="logout()"><strong>Cerrar Sesión</strong></ion-item>
+      </ion-menu-toggle>
+    </ion-list>
+  </ion-content>
+</ion-menu>

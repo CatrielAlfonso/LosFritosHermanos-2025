@@ -1,0 +1,67 @@
+<ion-content fullscreen class="bebida-content">
+
+  <!-- Encabezado con animación -->
+  <div class="header-animado">
+    <h1>🍹 Nueva Bebida</h1>
+    <p>Agrega tu creación al menú</p>
+  </div>
+
+  <!-- Formulario de carga -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-bebida">
+
+    <ion-item lines="full">
+      <ion-label position="floating">Nombre</ion-label>
+      <ion-input type="text" formControlName="nombre"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="floating">Descripción</ion-label>
+      <ion-textarea formControlName="descripcion"></ion-textarea>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="floating">Tiempo elaboración (min)</ion-label>
+      <ion-input type="number" formControlName="tiempoElaboracion"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="floating">Precio ($)</ion-label>
+      <ion-input type="number" formControlName="precio"></ion-input>
+    </ion-item>
+
+    <!-- Subida de fotos -->
+    <ion-item>
+  <ion-label>Foto 1</ion-label>
+    <input type="file" accept="image/*" (change)="onFileSelected($event,0)" />
+  </ion-item>
+
+  <ion-item>
+    <ion-label>Foto 2</ion-label>
+    <input type="file" accept="image/*" (change)="onFileSelected($event,1)" />
+  </ion-item>
+
+  <ion-item>
+    <ion-label>Foto 3</ion-label>
+    <input type="file" accept="image/*" (change)="onFileSelected($event, 2)" />
+  </ion-item>
+
+    <!-- Vista previa -->
+  <div class="preview-fotos" *ngIf="selectedFiles.length > 0">
+    <div *ngFor="let file of selectedFiles">
+      <img [src]="file ? (file | vistaPreviaFotos) : ''" />
+    </div>
+  </div>
+
+    <!-- Botón de guardar -->
+    <ion-button expand="block" type="submit" class="btn-guardar">
+      <ion-icon name="save-outline"></ion-icon>
+      Guardar Bebida
+    </ion-button>
+  </form>
+
+  <!-- Mensajes de feedback -->
+  <div class="mensaje">
+    <ion-text color="light">{{ mensaje }}</ion-text>
+  </div>
+
+</ion-content>

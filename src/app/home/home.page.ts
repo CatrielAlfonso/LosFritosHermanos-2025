@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../servicios/auth.service';
-import { Router } from '@angular/router';
+import { Router,RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -74,6 +74,14 @@ export class HomePage implements OnInit {
       this.router.navigate(['/registro'], { queryParams: { tipo: tipoRegistro } });
     } else {
       this.router.navigate(['/registro']);
+    }
+  }
+
+  irARegistroBebidas(tipoRegistro?: string) {
+    if (tipoRegistro) {
+      this.router.navigate(['/bebidas']);
+    } else {
+      this.router.navigate(['/bebidas']);
     }
   }
 
