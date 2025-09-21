@@ -28,6 +28,10 @@ const routes: Routes = [
     path: 'screen',
     loadChildren: () => import('./pages/screen/screen.module').then( m => m.ScreenPageModule)
   },
+  {
+    path: 'menu',
+    loadComponent: () => import('./componentes/menu/menu.component').then(m => m.MenuComponent)
+  },
   // {
   //   path: 'login',
   //   loadChildren: () => import('./componentes/login/login.page').then( m => m.LoginPageModule)
