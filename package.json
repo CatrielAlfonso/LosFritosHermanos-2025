@@ -30,6 +30,7 @@
     "@capacitor/keyboard": "^7.0.3",
     "@capacitor/push-notifications": "^7.0.3",
     "@capacitor/status-bar": "^7.0.3",
+    "@capacitor/toast": "^7.0.2",
     "@ionic/angular": "^8.7.3",
     "@supabase/supabase-js": "^2.57.2",
     "ionicons": "^7.4.0",

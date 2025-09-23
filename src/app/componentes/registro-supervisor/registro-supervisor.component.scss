@@ -1,0 +1,680 @@
+.register-page {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
+
+  .center-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 0.5rem;
+  }
+
+  .register-container {
+    width: 100%;
+    max-width: 390px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.5rem 0.6rem;
+    border-radius: 1rem 0.5rem;
+    box-shadow: 0 4px 20px rgba(27, 55, 105, 0.15);
+    border: 2px solid var(--ion-color-fritos-yellow);
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .register-subtitle {
+    font-size: 1.5rem;
+    color: var(--ion-color-fritos-red);
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+  }
+
+  form {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  ion-item {
+    --background: rgba(255, 255, 255, 0.9);
+    --border-radius: 12px;
+    --border: 2px solid var(--ion-color-fritos-yellow);
+    --highlight-color-focused: var(--ion-color-fritos-red);
+    margin-bottom: 3px;
+    padding-inline-start: 0.1rem;
+    max-width: 380px;
+    min-height: 32px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 2px 8px rgba(27, 55, 105, 0.1);
+    align-items: center;
+
+    ion-icon {
+      color: var(--ion-color-fritos-blue);
+      padding: 6px;
+      border-radius: 50%;
+      font-size: 20px;
+      margin-right: 6px;
+    }
+  }
+
+  ion-label {
+    color: var(--ion-color-fritos-blue) !important;
+    font-size: 1.1rem;
+    padding: 0;
+    font-weight: 500;
+    --color: var(--ion-color-fritos-blue) !important;
+  }
+
+  ion-label[position="floating"] {
+    color: var(--ion-color-fritos-blue) !important;
+    --color: var(--ion-color-fritos-blue) !important;
+  }
+
+  ion-label.ion-focused {
+    color: var(--ion-color-fritos-red) !important;
+    --color: var(--ion-color-fritos-red) !important;
+  }
+
+  ion-label.ion-valid {
+    color: var(--ion-color-fritos-green) !important;
+    --color: var(--ion-color-fritos-green) !important;
+  }
+
+  ion-label.ion-invalid {
+    color: var(--ion-color-fritos-red) !important;
+    --color: var(--ion-color-fritos-red) !important;
+  }
+
+  ion-input {
+    color: var(--ion-color-fritos-blue);
+    max-width: 300px;
+    font-size: 1.2rem;
+    margin: 0 auto;
+    min-height: 36px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+
+    &::placeholder {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+      line-height: 1.2;
+      vertical-align: middle;
+      opacity: 1;
+      font-weight: bold !important;
+      color: var(--ion-color-fritos-blue) !important;
+    }
+  }
+
+  ion-button[type="submit"] {
+    margin-top: 0.3rem;
+    --background: var(--ion-color-fritos-red);
+    --background-hover: var(--ion-color-fritos-red-shade);
+    --color: var(--ion-color-fritos-red-contrast);
+    font-weight: bold;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+    height: 28px;
+    font-size: 1.2rem;
+    min-width: 100px;
+    max-width: 180px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  ion-button[type="submit"]::part(native) {
+    transition: transform 0.15s ease;
+
+    &:active {
+      transform: scale(0.95);
+      background-color: rgba(0, 118, 28, 0.15);
+    }
+  }
+
+  .error-message {
+    color: #ff0000;
+    font-size: 0.75rem;
+    margin-top: 0.15rem;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    padding-left: 0.5rem;
+    font-weight: 500;
+  }
+
+  .field-error {
+    color: #d32f2f;
+    font-size: 0.7rem;
+    margin: -0.2rem 0 0.3rem 0.5rem;
+    text-align: left;
+    font-weight: 500;
+  }
+
+  .register-link {
+    margin-top: 0.7rem;
+    font-size: 1.2rem;
+    color: #444;
+
+    a {
+      color: #0e5f00;
+      font-weight: bold;
+      margin-left: 3px;
+      cursor: pointer;
+    }
+  }
+
+  .boton-verde {
+    --background: var(--ion-color-fritos-blue);
+    --background-hover: var(--ion-color-fritos-blue-shade);
+    --color: var(--ion-color-fritos-blue-contrast);
+    font-weight: bold;
+    border-radius: 8px;
+    height: 24px;
+    font-size: 0.7rem;
+    margin-left: 0.2rem;
+    box-shadow: 0 2px 6px rgba(27, 55, 105, 0.3);
+
+    &::part(native) {
+      transition: transform 0.15s ease;
+      &:active {
+        transform: scale(0.95);
+        background-color: var(--ion-color-fritos-blue-shade);
+      }
+    }
+  }
+
+  ion-item.ion-focused {
+
+  ion-input.ng-invalid.ng-touched,
+  ion-input.ng-invalid.ng-dirty {
+    --highlight-color-invalid: #007f00;
+  }
+
+  img {
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+  }
+
+}
+  .login-logo {
+    width: 150px;
+    height: 100px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    margin-bottom: 5px;
+  }
+
+  .mensaje-exito {
+    color: #0e5f00;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-weight: bold;
+    text-align: center;
+    display: block;
+  }
+
+  ion-item img[alt="preview"] {
+    margin-left: 4px;
+    margin-right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  ion-item .perfil-checkboxes {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    margin-left: 1rem;
+  }
+
+  ion-checkbox {
+    --background: #fff;
+    --border-color: #0e5f00;
+    --checkmark-color: #0e5f00;
+    --border-radius: 4px;
+    --border-style: solid;
+    --border-width: 2px;
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin-right: 0;
+    font-size: 1rem;
+    --size: 20px;
+    color: #000000;
+    min-width: fit-content;
+    max-width: 100px;
+  }
+
+  ion-checkbox::part(container) {
+    background: #fff !important;
+    border: 2px solid #0e5f00 !important;
+    border-radius: 4px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  ion-checkbox::part(mark) {
+    color: #0e5f00 !important;
+  }
+
+  ion-checkbox::part(label) {
+    color: #000000;
+    font-size: 0.6rem;
+    font-weight: 500;
+    padding-right: 0;
+    padding-left: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+
+.perfil-checkboxes {
+  display: flex;
+  flex-direction: row;
+  gap: 0.3rem; 
+  align-items: center;
+  margin-left: 0.2rem;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: flex-start;
+  padding-right: 0.5rem;
+  max-width: 100%;
+  overflow: visible;
+  row-gap: 0.2rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.75em;
+  margin-right: 0.3rem;
+  cursor: pointer;
+  color: #000000;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+ion-checkbox::part(label) {
+  color: #000000;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding-right: 0.2rem;
+}
+
+ion-checkbox::part(container) {
+  background: #fff !important;
+  border: 2px solid #0e5f00 !important;
+  border-radius: 6px !important;
+}
+
+ion-checkbox::part(mark) {
+  color: #0e5f00 !important;
+}
+
+.perfil-checkboxes ion-checkbox {
+    margin-top: 5px;
+  margin-right: 0.3rem;
+  min-width: auto;
+  width: 15px;
+  height: 30px;
+}
+
+.perfil-checkboxes ion-checkbox:last-child {
+  margin-right: 0;
+}
+
+form[formGroupName="supervisorForm"] .perfil-checkboxes ion-checkbox {
+  font-size: 0.8rem;
+  --size: 16px;
+  max-width: 80px;
+  margin-right: 0.5rem;
+}
+
+form[formGroupName="supervisorForm"] .perfil-checkboxes ion-checkbox::part(label) {
+  font-size: 0.8rem;
+  padding-right: 0.1rem;
+  padding-left: 0.1rem;
+}
+
+form[formGroupName="supervisorForm"] .perfil-checkboxes ion-checkbox::part(container) {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+
+.perfil-empleado-container {
+  width: 100%;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.perfil-fila {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+
+.perfil-fila:last-child {
+  margin-bottom: 0;
+}
+
+.perfil-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 0.2rem;
+}
+
+.perfil-opcion ion-checkbox {
+  margin-bottom: 0.2rem;
+}
+
+.texto-perfil {
+  font-size: 0.7rem;
+  text-align: center;
+  color: var(--ion-color-fritos-blue);
+  font-weight: 500;
+  line-height: 1.1;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+form[formGroupName="supervisorForm"] .perfil-checkboxes.fila-horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 0.5rem !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+  margin-left: 0.5rem !important;
+}
+
+form[formGroupName="supervisorForm"] .perfil-opcion {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 70px !important;
+  max-width: 90px !important;
+  margin: 0 0.1rem !important;
+  padding: 0.2rem !important;
+}
+
+form[formGroupName="supervisorForm"] .texto-perfil {
+  font-size: 0.8rem !important;
+  margin-top: 0.3rem !important;
+  margin-left: 0 !important;
+  text-align: center !important;
+  color: var(--ion-color-fritos-blue) !important;
+  font-weight: 500 !important;
+  display: block !important;
+  width: 100% !important;
+  line-height: 1.1 !important;
+}
+
+.imagenes-preview {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.imagenes-preview ion-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #333;
+}
+
+.imagenes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.imagen-preview {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #ddd;
+  background-color: white;
+}
+
+.imagen-preview img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  display: block;
+}
+
+.imagen-numero {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #3880ff;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 2;
+}
+
+/* Estilos específicos para el formulario de productos */
+form[formGroupName="productoForm"] ion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  margin-bottom: 8px;
+}
+
+form[formGroupName="productoForm"] ion-textarea {
+  --padding-start: 0;
+  --padding-end: 0;
+  min-height: 80px;
+  --color: #000000;
+  --placeholder-color: #666666;
+}
+
+form[formGroupName="productoForm"] ion-input[type="number"] {
+  text-align: right;
+}
+
+/* Botón para eliminar foto */
+.boton-eliminar-foto {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  --border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
+/* Estilos para el botón de productos en el selector */
+.registro-selector ion-button[color="success"] {
+  --background: #2dd36f;
+  --color: white;
+}
+
+.registro-selector ion-button[color="medium"] {
+  --background: #92949c;
+  --color: white;
+}
+
+/* Responsive para el grid de imágenes */
+@media (max-width: 480px) {
+  .imagenes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .imagen-preview img {
+    height: 60px;
+  }
+}
+
+@media (min-width: 768px) {
+  .imagenes-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+  
+  .imagen-preview img {
+    height: 100px;
+  }
+}
+
+.perfil-checkboxes.fila-horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.perfil-checkboxes-producto {
+  gap: 0.5rem !important;
+}
+
+.perfil-checkboxes-producto .checkbox-label {
+  gap: 0.1rem !important;
+  margin-right: 0.5rem !important;
+}
+
+.perfil-checkboxes.fila-horizontal ion-checkbox::part(label) {
+  font-size: 1.5em;
+  margin-left: 0.1em;
+  margin-right: 0;
+}
+.imagenes-grid-centrada {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.imagen-preview-única {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-wrapper img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  display: block;
+  margin: 0 auto;
+}
+
+.boton-eliminar-foto {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+}
+
+.imagen-preview-única ion-label {
+  width: 100%;
+  text-align: center;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.perfil-checkboxes.fila-horizontal ion-checkbox {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.perfil-checkboxes.fila-horizontal ion-checkbox::part(container),
+.perfil-checkboxes.fila-horizontal ion-checkbox::part(label) {
+  vertical-align: middle;
+}
+
+.perfil-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.01em;
+  padding: 0;
+}
+
+.checkbox-perfil {
+  --size: 44px;
+  --checkbox-background-checked: #0e5f00;
+  --checkbox-background: #fff;
+  --border-color: #0e5f00;
+  --checkmark-color: #0e5f00;
+  margin-bottom: 0.05em;
+  align-self: center;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+.texto-perfil {
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+  text-align: center;
+  font-weight: 500;
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin-left: 0;
+  color: var(--ion-color-fritos-blue);
+  line-height: 1.2;
+}
+
+
