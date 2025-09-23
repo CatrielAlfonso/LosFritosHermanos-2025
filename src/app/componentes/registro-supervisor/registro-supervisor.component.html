@@ -1,0 +1,109 @@
+
+<ion-content class="register-page fritos-theme" fullscreen="true" [scrollEvents]="false" scroll="false">
+  <div class="center-wrapper">
+    <div class="register-container fritos-card">
+      <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Logo" class="login-logo fritos-bounce" />
+      <h2 class="register-subtitle fritos-logo">¡BIENVENIDO!</h2>
+
+
+      <form [formGroup]="supervisorForm" (ngSubmit)="registrarSupervisor()">
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Nombre</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorNombreError">{{ supervisorNombreError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Apellido</ion-label>
+          <ion-input formControlName="apellido"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorApellidoError">{{ supervisorApellidoError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="mail-outline"></ion-icon>
+          <ion-label position="floating">Correo electrónico</ion-label>
+          <ion-input type="email" formControlName="correo"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorCorreoError">{{ supervisorCorreoError }}</div>
+        
+        <ion-item>
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input type="password" formControlName="contrasenia"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorContraseniaError">{{ supervisorContraseniaError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          <ion-label position="floating">DNI</ion-label>
+          <ion-input type="text" formControlName="dni"></ion-input>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="escanearDNI()">
+            Escanear
+          </ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorDniError">{{ supervisorDniError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          <ion-label position="floating">CUIL</ion-label>
+          <ion-input type="text" formControlName="cuil"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorCuilError">{{ supervisorCuilError }}</div>
+
+        <ion-item lines="none">
+          <ion-label>Perfil</ion-label>
+          <div class="perfil-checkboxes fila-horizontal">
+            <div class="perfil-opcion">
+              <ion-checkbox
+                [checked]="supervisorForm.get('perfil')?.value === 'dueño'"
+                (ionChange)="supervisorForm.get('perfil')?.setValue('dueño')"
+              ></ion-checkbox>
+              <span class="texto-perfil">Dueño</span>
+            </div>
+            <div class="perfil-opcion">
+              <ion-checkbox
+                [checked]="supervisorForm.get('perfil')?.value === 'supervisor'"
+                (ionChange)="supervisorForm.get('perfil')?.setValue('supervisor')"
+              ></ion-checkbox>
+              <span class="texto-perfil">Supervisor</span>
+            </div>
+          </div>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorPerfilError">{{ supervisorPerfilError }}</div>
+
+        <ion-item>
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          <ion-label>Foto</ion-label>
+          <ion-button slot="end" size="small" class="boton-verde" (click)="tomarFoto()">Tomar Foto</ion-button>
+        </ion-item>
+        <div class="field-error" *ngIf="supervisorImagenError">{{ supervisorImagenError }}</div>
+
+        <div *ngIf="imagenSupervisorURL" class="imagen-preview-única">
+          <ion-label>Vista previa:</ion-label>
+          <div class="preview-wrapper">
+            <img [src]="imagenSupervisorURL" alt="Preview" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"/>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <ion-button expand="block" type="submit" [disabled]="supervisorForm.invalid">
+          REGISTRAR SUPERVISOR
+        </ion-button>
+
+        <div *ngIf="mensajeExito" class="mensaje-exito">
+          {{ mensajeExito }}
+        </div>
+      </form>
+
+    
+
+    </div>
+  </div>
+</ion-content>
+
+
+
+

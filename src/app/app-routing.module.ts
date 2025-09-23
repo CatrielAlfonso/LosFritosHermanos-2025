@@ -41,6 +41,10 @@ const routes: Routes = [
     path: 'registro-empleados',
     loadComponent: () => import('./componentes/registro-empleados/registro-empleados.component').then(m => m.RegistroEmpleadosComponent)
   },
+  {
+    path: 'registro-supervisor',
+    loadComponent: () => import('./componentes/registro-supervisor/registro-supervisor.component').then(m => m.RegistroSupervisorComponent)
+  },
 
 
  
