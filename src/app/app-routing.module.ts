@@ -37,10 +37,10 @@ const routes: Routes = [
     path: 'menu',
     loadComponent: () => import('./componentes/menu/menu.component').then(m => m.MenuComponent)
   },
-  // {
-  //   path: 'login',
-  //   loadChildren: () => import('./componentes/login/login.page').then( m => m.LoginPageModule)
-  // },
+  {
+    path: 'registro-empleados',
+    loadComponent: () => import('./componentes/registro-empleados/registro-empleados.component').then(m => m.RegistroEmpleadosComponent)
+  },
 
 
  
