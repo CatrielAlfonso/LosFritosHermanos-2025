@@ -1,12 +1,82 @@
 
-<h2>Platos Principales</h2>
-<div class="container-plato">
-  <div class="info-plato">
-    <h3 class="titulo-plato">Hamburguesa California</h3>
-    <p class="descripcion-plato">Hamburguesa completa con doble carne, cheddar, panceta y cebolla caramelizada</p>
-    <h2 class="precio">$ 18.000</h2>
-  </div>
-  <div class="imagen">
-    <img src="https://media.istockphoto.com/id/1473452859/es/foto/sabrosa-hamburguesa-con-queso-vaso-de-cola-y-papas-fritas-en-primer-plano-de-bandeja-de-madera.jpg?s=612x612&w=0&k=20&c=cz14RIorGJFn3mFhBFL66PqvXD1nYC_28Cc_OO4mhps=" alt="hamburguesa">
-  </div>
-</div>
+  <!-- <div class="container-plato">   PRIMER ESTILO QUE HABIA HECHO TIPO MENU PEDIDOS YA
+    <div class="info-plato">
+      <h3 class="titulo-plato">Hamburguesa California</h3>
+      <p class="descripcion-plato">Hamburguesa completa con doble carne, cheddar, panceta y cebolla caramelizada</p>
+      <h2 class="precio">$ 18.000</h2>
+    </div>
+    <div class="imagen">
+      <img src="https://media.istockphoto.com/id/1473452859/es/foto/sabrosa-hamburguesa-con-queso-vaso-de-cola-y-papas-fritas-en-primer-plano-de-bandeja-de-madera.jpg?s=612x612&w=0&k=20&c=cz14RIorGJFn3mFhBFL66PqvXD1nYC_28Cc_OO4mhps=" alt="hamburguesa">
+    </div>
+  </div> -->
+
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Bebidas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @for(bebida of bebidas; track bebida){
+    <ion-card>
+      <!-- Slides para las 3 fotos -->
+      <swiper-container 
+        pagination="true" 
+        class="bebida-swiper"
+      >
+        @if(bebida.foto1){
+          <swiper-slide>
+            <img [src]="bebida.foto1" [alt]="bebida.nombre + ' foto 1'" class="bebida-image" />
+          </swiper-slide>
+        }
+        @if(bebida.foto2){
+          <swiper-slide>
+            <img [src]="bebida.foto2" [alt]="bebida.nombre + ' foto 2'" class="bebida-image" />
+          </swiper-slide>
+        }
+        @if(bebida.foto3){
+          <swiper-slide>
+            <img [src]="bebida.foto3" [alt]="bebida.nombre + ' foto 3'" class="bebida-image" />
+          </swiper-slide>
+        }
+      </swiper-container>
+
+      <ion-card-header>
+        <ion-card-subtitle class="precio-destacado">{{bebida.precio | currency}}</ion-card-subtitle>
+        <ion-card-title>{{bebida.nombre}}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        {{bebida.descripcion}}
+      </ion-card-content>
+    </ion-card> 
+  }
+</ion-content>
+
+
+
+
+
+
+
+<!-- <ion-header>   CODIGO BUENO
+  <ion-toolbar>
+    <ion-title>Bebidas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+@for(bebida of bebidas; track bebida){
+   <ion-card>
+    <img alt="imagen-producto" [src]="bebida.foto1" />
+    <ion-card-header>
+      <ion-card-subtitle class="precio-destacado" >{{bebida.precio | currency}}</ion-card-subtitle>
+      <ion-card-title>{{bebida.nombre}}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      {{bebida.descripcion}}
+    </ion-card-content>
+  </ion-card> 
+
+} -->

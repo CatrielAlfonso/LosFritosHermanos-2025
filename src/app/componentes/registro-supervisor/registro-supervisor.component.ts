@@ -84,7 +84,7 @@ export class RegistroSupervisorComponent  implements OnInit {
 
 
       const { data: supervisorExistente } = await this.sb.supabase
-        .from('supervisores')
+        .from('empleados')
         .select('id')
         .eq('correo', correo)
         .single();
@@ -245,6 +245,7 @@ export class RegistroSupervisorComponent  implements OnInit {
   }
 
   tomarFoto() {
+    console.log('se ejecuta el tomar foto')
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
