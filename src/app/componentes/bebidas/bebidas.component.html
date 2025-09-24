@@ -46,11 +46,21 @@
   </ion-item>
 
     <!-- Vista previa -->
-  <div class="preview-fotos" *ngIf="selectedFiles.length > 0">
+  <!-- <div class="preview-fotos" *ngIf="selectedFiles.length > 0">
     <div *ngFor="let file of selectedFiles">
       <img [src]="file ? (file | vistaPreviaFotos) : ''" />
-    </div>
+    </div> 
+
+  </div> -->
+
+  <!-- IMPLEMENTANDO DIRECTIVAS -->
+  @if (selectedFiles.length > 0) {
+  <div class="preview-fotos">
+    @for (file of selectedFiles; track file) {
+      <img [src]="file | vistaPreviaFotos" />
+    }
   </div>
+}
 
     <!-- Botón de guardar -->
     <ion-button expand="block" type="submit" class="btn-guardar">
