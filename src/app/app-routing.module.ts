@@ -45,6 +45,10 @@ const routes: Routes = [
     path: 'registro-supervisor',
     loadComponent: () => import('./componentes/registro-supervisor/registro-supervisor.component').then(m => m.RegistroSupervisorComponent)
   },
+  {
+    path: 'registro-plato',
+    loadComponent: () => import('./componentes/platos/platos.component').then(m => m.PlatosComponent)
+  },
 
 
  
