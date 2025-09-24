@@ -15,7 +15,7 @@
 
 ---
 
-## 📌 Distribución total de tareas
+## 📌 Distribución Inicial total de tareas
 
 - **Tomas Behrens** → 7 puntos (1, 4, 7, 10, 13, 16, 19)  
 - **Lucas Carmagnola** → 7 puntos (2, 5, 8, 11, 14, 17, 20)  
@@ -35,9 +35,9 @@
 
 | Punto | Responsable | Rama                             |    Estado      |  Inicio    |     Fin     |
 |-------|-------------|----------------------------------|----------------|------------|-------------|
-| 1     | Tomas       | master/punto-1-empleado          | 🚧 En progreso  | 06/09/2025 | ... |
+| 1     | Lucas       | master/punto-1-empleado          | ✅ Completado  | 06/09/2025 | 23/09/2025 |
 | 2     | Lucas       | master/punto-2-plato             | 🚧 En progreso | 12/09/2025 | ... |
-| 3     | Catriel     | master/punto-3-bebida            | 🚧 En progreso | 12/09/2025 | ... |
+| 3     | Catriel     | master/punto-3-bebida            | ✅ Completado | 12/09/2025 |20/09/2025 |
 | 4     | Lucas       | master/punto-4-mesa              | ⏳ Pendiente    | 12/09/2025 | ... |
 | 5     | Lucas       | master/punto-5-cliente-registrado| ✅ Completado  | 06/09/2025 | 12/09/2025 |
 | 6     | Catriel     | master/punto-6-verificar-cliente | ✅ Completado  | 06/09/2025 | 12/09/2025 |
@@ -65,5 +65,10 @@
 - 🚧 En progreso → trabajando  
 - ✅ Completado → finalizado y mergeado a `develop`  
 - ❌ Bloqueado → requiere revisión o cambio de responsable  
+
+---
+## 🔄 Reasignaciones
+- 19/09/2025: Punto 1 (Registro empleados) pasó de Tomas → Lucas.
+
 
 ---
