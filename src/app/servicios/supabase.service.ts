@@ -75,4 +75,22 @@ export class SupabaseService {
       }
     }
   }
+
+  async getBebidas(): Promise<any[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('bebidas')
+        .select('*')
+        .order('nombre', { ascending: true });
+      if (error) {
+        throw new Error(`Error al obtener las bebidas: ${error.message}`);
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error en getBebidas:', error);
+      throw error;
+    }
+  }
+
 }
