@@ -86,7 +86,7 @@
     <div *ngIf="esBartender && !esAdmin" class="bartender-options">
       <h3 class="fritos-subtitle">Panel de Bartender</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistroBebidas('bebidas')">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/bebidas']" routerLinkActive="router-link-active" >
         <ion-icon name="wine-outline" slot="start"></ion-icon>
         Registrar Bebida
       </ion-button>
