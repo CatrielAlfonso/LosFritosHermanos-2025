@@ -30,10 +30,20 @@
   text-decoration: none;
 }
 
+.fritos-red{
+  display: flex;
+  justify-content: center;
+}
+
 .login-logo {
   width: 150px;
   height: 100px;
   object-fit: contain;
   display: block;
   margin: 0 auto 1.5rem auto;
+}
+
+.titulo{
+  color: rgb(214, 187, 38);
+  text-align: center;
 }

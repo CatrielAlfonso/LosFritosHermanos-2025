@@ -4,13 +4,27 @@
     flex-direction: column;
     justify-content: start;
 }
+ion-toolbar {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);  
+  --color: var(--ion-color-fritos-blue);
+  
+  /* Opcional: sombra */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.396);
+}
+
+.titulo-menu {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+.container-prods{
+  display: flex;
+  flex-direction: column;
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
+}
 
 .container-plato{
-    display: flex;
-    height: 200px;
-    align-items: center;
-    padding: 0 17px;
-    box-sizing: border-box;
+    --background: white;
+    border-radius: 15px;
 }
 .info-plato{
     width: 60%;
@@ -37,9 +51,17 @@
   text-align: right;
   font-size: 1.7em;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--ion-color-fritos-blue);
   display: block;
   width: 100%;
+}
+
+.descripcion{
+  color: var(--ion-color-fritos-blue);
+}
+
+.plato-nombre{
+  color: var(--ion-color-fritos-blue);
 }
 
 

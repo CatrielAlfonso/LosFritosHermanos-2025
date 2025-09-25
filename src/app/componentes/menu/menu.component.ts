@@ -13,7 +13,8 @@ import { CommonModule } from '@angular/common';
 })
 export class MenuComponent  implements OnInit {
 
-  public bebidas : any[]= []
+  public bebidas : any[] = []
+  public platos : any[] = []
 
   constructor( 
     private supabaseService : SupabaseService
@@ -21,6 +22,16 @@ export class MenuComponent  implements OnInit {
 
   ngOnInit() {
     this.cargarBebidas()
+    this.cargarPlatos()
+  }
+
+  async cargarPlatos(){
+    try {
+      this.platos = await this.supabaseService.getPlatos()
+      console.log('platos obtenidos con exito: ', this.platos)
+    }catch(error){
+      console.log('error al traer los platos: ', error)
+    }
   }
 
   async cargarBebidas(){
