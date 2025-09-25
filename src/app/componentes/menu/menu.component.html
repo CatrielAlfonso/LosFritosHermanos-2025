@@ -10,15 +10,39 @@
     </div>
   </div> -->
 
-<ion-header>
+<ion-header class="header">
   <ion-toolbar>
-    <ion-title>Bebidas</ion-title>
+    <ion-title class="titulo-menu" id="titulo-menu">Platos principales</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="container-prods">
+  @for(plato of platos; track plato){
+    <ion-card  class="container-plato">
+      <swiper-container 
+        pagination="true" 
+        class="bebida-swiper"
+      >
+        @for(foto of plato.imagenes; track foto){
+          <swiper-slide>
+            <img [src]="foto" [alt]="plato.nombre + 'foto'" class="bebida-image" />
+          </swiper-slide>
+        }
+      </swiper-container>
+
+      <ion-card-header>
+        <ion-card-subtitle class="precio-destacado">{{plato.precio | currency}}</ion-card-subtitle>
+        <ion-card-title class="plato-nombre">{{plato.nombre}}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content class="descripcion">
+        {{plato.descripcion}}
+      </ion-card-content>
+    </ion-card> 
+  
+  }
   @for(bebida of bebidas; track bebida){
-    <ion-card>
+    <ion-card class="container-plato">
       <!-- Slides para las 3 fotos -->
       <swiper-container 
         pagination="true" 
@@ -43,10 +67,10 @@
 
       <ion-card-header>
         <ion-card-subtitle class="precio-destacado">{{bebida.precio | currency}}</ion-card-subtitle>
-        <ion-card-title>{{bebida.nombre}}</ion-card-title>
+        <ion-card-title class="plato-nombre">{{bebida.nombre}}</ion-card-title>
       </ion-card-header>
 
-      <ion-card-content>
+      <ion-card-content class="descripcion">
         {{bebida.descripcion}}
       </ion-card-content>
     </ion-card> 

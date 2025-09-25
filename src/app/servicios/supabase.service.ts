@@ -76,6 +76,25 @@ export class SupabaseService {
     }
   }
 
+  async getPlatos(): Promise<any[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('productos')
+        .select('*')
+        .eq('tipo', 'comida')
+        .order('nombre', { ascending: true });
+      if (error) {
+        throw new Error(`Error al obtener los platos: ${error.message}`);
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error en getPlatos:', error);
+      throw error;
+    }
+  }
+
+
   async getBebidas(): Promise<any[]> {
     try {
       const { data, error } = await this.supabase

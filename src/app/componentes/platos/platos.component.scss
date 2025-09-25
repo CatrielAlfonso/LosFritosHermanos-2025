@@ -232,42 +232,6 @@
     vertical-align: middle;
   }
 
-  ion-item .perfil-checkboxes {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    margin-left: 1rem;
-  }
-
-  ion-checkbox {
-    --background: #fff;
-    --border-color: #0e5f00;
-    --checkmark-color: #0e5f00;
-    --border-radius: 4px;
-    --border-style: solid;
-    --border-width: 2px;
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin-right: 0;
-    font-size: 1rem;
-    --size: 20px;
-    color: #000000;
-    min-width: fit-content;
-    max-width: 100px;
-  }
-
-  ion-checkbox::part(container) {
-    background: #fff !important;
-    border: 2px solid #0e5f00 !important;
-    border-radius: 4px !important;
-    width: 20px !important;
-    height: 20px !important;
-  }
-
-  ion-checkbox::part(mark) {
-    color: #0e5f00 !important;
-  }
 
   ion-checkbox::part(label) {
     color: #000000;
@@ -282,100 +246,6 @@
 }
 
 
-.perfil-checkboxes {
-  display: flex;
-  flex-direction: row;
-  gap: 0.3rem; 
-  align-items: center;
-  margin-left: 0.2rem;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: flex-start;
-  padding-right: 0.5rem;
-  max-width: 100%;
-  overflow: visible;
-  row-gap: 0.2rem;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  font-size: 0.75em;
-  margin-right: 0.3rem;
-  cursor: pointer;
-  color: #000000;
-  font-weight: 500;
-  white-space: nowrap;
-  min-width: fit-content;
-}
-
-ion-checkbox::part(label) {
-  color: #000000;
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding-right: 0.2rem;
-}
-
-ion-checkbox::part(container) {
-  background: #fff !important;
-  border: 2px solid #0e5f00 !important;
-  border-radius: 6px !important;
-}
-
-ion-checkbox::part(mark) {
-  color: #0e5f00 !important;
-}
-
-.perfil-checkboxes ion-checkbox {
-  margin-right: 0.3rem;
-  min-width: auto;
-}
-
-.perfil-checkboxes ion-checkbox:last-child {
-  margin-right: 0;
-}
-
-form[formGroupName="supervisorForm"] .perfil-checkboxes ion-checkbox {
-  font-size: 0.8rem;
-  --size: 16px;
-  max-width: 80px;
-  margin-right: 0.5rem;
-}
-
-form[formGroupName="supervisorForm"] .perfil-checkboxes ion-checkbox::part(label) {
-  font-size: 0.8rem;
-  padding-right: 0.1rem;
-  padding-left: 0.1rem;
-}
-
-form[formGroupName="supervisorForm"] .perfil-checkboxes ion-checkbox::part(container) {
-  width: 16px !important;
-  height: 16px !important;
-}
-
-form[formGroupName="empleadoForm"] .perfil-checkboxes {
-  gap: 0.2rem;
-  row-gap: 0.15rem;
-}
-
-form[formGroupName="empleadoForm"] .perfil-checkboxes ion-checkbox {
-  font-size: 0.65rem;
-  --size: 14px;
-  max-width: 70px;
-  margin-right: 0.2rem;
-}
-
-form[formGroupName="empleadoForm"] .perfil-checkboxes ion-checkbox::part(label) {
-  font-size: 0.65rem;
-  padding-right: 0.1rem;
-  padding-left: 0.1rem;
-}
-
-form[formGroupName="empleadoForm"] .perfil-checkboxes ion-checkbox::part(container) {
-  width: 16px !important;
-  height: 16px !important;
-}
 
 .perfil-empleado-container {
   width: 100%;
@@ -394,17 +264,8 @@ form[formGroupName="empleadoForm"] .perfil-checkboxes ion-checkbox::part(contain
   margin-bottom: 0;
 }
 
-.perfil-opcion {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  padding: 0.2rem;
-}
 
-.perfil-opcion ion-checkbox {
-  margin-bottom: 0.2rem;
-}
+
 
 .texto-perfil {
   font-size: 0.7rem;
@@ -416,41 +277,6 @@ form[formGroupName="empleadoForm"] .perfil-checkboxes ion-checkbox::part(contain
   padding: 0;
 }
 
-
-
-form[formGroupName="supervisorForm"] .perfil-checkboxes.fila-horizontal {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 0.5rem !important;
-  justify-content: center !important;
-  flex-wrap: wrap !important;
-  align-items: flex-start !important;
-  width: 100% !important;
-  margin-left: 0.5rem !important;
-}
-
-form[formGroupName="supervisorForm"] .perfil-opcion {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 70px !important;
-  max-width: 90px !important;
-  margin: 0 0.1rem !important;
-  padding: 0.2rem !important;
-}
-
-form[formGroupName="supervisorForm"] .texto-perfil {
-  font-size: 0.8rem !important;
-  margin-top: 0.3rem !important;
-  margin-left: 0 !important;
-  text-align: center !important;
-  color: var(--ion-color-fritos-blue) !important;
-  font-weight: 500 !important;
-  display: block !important;
-  width: 100% !important;
-  line-height: 1.1 !important;
-}
 
 .imagenes-preview {
   margin: 10px 0;
@@ -591,6 +417,8 @@ form[formGroupName="productoForm"] ion-input[type="number"] {
   height: 20px;
 }
 
-
+.descripcion{
+    color: var(--ion-color-fritos-blue);
+}
 
 

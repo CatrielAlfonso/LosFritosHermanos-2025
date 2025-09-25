@@ -56,13 +56,30 @@ export class PlatosComponent  implements OnInit {
       this.mensajeError = 'Por favor completa todos los campos y selecciona 3 imágenes';
       return;
     }
+
+    this.mensajeError = ''
+    this.mensajeExito = ''
     this.loadingService.show();
     try {
       const { nombre, descripcion, tiempoElaboracion, precio, tipo } = this.productoForm.value;
+
+      const nombreLimpio = nombre
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')  // Reemplazar caracteres especiales con -
+      .replace(/-+/g, '-')         // Evitar múltiples - seguidos
+      .substring(0, 50);
+      
+
       const imagenesURLs: string[] = [];
       for (let i = 0; i < 3; i++) {
+
         const archivo = this.imagenesProductoArchivos[i];
-        const { data, error } = await this.sb.supabase.storage.from('imagenes').upload(`producto-${nombre}-${i}-${archivo.name}`, archivo, { upsert: true });
+
+        const timestamp = Date.now();
+        const extension = archivo.name.split('.').pop() || 'jpg';
+        const fileName = `producto-${nombreLimpio}-${i}-${timestamp}.${extension}`;
+
+        const { data, error } = await this.sb.supabase.storage.from('imagenes').upload(fileName, archivo, { upsert: true });
         if (error) throw new Error(error.message);
         imagenesURLs.push(this.sb.supabase.storage.from('imagenes').getPublicUrl(data.path).data.publicUrl);
       }
