@@ -1,94 +1,110 @@
-<form [formGroup]="productoForm" (ngSubmit)="registrarProducto()">
-  <!-- BEBIDA O PLATO - Campo nombre del plato -->
-  <ion-item>
-    <ion-icon slot="start" name="restaurant-outline"></ion-icon>
-    <ion-label position="floating">Nombre del plato</ion-label>
-    <ion-input formControlName="nombre"></ion-input>
-  </ion-item>
-  <div class="field-error" *ngIf="productoNombreError">
-    {{ productoNombreError }}
-  </div>
+<ion-content class="register-page fritos-theme" fullscreen="true" [scrollEvents]="false" scroll="false">
+  <div class="center-wrapper">
+    <div class="register-container fritos-card">
+      <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Logo" class="login-logo fritos-bounce" />
+      <h2 class="register-subtitle fritos-logo">¡BIENVENIDO!</h2>
 
-  <!-- BEBIDA O PLATO - Campo descripción del plato -->
-  <ion-item>
-    <ion-icon slot="start" name="document-text-outline"></ion-icon>
-    <ion-label position="floating">Descripción</ion-label>
-    <ion-textarea
-      formControlName="descripcion"
-      rows="3"
-      placeholder="Describe el plato..."
-    ></ion-textarea>
-  </ion-item>
-  <div class="field-error" *ngIf="productoDescripcionError">
-    {{ productoDescripcionError }}
-  </div>
+      <form [formGroup]="productoForm" (ngSubmit)="registrarProducto()">
+        
+        <ion-item>
+          <ion-icon slot="start" name="restaurant-outline"></ion-icon>
+          <ion-label position="floating">Nombre del plato</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="productoNombreError">
+          {{ productoNombreError }}
+        </div>
+      
+        
+        <ion-item>
+          <ion-icon slot="start" name="document-text-outline"></ion-icon>
+          <ion-label position="floating">Descripción</ion-label>
+          <ion-textarea
+            formControlName="descripcion"
+            rows="3"
+            placeholder="Describe el plato..."
+          ></ion-textarea>
+        </ion-item>
+        <div class="field-error" *ngIf="productoDescripcionError">
+          {{ productoDescripcionError }}
+        </div>
+      
+        
+        <ion-item>
+          <ion-icon slot="start" name="time-outline"></ion-icon>
+          <ion-label position="floating">Tiempo de elaboración (minutos)</ion-label>
+          <ion-input
+            type="number"
+            formControlName="tiempoElaboracion"
+            min="1"
+            max="60"
+          ></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="productoTiempoError">
+          {{ productoTiempoError }}
+        </div>
+      
+        <ion-item>
+          <ion-icon slot="start" name="cash-outline"></ion-icon>
+          <ion-label position="floating">Precio ($)</ion-label>
+          <ion-input type="number" step="0.01" formControlName="precio"></ion-input>
+        </ion-item>
+        <div class="field-error" *ngIf="productoPrecioError">
+          {{ productoPrecioError }}
+        </div>
+      
+      
+        <ion-item>
+          <ion-icon slot="start" name="images-outline"></ion-icon>
+          <ion-button
+            slot="end"
+            size="small"
+            class="boton-verde"
+            (click)="tomarFoto()"
+            >Tomar Fotos</ion-button
+          >
+        </ion-item>
+        <div class="field-error" *ngIf="productoImagenesError">
+          {{ productoImagenesError }}
+        </div>
+      
+      
+        <div *ngIf="imagenesProductoURLs.length > 0" class="imagenes-preview">
+          <ion-label
+            >Vista previa de imágenes ({{
+              imagenesProductoArchivos.length
+            }}/3):</ion-label
+          >
+          <div class="imagenes-grid">
+            <div
+              *ngFor="let imagen of imagenesProductoURLs; let i = index"
+              class="imagen-preview"
+            >
+              <img [src]="imagen" alt="Preview" />
+              <span class="imagen-numero">{{ i + 1 }}</span>
+            </div>
+          </div>
+        </div>
+      
+        <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
+      
+      
+        <ion-button expand="block" type="submit" [disabled]="productoForm.invalid || imagenesProductoArchivos.length !== 3">
+          REGISTRAR PLATO
+        </ion-button>
+      
+        <div *ngIf="mensajeExito" class="mensaje-exito">
+          {{ mensajeExito }}
+        </div>
+      </form>
 
-  <!-- BEBIDA O PLATO - Campo tiempo de elaboración del plato -->
-  <ion-item>
-    <ion-icon slot="start" name="time-outline"></ion-icon>
-    <ion-label position="floating">Tiempo de elaboración (minutos)</ion-label>
-    <ion-input
-      type="number"
-      formControlName="tiempoElaboracion"
-      min="1"
-      max="60"
-    ></ion-input>
-  </ion-item>
-  <div class="field-error" *ngIf="productoTiempoError">
-    {{ productoTiempoError }}
-  </div>
 
-  <!-- BEBIDA O PLATO - Campo precio del plato -->
-  <ion-item>
-    <ion-icon slot="start" name="cash-outline"></ion-icon>
-    <ion-label position="floating">Precio ($)</ion-label>
-    <ion-input type="number" step="0.01" formControlName="precio"></ion-input>
-  </ion-item>
-  <div class="field-error" *ngIf="productoPrecioError">
-    {{ productoPrecioError }}
-  </div>
-
-  <!-- BEBIDA O PLATO - Botón para tomar fotos del plato -->
-  <ion-item>
-    <ion-icon slot="start" name="images-outline"></ion-icon>
-    <ion-button
-      slot="end"
-      size="small"
-      class="boton-verde"
-      (click)="tomarFoto()"
-      >Tomar Fotos</ion-button
-    >
-  </ion-item>
-  <div class="field-error" *ngIf="productoImagenesError">
-    {{ productoImagenesError }}
-  </div>
-
-  <!-- BEBIDA O PLATO - Preview de imágenes del plato -->
-  <div *ngIf="imagenesProductoURLs.length > 0" class="imagenes-preview">
-    <ion-label
-      >Vista previa de imágenes ({{
-        imagenesProductoArchivos.length
-      }}/3):</ion-label
-    >
-    <div class="imagenes-grid">
-      <div
-        *ngFor="let imagen of imagenesProductoURLs; let i = index"
-        class="imagen-preview"
-      >
-        <img [src]="imagen" alt="Preview" />
-        <span class="imagen-numero">{{ i + 1 }}</span>
-      </div>
     </div>
   </div>
+</ion-content>
 
-  <div class="error-message" *ngIf="mensajeError">{{ mensajeError }}</div>
 
-  <!-- BEBIDA O PLATO - Botón para registrar plato -->
-  <ion-button expand="block" type="submit" [disabled]="productoForm.invalid || imagenesProductoArchivos.length !== 3">
-    REGISTRAR PLATO
-  </ion-button>
 
-  <div *ngIf="mensajeExito" class="mensaje-exito">
-    {{ mensajeExito }}
-  </div>
-</form>
+
+
+
