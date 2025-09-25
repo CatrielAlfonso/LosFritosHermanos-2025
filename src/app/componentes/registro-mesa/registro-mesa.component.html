@@ -1,0 +1,80 @@
+<ion-content class="registro-mesa-content">
+  <form [formGroup]="mesaForm" (ngSubmit)="registrarMesa()">
+
+    <!-- Número de mesa -->
+    <ion-item>
+      <ion-icon slot="start" name="grid-outline"></ion-icon>
+      <ion-label position="floating">Número de mesa</ion-label>
+      <ion-input type="number" formControlName="numero"></ion-input>
+    </ion-item>
+    @if (mesaForm.get('numero')?.invalid && mesaForm.get('numero')?.touched) {
+      <div class="field-error">El número de mesa es obligatorio y debe ser válido</div>
+    }
+
+    <!-- Cantidad de comensales -->
+    <ion-item>
+      <ion-icon slot="start" name="people-outline"></ion-icon>
+      <ion-label position="floating">Cantidad de comensales</ion-label>
+      <ion-input type="number" formControlName="comensales"></ion-input>
+    </ion-item>
+    @if (mesaForm.get('comensales')?.invalid && mesaForm.get('comensales')?.touched) {
+      <div class="field-error">Debe ingresar una cantidad válida (1-20)</div>
+    }
+
+    <!-- Tipo de mesa -->
+    <ion-item>
+      <ion-icon slot="start" name="restaurant-outline"></ion-icon>
+      <ion-label>Tipo de mesa</ion-label>
+      <ion-select formControlName="tipo" placeholder="Seleccione un tipo">
+        <ion-select-option value="estandar">Estándar</ion-select-option>
+        <ion-select-option value="vip">VIP</ion-select-option>
+        <ion-select-option value="discapacitados">Movilidad reducida</ion-select-option>
+      </ion-select>
+    </ion-item>
+    @if (mesaForm.get('tipo')?.invalid && mesaForm.get('tipo')?.touched) {
+      <div class="field-error">Debe seleccionar un tipo de mesa</div>
+    }
+
+    <!-- Foto -->
+    <ion-item>
+      <ion-icon slot="start" name="camera-outline"></ion-icon>
+      <ion-label>Foto</ion-label>
+      <ion-button slot="end" size="small" class="boton-verde" (click)="tomarFoto()">Tomar Foto</ion-button>
+    </ion-item>
+    @if (mesaForm.get('imagen')?.invalid && mesaForm.get('imagen')?.touched) {
+      <div class="field-error">Debe seleccionar una imagen</div>
+    }
+
+    @if (imagenMesaURL) {
+      <div class="imagen-preview-única">
+        <ion-label>Vista previa:</ion-label>
+        <div class="preview-wrapper">
+          <img [src]="imagenMesaURL" alt="Preview" />
+        </div>
+      </div>
+    }
+
+    @if (qrMesaURL) {
+      <div class="imagen-preview-única">
+        <ion-label>QR Generado:</ion-label>
+        <div class="preview-wrapper">
+          <img [src]="qrMesaURL" alt="QR Code" />
+        </div>
+      </div>
+    }
+
+    <!-- Mensajes -->
+    @if (mensajeError) {
+      <div class="error-message">{{ mensajeError }}</div>
+    }
+    @if (mensajeExito) {
+      <div class="mensaje-exito">{{ mensajeExito }}</div>
+    }
+
+    <!-- Botón submit -->
+    <ion-button expand="block" type="submit" [disabled]="mesaForm.invalid">
+      REGISTRAR MESA
+    </ion-button>
+  </form>
+
+</ion-content>

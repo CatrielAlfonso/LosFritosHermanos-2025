@@ -14,7 +14,7 @@ export class ScreenPage implements OnInit {
 
   ngOnInit() {
     setTimeout(() => {
-      this.router.navigateByUrl('/home');
+      this.router.navigateByUrl('/bienvenida');
     }, 3800);
   }
 

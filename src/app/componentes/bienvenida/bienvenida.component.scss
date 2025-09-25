@@ -1,0 +1,122 @@
+.bienvenida-content {
+  --background: linear-gradient(135deg, #4666de, #dca706);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  padding: 2rem;
+}
+
+// ion-content {
+//   --background: #4666de;
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: space-between;
+// }
+
+
+.logo-container {
+  margin-top: 4rem;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.mascota {
+  width: 160px;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.titulo {
+  font-size: 2rem;
+  font-weight: bold;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  color: #fff;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+}
+
+.subtitulo {
+  font-size: 1.1rem;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  color: #ffd500;
+  margin-top: 0.5rem;
+}
+
+.botones-container {
+  flex: 1;                /* ocupa todo el espacio sobrante */
+  display: flex;
+  flex-direction: column; /* botones uno debajo del otro */
+  justify-content: center;/* centrados verticalmente */
+  padding: 1rem;
+  gap: 0.5rem;            /* espacio entre botones */
+}
+
+.fritos-btn {
+  --border-radius: 15px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 2rem;          /* botones bien grandes */
+  height: 250px;          /* altura fija para que se vean potentes */
+}
+
+.lluvia-pollos {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none; // no bloquea botones
+}
+
+.pollo {
+  position: absolute;
+  top: -100px;
+  width: 50px;
+  height: auto;
+  animation: caer 5s linear infinite;
+}
+
+/* Animación de caída */
+@keyframes caer {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0.8;
+  }
+}
+
+.pollo:nth-child(1) { left: 10%; animation-duration: 4s; }
+.pollo:nth-child(2) { left: 25%; animation-duration: 6s; }
+.pollo:nth-child(3) { left: 40%; animation-duration: 5s; }
+.pollo:nth-child(4) { left: 60%; animation-duration: 7s; }
+.pollo:nth-child(5) { left: 75%; animation-duration: 4.5s; }
+.pollo:nth-child(6) { left: 90%; animation-duration: 6.5s; }
+
+
+/* Animaciones */
+@keyframes bounce-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.bounce-in {
+  animation: bounce-in 1s ease;
+}
+
+.fadeIn {
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
