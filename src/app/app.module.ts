@@ -9,6 +9,9 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { SharedModule } from './shared/shared.module';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
+import { register } from 'swiper/element/bundle'
+register();
 
 @NgModule({
   declarations: [AppComponent],
@@ -22,5 +25,6 @@ import { SharedModule } from './shared/shared.module';
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {}
