@@ -60,7 +60,11 @@ const routes: Routes = [
   {
     path: 'registro-mesa',
     loadComponent: () => import('./componentes/registro-mesa/registro-mesa.component').then(m => m.RegistroMesaComponent)
-  }
+  },
+  {
+    path: 'registro-plato',
+    loadComponent: () => import('./componentes/platos/platos.component').then(m => m.PlatosComponent)
+  },
 
 
  
