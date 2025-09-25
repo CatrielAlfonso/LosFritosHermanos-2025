@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { User } from '@supabase/supabase-js';
 import { Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,7 @@ export class AuthService {
       password: contrasenia
     });
 
+    console.log('Login data:', data);
     if (error) throw error;
 
     const { data: cliente } = await this.sb.supabase
@@ -57,18 +59,90 @@ export class AuthService {
 
     this.esAdmin = !!supervisor;
     
+
     if (empleado && empleado.perfil === 'maitre') {
-      this.esMaitre = true;
-      this.perfilUsuario = 'maitre';
+    this.setPerfil('maitre');
     } else if (supervisor) {
-      this.perfilUsuario = 'supervisor';
+      this.setPerfil('supervisor');
     } else if (empleado) {
-      this.perfilUsuario = empleado.perfil;
+      this.setPerfil(empleado.perfil);
     } else if (cliente) {
-      this.perfilUsuario = 'cliente';
+      this.setPerfil('cliente');
     }
 
+    // if (empleado && empleado.perfil === 'maitre') {
+    //   this.esMaitre = true;
+    //   this.perfilUsuario = 'maitre';
+    // } else if (supervisor) {
+    //   this.perfilUsuario = 'supervisor';
+    // } else if (empleado) {
+    //   this.perfilUsuario = empleado.perfil;
+    // } else if (cliente) {
+    //   this.perfilUsuario = 'cliente';
+    // }
+
     return this.usuarioActual;
+  }
+
+  async logearse(correo: string, contrasenia: string)
+  {
+
+    // 1. Autenticación
+    const { data, error } = await this.sb.supabase.auth.signInWithPassword({
+      email: correo,
+      password: contrasenia
+    });
+
+    if (error) throw error;
+
+    this.usuarioActual = data?.user || null;
+
+  // 2. Buscar perfil
+    const { data: supervisor } = await this.sb.supabase
+      .from('supervisores')
+      .select('*')
+      .eq('correo', correo)
+      .maybeSingle();
+
+    if (supervisor) {
+      this.setPerfil('supervisor');
+      return this.usuarioActual;
+    }
+
+    const { data: empleado } = await this.sb.supabase
+      .from('empleados')
+      .select('*')
+      .eq('correo', correo)
+      .maybeSingle();
+
+    if (empleado) {
+      this.setPerfil(empleado.perfil);
+      return this.usuarioActual;
+    }
+
+    const { data: cliente } = await this.sb.supabase
+      .from('clientes')
+      .select('id, validado, aceptado')
+      .eq('correo', correo)
+      .maybeSingle();
+
+    if (cliente) {
+      if (cliente.validado === null) {
+        await this.sb.supabase.auth.signOut();
+        throw new Error('Tu cuenta está pendiente de aprobación. Por favor, espera a que un administrador la revise.');
+      }
+      if (cliente.validado === false) {
+        await this.sb.supabase.auth.signOut();
+        throw new Error('Tu cuenta fue rechazada. Por favor, contacta al administrador.');
+      }
+      this.setPerfil('cliente');
+      return this.usuarioActual;
+    }
+
+  // 3. Si no encontró nada
+    await this.sb.supabase.auth.signOut();
+    throw new Error('No se encontró un perfil asociado a este correo.');
+
   }
 
   async registro(correo: string, contrasenia: string) {
@@ -84,6 +158,14 @@ export class AuthService {
     this.usuarioActual = data?.user || null;
     return this.usuarioActual;
   }
+
+  private perfilUsuarioSubject = new BehaviorSubject<string | null>(null);
+  perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
+
+  setPerfil(perfil: string) {
+    this.perfilUsuarioSubject.next(perfil);
+  }
+
 
   esUsuarioAdmin() {
     return this.esAdmin;

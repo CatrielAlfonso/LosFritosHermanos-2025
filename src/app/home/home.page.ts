@@ -22,7 +22,29 @@ export class HomePage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.verificarUsuario();
+  //   this.verificarUsuario();
+
+  //   const user = this.authService.usuarioActual;
+
+  //   if (user) {
+  //    // o traer el nombre desde DB
+
+  //   // Levanto los flags desde el servicio
+  //   this.perfilUsuario = this.authService.perfilUsuario;
+  //   this.esAdmin = this.authService.esAdmin;
+  //   this.esMaitre = this.authService.esMaitre;
+  //   this.esCocinero = this.authService.perfilUsuario === 'cocinero';
+  //   this.esBartender = this.authService.perfilUsuario === 'bartender';
+  // }
+  this.authService.perfilUsuario$.subscribe(perfil => {
+    this.perfilUsuario = perfil ?? '';
+    this.esAdmin = perfil === 'supervisor';
+    this.esMaitre = perfil === 'maitre';
+    this.esCocinero = perfil === 'cocinero';
+    this.esBartender = perfil === 'bartender';
+  });
+  console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+
   }
 
   async verificarUsuario() {

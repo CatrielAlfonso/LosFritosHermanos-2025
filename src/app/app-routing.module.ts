@@ -8,7 +8,11 @@ const routes: Routes = [
     redirectTo: 'screen',
     pathMatch: 'full'
   },
-   {
+  {
+    path: 'screen',
+    loadChildren: () => import('./pages/screen/screen.module').then( m => m.ScreenPageModule)
+  },
+  {
     path: 'screen-splash',
     loadChildren: () => import('./pages/screen-splash/screen-splash.module').then( m => m.ScreenSplashPageModule)
   },
@@ -23,10 +27,6 @@ const routes: Routes = [
   {
     path: 'registro',
     loadComponent: () => import('./componentes/registro/registro.component').then(m => m.RegistroComponent)
-  },
-  {
-    path: 'screen',
-    loadChildren: () => import('./pages/screen/screen.module').then( m => m.ScreenPageModule)
   },
   {
     path: 'bebidas',
@@ -44,6 +44,22 @@ const routes: Routes = [
   {
     path: 'registro-supervisor',
     loadComponent: () => import('./componentes/registro-supervisor/registro-supervisor.component').then(m => m.RegistroSupervisorComponent)
+  },
+  {
+    path: 'bienvenida',
+    loadComponent: () => import('./componentes/bienvenida/bienvenida.component').then(m => m.BienvenidaComponent)
+  }, 
+  {
+    path:'anonimo',
+    loadComponent: () => import('./componentes/anonimo/anonimo.component').then(m => m.AnonimoComponent)
+  },
+  {
+    path: 'supervisor',
+    loadChildren: () => import('./componentes/supervisor/supervisor.component').then( m => m.SupervisorComponent)
+  },
+  {
+    path: 'registro-mesa',
+    loadComponent: () => import('./componentes/registro-mesa/registro-mesa.component').then(m => m.RegistroMesaComponent)
   },
   {
     path: 'registro-plato',

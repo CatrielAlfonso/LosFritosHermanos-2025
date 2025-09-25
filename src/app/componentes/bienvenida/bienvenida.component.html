@@ -1,0 +1,28 @@
+<ion-content fullscreen class="bienvenida-content">
+
+  <div class="lluvia-pollos">
+    <img src="../../../assets/imgs/pollo frito.png" class="pollo" *ngFor="let pollo of [].constructor(10)" />
+  </div>
+
+  <!-- Logo / Mascota centrada -->
+  <div class="logo-container">
+    <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/masCrocante.png" alt="Mascota" class="mascota" />
+    <h1 class="titulo">LOS FRITOS HERMANOS</h1>
+    <p class="subtitulo">"Más crocante que chisme de barrio"</p>
+  </div>
+
+
+  <!-- Botones -->
+   <div class="botones-container">
+    <ion-button color="tertiary" expand="block" color="fritos-blue" class="fritos-btn" routerLink="/login">
+      <ion-icon slot="start" name="log-in-outline"></ion-icon>
+      INICIAR SESIÓN
+    </ion-button>
+
+    <ion-button color="tertiary" expand="block" color="fritos-blue" class="fritos-btn" routerLink="/anonimo">
+      <ion-icon slot="start" name="accessibility-outline"></ion-icon>
+      INGRESO CLIENTE ANÓNIMO
+    </ion-button>
+  </div>
+
+</ion-content>
