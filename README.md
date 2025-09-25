@@ -38,11 +38,11 @@
 | 1     | Lucas       | master/punto-1-empleado          | ✅ Completado  | 06/09/2025 | 23/09/2025 |
 | 2     | Lucas       | master/punto-2-plato             | 🚧 En progreso | 12/09/2025 | ... |
 | 3     | Catriel     | master/punto-3-bebida            | ✅ Completado | 12/09/2025 |20/09/2025 |
-| 4     | Lucas       | master/punto-4-mesa              | ⏳ Pendiente    | 12/09/2025 | ... |
+| 4     | Catriel       | master/punto-4-mesa              | ✅ Completado   | 12/09/2025 |25/09/2025 |
 | 5     | Lucas       | master/punto-5-cliente-registrado| ✅ Completado  | 06/09/2025 | 12/09/2025 |
-| 6     | Catriel     | master/punto-6-verificar-cliente | ✅ Completado  | 06/09/2025 | 12/09/2025 |
-| 7     | Tomas       | master/punto-7-rechazo-cliente   | ⏳ Pendiente | -- | -- |
-| 8     | Tomas       | master/punto-8-aceptacion-cliente| ⏳ Pendiente | -- | -- |
+| 6     | Catriel     | master/punto-6-verificar-cliente | 🚧 En progreso| 06/09/2025 | |
+| 7     | Catriel       | master/punto-7-rechazo-cliente   | 🚧 En progreso  | 24/09/2025 | -- |
+| 8     | Catriel       | master/punto-8-aceptacion-cliente| 🚧 En progreso | 24/09/2025 | -- |
 | 9     | Catriel     | master/punto-9-cliente-anonimo   | 🚧 En progreso | 19/09/2025 | ... |
 | 10    | Tomas       | master/punto-10-asignacion-mesa  | ⏳ Pendiente | -- | -- |
 | 11    | Lucas       | master/punto-11-menu-consulta    | ⏳ Pendiente | -- | -- |
@@ -68,7 +68,10 @@
 
 ---
 ## 🔄 Reasignaciones
-- 19/09/2025: Punto 1 (Registro empleados) pasó de Tomas → Lucas.
-
+- 20/09/2025: Punto 1 (Registro empleados) pasó de Tomas → Lucas.
+- 25/09/2025: Punto 4 (Registro mesa) pasó de Tomas → Catriel
+- 12/09/2025: Punto 6 (verificiacion-cliente) pasó de Catriel → Tomas.
+- 24/09/2025: Punto 7 (rechazo-cliente) pasó de Tomas → Catriel.
+- 24/09/2025: Punto 8 (aceptacion-cliente) pasó de Tomas → Catriel.
 
 ---

@@ -127,7 +127,7 @@ export class LoginPage implements OnInit {
 
       let usuario;
       try {
-        usuario = await this.authService.logIn(correo, contrasenia);
+        usuario = await this.authService.logearse(correo, contrasenia);
       } catch (error: any) {
         if (error?.message === 'Invalid login credentials') {
           this.errorMessage = 'Correo electrónico o contraseña inválidos';
@@ -175,11 +175,11 @@ export class LoginPage implements OnInit {
 
   accesoRapido(type: string) {
     const presets: { [key: string]: { correo: string; contrasenia: string } } = {
-      supervisor: { correo: 'carlote@gmail.com', contrasenia: '123456' },
+      supervisor: { correo: 'supervisor-uno@gmail.com', contrasenia: '123456' },
       dueno: { correo: 'tomasbehrens0@gmail.com', contrasenia: '123456' },
-      maitre: { correo: 'carlitos@gmail.com', contrasenia: '123456' },
+      maitre: { correo: 'lucas-2@gmail.com', contrasenia: '123456' },
       mozo: { correo: 'felix@gmail.com', contrasenia: '123456' },
-      cocinero: { correo: 'c@gmail.com', contrasenia: '123456' },
+      cocinero: { correo: 'catriel@gmail.com', contrasenia: '123456' },
       bartender: { correo: 'matiasbartender@gmail.com', contrasenia: '123456' },
       cliente: { correo: 'carlos@gmail.com', contrasenia: '123456' },
     };
