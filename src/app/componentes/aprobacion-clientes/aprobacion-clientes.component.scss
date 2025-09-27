@@ -1,54 +1,4 @@
-#container {
-  text-align: center;
-  position: absolute;
-  left: 50%;
-  right: 0;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 400px;
-  width: 90%;
-  padding: 2rem;
-  margin: 0 auto;
-}
-
-#container strong {
-  font-size: 24px;
-  line-height: 30px;
-  display: block;
-  margin-bottom: 1rem;
-}
-
-#container p {
-  font-size: 18px;
-  line-height: 24px;
-  color: var(--ion-color-fritos-blue);
-  margin: 0 0 2rem 0;
-  opacity: 0.8;
-}
-
-#container a {
-  text-decoration: none;
-}
-
-.fritos-red{
-  display: flex;
-  justify-content: center;
-}
-
-.login-logo {
-  width: 150px;
-  height: 100px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto 1.5rem auto;
-}
-
-.titulo{
-  color: rgb(214, 187, 38);
-  text-align: center;
-}
-
-.logout-button {
+.back-button {
   --padding-start: 1rem;
   --padding-end: 1rem;
   font-size: 1rem;
@@ -56,42 +6,40 @@
   font-weight: 500;
 }
 
-.admin-options, .maitre-options, .cocinero-options, .bartender-options, .cliente-options {
-  margin-top: 20px;
-  width: 100%;
-  max-width: 500px;
-}
-
 .clientes-pendientes-section {
-  margin-top: 20px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-
-  h4 {
-    margin-bottom: 20px;
-    color: var(--ion-color-light);
-    font-size: 1.2em;
-    text-align: center;
-  }
+  padding: 20px;
 
   .loading-spinner {
     text-align: center;
-    padding: 20px;
+    padding: 40px;
     
     ion-spinner {
-      margin-bottom: 10px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 20px;
     }
     
     p {
       color: var(--ion-color-medium);
+      font-size: 1.1em;
     }
   }
 
   .no-clientes {
     text-align: center;
-    padding: 20px;
+    padding: 40px;
     color: var(--ion-color-medium);
+
+    .success-icon {
+      font-size: 64px;
+      color: var(--ion-color-success);
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 1.2em;
+      margin: 0;
+    }
   }
 
   .clientes-grid {
