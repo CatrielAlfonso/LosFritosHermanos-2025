@@ -18,73 +18,7 @@ export class AuthService {
   constructor(
   ) { }
 
-  async logIn(correo: string, contrasenia: string) {
-    const { data, error } = await this.sb.supabase.auth.signInWithPassword({
-      email: correo,
-      password: contrasenia
-    });
-
-    console.log('Login data:', data);
-    if (error) throw error;
-
-    const { data: cliente } = await this.sb.supabase
-      .from('clientes')
-      .select('id, validado, aceptado')
-      .eq('correo', correo)
-      .single();
-
-    if (cliente) {
-      if (cliente.validado === null) {
-        await this.sb.supabase.auth.signOut();
-        throw new Error('Tu cuenta está pendiente de aprobación. Por favor, espera a que un administrador la revise.');
-      } else if (cliente.validado === false) {
-        await this.sb.supabase.auth.signOut();
-        throw new Error('Tu cuenta fue rechazada. Por favor, contacta al administrador para más información.');
-      }
-    }
-
-    this.usuarioActual = data?.user || null;
-
-    const { data: empleado } = await this.sb.supabase
-      .from('empleados')
-      .select('*')
-      .eq('correo', correo)
-      .single();
-
-    const { data: supervisor } = await this.sb.supabase
-      .from('supervisores')
-      .select('id')
-      .eq('correo', correo)
-      .single();
-
-    this.esAdmin = !!supervisor;
-    
-
-    if (empleado && empleado.perfil === 'maitre') {
-    this.setPerfil('maitre');
-    } else if (supervisor) {
-      this.setPerfil('supervisor');
-    } else if (empleado) {
-      this.setPerfil(empleado.perfil);
-    } else if (cliente) {
-      this.setPerfil('cliente');
-    }
-
-    // if (empleado && empleado.perfil === 'maitre') {
-    //   this.esMaitre = true;
-    //   this.perfilUsuario = 'maitre';
-    // } else if (supervisor) {
-    //   this.perfilUsuario = 'supervisor';
-    // } else if (empleado) {
-    //   this.perfilUsuario = empleado.perfil;
-    // } else if (cliente) {
-    //   this.perfilUsuario = 'cliente';
-    // }
-
-    return this.usuarioActual;
-  }
-
-  async logearse(correo: string, contrasenia: string)
+  async logIn(correo: string, contrasenia: string)
   {
 
     // 1. Autenticación

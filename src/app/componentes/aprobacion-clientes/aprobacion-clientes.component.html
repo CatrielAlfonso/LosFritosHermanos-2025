@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volverAlHome()" class="back-button">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Volver al Home
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="fritos-logo">Aprobación de Clientes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="fritos-theme">
+  <div class="clientes-pendientes-section">
+    <div *ngIf="cargandoClientes" class="loading-spinner">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando clientes pendientes...</p>
+    </div>
+
+    <div *ngIf="!cargandoClientes && clientesPendientes.length === 0" class="no-clientes">
+      <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+      <p>No hay clientes pendientes de aprobación</p>
+    </div>
+
+    <div class="clientes-grid" *ngIf="!cargandoClientes && clientesPendientes.length > 0">
+      <div class="cliente-card" *ngFor="let cliente of clientesPendientes">
+        <div class="cliente-imagen">
+          <img [src]="cliente.imagenPerfil || 'assets/default-user.svg'" alt="Foto de perfil" class="profile-image">
+        </div>
+        <div class="cliente-info">
+          <h2>{{ cliente.nombre }} {{ cliente.apellido }}</h2>
+          <p><ion-icon name="mail-outline"></ion-icon> {{ cliente.correo }}</p>
+          <p><ion-icon name="card-outline"></ion-icon> DNI: {{ cliente.dni }}</p>
+        </div>
+        <div class="cliente-acciones">
+          <ion-button class="accion-btn" expand="block" color="success" (click)="aprobarCliente(cliente)">
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            Aprobar
+          </ion-button>
+          <ion-button class="accion-btn" expand="block" color="danger" (click)="rechazarCliente(cliente)">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Rechazar
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

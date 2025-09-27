@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "127178815661",
+    "project_id": "fritos-hermanos",
+    "storage_bucket": "fritos-hermanos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:127178815661:android:351b9edbc71e93ac61ae24",
+        "android_client_info": {
+          "package_name": "io.ionic.starter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpO-eDSXYnx0jDZH4NFG4CNwyfU-gUnPM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

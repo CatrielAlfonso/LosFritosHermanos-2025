@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class PushNotificationService {
-  private backendUrl = 'https://backend-taco-mex-2025.onrender.com';
+  private backendUrl = 'https://backend-los-fritos-hermanos-2025.onrender.com';
 
   constructor() { }
 
@@ -255,29 +255,46 @@ export class PushNotificationService {
     }
   }
 
-  // async enviarCorreoEstadoCliente(clienteEmail: string, nombre: string, estado: 'aceptado' | 'rechazado') {
-  //   try {
-  //     const response = await fetch(`${this.backendUrl}/enviarCorreoEstado`, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({
-  //         clienteEmail,
-  //         nombre,
-  //         estado
-  //       }),
-  //     });
+  async notificarEstadoCliente(clienteEmail: string, nombre: string, apellido: string, estado: 'aceptado' | 'rechazado') {
+    try {
+      const pushResponse = await fetch(`${this.backendUrl}/notify-client-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clienteEmail,
+          nombre,
+          estado
+        }),
+      });
 
-  //     const resultado = await response.json();
-  //     if (!response.ok) {
-  //       throw new Error(resultado.error || 'Error al enviar el correo');
-  //     }
+      if (!pushResponse.ok) {
+        console.error('Error al enviar notificación push:', await pushResponse.text());
+      }
 
-  //     return resultado;
-  //   } catch (error) {
-  //     console.error('Error al enviar el correo:', error);
-  //     throw error;
-  //   }
-  // }
+      if (estado === 'rechazado') {
+        const emailResponse = await fetch(`${this.backendUrl}/enviar-correo-rechazo`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            correo: clienteEmail,
+            nombre,
+            apellido
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          console.error('Error al enviar correo:', await emailResponse.text());
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error al notificar estado del cliente:', error);
+      throw error;
+    }
+  }
 }

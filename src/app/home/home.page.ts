@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../servicios/auth.service';
 import { Router,RouterLink } from '@angular/router';
+import { SupabaseService } from '../servicios/supabase.service';
+import { PushNotificationService } from '../servicios/push-notification.service';
 
 @Component({
   selector: 'app-home',
@@ -18,48 +20,101 @@ export class HomePage implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private supabase: SupabaseService,
+    private pushNotificationService: PushNotificationService
   ) {}
 
-  ngOnInit() {
-  //   this.verificarUsuario();
+  async ngOnInit() {
+    const { data: { user } } = await this.authService.getCurrentUser();
+    if (!user) {
+      this.router.navigate(['/login']);
+      return;
+    }
 
-  //   const user = this.authService.usuarioActual;
-
-  //   if (user) {
-  //    // o traer el nombre desde DB
-
-  //   // Levanto los flags desde el servicio
-  //   this.perfilUsuario = this.authService.perfilUsuario;
-  //   this.esAdmin = this.authService.esAdmin;
-  //   this.esMaitre = this.authService.esMaitre;
-  //   this.esCocinero = this.authService.perfilUsuario === 'cocinero';
-  //   this.esBartender = this.authService.perfilUsuario === 'bartender';
-  // }
-  this.authService.perfilUsuario$.subscribe(perfil => {
-    this.perfilUsuario = perfil ?? '';
-    this.esAdmin = perfil === 'supervisor';
-    this.esMaitre = perfil === 'maitre';
-    this.esCocinero = perfil === 'cocinero';
-    this.esBartender = perfil === 'bartender';
-  });
-  console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+    await this.verificarUsuario();
+    
+    this.authService.perfilUsuario$.subscribe(perfil => {
+      console.log('Perfil recibido:', perfil);
+      this.perfilUsuario = perfil ?? '';
+      this.esAdmin = perfil === 'supervisor';
+      this.esMaitre = perfil === 'maitre';
+      this.esCocinero = perfil === 'cocinero';
+      this.esBartender = perfil === 'bartender';
+      
+    });
+    console.log('Perfil usuario en HomePage:', this.perfilUsuario);
 
   }
 
   async verificarUsuario() {
     try {
       const { data: user } = await this.authService.getCurrentUser();
-      if (user?.user?.email) {
-        this.esAdmin = this.authService.esUsuarioAdmin();
-        this.esMaitre = this.authService.esUsuarioMaitre();
-        this.esCocinero = this.authService.esUsuarioCocinero();
-        this.perfilUsuario = this.authService.getPerfilUsuario();
-        
-        await this.obtenerNombreUsuario(user.user.email);
+      if (!user?.user?.email) {
+        this.router.navigate(['/login']);
+        return;
       }
+
+      const email = user.user.email;
+      
+      // Verificar si es supervisor
+      const { data: supervisor } = await this.supabase.supabase
+        .from('supervisores')
+        .select('nombre, apellido')
+        .eq('correo', email)
+        .single();
+
+      if (supervisor) {
+        this.esAdmin = true;
+        this.nombreUsuario = `${supervisor.nombre} ${supervisor.apellido}`;
+        this.authService.setPerfil('supervisor');
+        return;
+      }
+
+      // Verificar si es empleado
+      const { data: empleado } = await this.supabase.supabase
+        .from('empleados')
+        .select('nombre, apellido, perfil')
+        .eq('correo', email)
+        .single();
+
+      if (empleado) {
+        this.nombreUsuario = `${empleado.nombre} ${empleado.apellido}`;
+        if (empleado.perfil === 'maitre') {
+          this.esMaitre = true;
+        } else if (empleado.perfil === 'cocinero') {
+          this.esCocinero = true;
+        } else if (empleado.perfil === 'bartender') {
+          this.esBartender = true;
+        }
+        this.authService.setPerfil(empleado.perfil);
+        return;
+      }
+
+      // Verificar si es cliente
+      const { data: cliente } = await this.supabase.supabase
+        .from('clientes')
+        .select('nombre, apellido, validado')
+        .eq('correo', email)
+        .single();
+
+      if (cliente) {
+        if (cliente.validado === null || cliente.validado === false) {
+          await this.authService.signOut();
+          this.router.navigate(['/login']);
+          return;
+        }
+        this.nombreUsuario = `${cliente.nombre} ${cliente.apellido}`;
+        this.authService.setPerfil('cliente');
+        return;
+      }
+
+      // Si no se encontró ningún perfil
+      await this.authService.signOut();
+      this.router.navigate(['/login']);
     } catch (error) {
       console.error('Error al verificar usuario:', error);
+      this.router.navigate(['/login']);
     }
   }
 
@@ -111,6 +166,9 @@ export class HomePage implements OnInit {
     await this.authService.signOut();
     this.router.navigate(['/login']);
   }
-}
 
+  irAAprobacionClientes() {
+    this.router.navigate(['/aprobacion-clientes']);
+  }
+}
 
