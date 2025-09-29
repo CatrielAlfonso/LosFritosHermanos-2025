@@ -186,6 +186,13 @@ export class RegistroComponent implements OnInit {
       this.tipoRegistro = 'empleado';
     }
 
+    this.clienteForm.get('nombre')?.valueChanges.subscribe(() => this.validarCampoCliente('nombre'));
+    this.clienteForm.get('apellido')?.valueChanges.subscribe(() => this.validarCampoCliente('apellido'));
+    this.clienteForm.get('correo')?.valueChanges.subscribe(() => this.validarCampoCliente('correo'));
+    this.clienteForm.get('contrasenia')?.valueChanges.subscribe(() => this.validarCampoCliente('contrasenia'));
+    this.clienteForm.get('dni')?.valueChanges.subscribe(() => this.validarCampoCliente('dni'));
+    this.clienteForm.get('imagenPerfil')?.valueChanges.subscribe(() => this.validarCampoCliente('imagenPerfil'));
+
  
     this.empleadoForm.get('nombre')?.valueChanges.subscribe(() => this.validarCampoEmpleado('nombre'));
     this.empleadoForm.get('apellido')?.valueChanges.subscribe(() => this.validarCampoEmpleado('apellido'));
@@ -709,7 +716,72 @@ export class RegistroComponent implements OnInit {
     this.router.navigate(['/home']);
   }
 
-  // Método para validar campos de empleado en tiempo real
+
+  validarCampoCliente(campo: string) {
+    const control = this.clienteForm.get(campo);
+    if (!control) return;
+
+    switch(campo) {
+      case 'nombre': this.clienteNombreError = ''; break;
+      case 'apellido': this.clienteApellidoError = ''; break;
+      case 'correo': this.clienteCorreoError = ''; break;
+      case 'contrasenia': this.clienteContraseniaError = ''; break;
+      case 'dni': this.clienteDniError = ''; break;
+      case 'imagenPerfil': this.clienteImagenError = ''; break;
+    }
+
+    if (control.value || control.touched) {
+      switch(campo) {
+        case 'nombre':
+          if (control.errors?.['required']) {
+            this.clienteNombreError = 'El nombre es requerido';
+          } else if (control.errors?.['pattern']) {
+            this.clienteNombreError = 'El nombre solo puede contener letras y espacios';
+          }
+          break;
+          
+        case 'apellido':
+          if (control.errors?.['required']) {
+            this.clienteApellidoError = 'El apellido es requerido';
+          } else if (control.errors?.['pattern']) {
+            this.clienteApellidoError = 'El apellido solo puede contener letras y espacios';
+          }
+          break;
+          
+        case 'correo':
+          if (control.errors?.['required']) {
+            this.clienteCorreoError = 'El correo electrónico es requerido';
+          } else if (control.errors?.['email']) {
+            this.clienteCorreoError = 'Ingrese un correo electrónico válido';
+          }
+          break;
+          
+        case 'contrasenia':
+          if (control.errors?.['required']) {
+            this.clienteContraseniaError = 'La contraseña es requerida';
+          } else if (control.errors?.['minlength']) {
+            this.clienteContraseniaError = 'La contraseña debe tener al menos 6 caracteres';
+          }
+          break;
+          
+        case 'dni':
+          if (control.errors?.['required']) {
+            this.clienteDniError = 'El DNI es requerido';
+          } else if (control.errors?.['pattern']) {
+            this.clienteDniError = 'El DNI debe tener 7 u 8 dígitos';
+          }
+          break;
+          
+        case 'imagenPerfil':
+          if (control.errors?.['required']) {
+            this.clienteImagenError = 'La imagen de perfil es requerida';
+          }
+          break;
+      }
+    }
+  }
+
+
   validarCampoEmpleado(campo: string) {
     const control = this.empleadoForm.get(campo);
     if (!control) return;

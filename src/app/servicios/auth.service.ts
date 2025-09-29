@@ -1,8 +1,8 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { User } from '@supabase/supabase-js';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
+import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
 
 @Injectable({
   providedIn: 'root'
@@ -15,8 +15,22 @@ export class AuthService {
   esMaitre: boolean = false;
   perfilUsuario: string = '';
 
+
+  public userActual: WritableSignal<User | null> = signal<User | null>(null);
+
   constructor(
-  ) { }
+  ) { 
+    this.setupAuthListener()
+  }
+
+  private setupAuthListener() {
+
+    this.sb.supabase.auth.onAuthStateChange((event, session) => {
+      console.log(event);
+      console.log(session);
+      this.userActual.set(session !== null ? session.user : null);
+    });
+  }
 
   async logIn(correo: string, contrasenia: string) {
     const { data, error } = await this.sb.supabase.auth.signInWithPassword({
@@ -69,17 +83,6 @@ export class AuthService {
     } else if (cliente) {
       this.setPerfil('cliente');
     }
-
-    // if (empleado && empleado.perfil === 'maitre') {
-    //   this.esMaitre = true;
-    //   this.perfilUsuario = 'maitre';
-    // } else if (supervisor) {
-    //   this.perfilUsuario = 'supervisor';
-    // } else if (empleado) {
-    //   this.perfilUsuario = empleado.perfil;
-    // } else if (cliente) {
-    //   this.perfilUsuario = 'cliente';
-    // }
 
     return this.usuarioActual;
   }
@@ -202,9 +205,9 @@ export class AuthService {
 
       if (email) {
         try {
-          const { PushNotificationService } = await import('./push-notification.service');
-          const pushService = new PushNotificationService();
-          await pushService.borrarFcmToken(email);
+          //const { PushNotificationService } = await import('./push-notification.service');
+          //const pushService = new PushNotificationService();
+          //await pushService.borrarFcmToken(email);
         } catch (error) {
           console.error('Error al borrar FCM token:', error);
         }
