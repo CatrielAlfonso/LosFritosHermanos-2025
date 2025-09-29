@@ -4,8 +4,9 @@
       LOS FRITOS HERMANOS
     </ion-title>
     <ion-buttons slot="end" *ngIf="nombreUsuario">
-      <ion-button (click)="cerrarSesion()" color="light">
-        <ion-icon name="log-out-outline"></ion-icon>
+      <ion-button (click)="cerrarSesion()" color="light" class="logout-button">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Cerrar Sesión
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -52,6 +53,12 @@
         <ion-icon name="people-outline" slot="start"></ion-icon>
         Gestionar Clientes
       </ion-button>
+
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irAAprobacionClientes()">
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Aprobar Clientes
+      </ion-button>
+
     </div>
 
     <div *ngIf="tipoUsuario === 'maitre'" class="maitre-options">
