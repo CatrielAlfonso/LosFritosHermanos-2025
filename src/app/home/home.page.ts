@@ -3,6 +3,7 @@ import { AuthService } from '../servicios/auth.service';
 import { Router,RouterLink } from '@angular/router';
 import { UserService } from '../servicios/user';
 import { User } from '@supabase/supabase-js';
+import { SupabaseService } from '../servicios/supabase.service';
 
 @Component({
   selector: 'app-home',
@@ -34,7 +35,8 @@ export class HomePage implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private userService : UserService
+    private userService : UserService,
+    private supabase : SupabaseService
   ) {
       
   }
@@ -180,12 +182,8 @@ export class HomePage implements OnInit {
     }
   }
 
-  irARegistro(tipoRegistro?: string) {
-    if (tipoRegistro) {
-      this.router.navigate(['/registro'], { queryParams: { tipo: tipoRegistro } });
-    } else {
-      this.router.navigate(['/registro']);
-    }
+  irARegistro(ruta?: string) {
+    this.router.navigate([ruta]);
   }
 
   irARegistroBebidas(tipoRegistro?: string) {
@@ -199,6 +197,10 @@ export class HomePage implements OnInit {
   async cerrarSesion() {
     await this.authService.signOut();
     this.router.navigate(['/bienvenida']);
+  }
+
+  irAAprobacionClientes(){
+    this.router.navigate(['/aprobacion-clientes'])
   }
 
   
