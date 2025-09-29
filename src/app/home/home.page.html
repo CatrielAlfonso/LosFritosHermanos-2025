@@ -39,17 +39,17 @@
     <div *ngIf="tipoUsuario === 'dueño' || tipoUsuario === 'supervisor'" class="admin-options">
       <h3 class="fritos-subtitle">Panel de Administración</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('empleado')">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro-empleados')">
         <ion-icon name="person-add-outline" slot="start"></ion-icon>
         Registrar Empleado
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irARegistro('mesa')">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irARegistro('/registro-mesa')">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Registrar Mesa
       </ion-button>
 
-      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irARegistro()">
+      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irARegistro('/registro')">
         <ion-icon name="people-outline" slot="start"></ion-icon>
         Gestionar Clientes
       </ion-button>
@@ -64,7 +64,7 @@
     <div *ngIf="tipoUsuario === 'maitre'" class="maitre-options">
       <h3 class="fritos-subtitle">Panel de Maître</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('cliente')">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro')">
         <ion-icon name="person-add-outline" slot="start"></ion-icon>
         Registrar Cliente
       </ion-button>
@@ -79,7 +79,7 @@
     <div *ngIf="tipoUsuario === 'cocinero'" class="cocinero-options">
       <h3 class="fritos-subtitle">Panel de Cocinero</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('producto')">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro-plato')">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Registrar Producto
       </ion-button>
@@ -107,7 +107,7 @@
     <div *ngIf="tipoUsuario === 'cliente'" class="cliente-options">
       <h3 class="fritos-subtitle">Panel de Cliente</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Ver Menú
       </ion-button>

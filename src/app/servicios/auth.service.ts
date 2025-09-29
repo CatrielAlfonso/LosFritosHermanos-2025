@@ -148,10 +148,16 @@ export class AuthService {
 
   }
 
-  async registro(correo: string, contrasenia: string) {
+  async registro(correo: string, contrasenia: string, tipoUsuario : string, nombre : string) {
     const { data, error } = await this.sb.supabase.auth.signUp({
       email: correo,
-      password: contrasenia
+      password: contrasenia,
+      options: {
+        data: {
+          display_name: nombre,
+          tipoUsuario: tipoUsuario
+        }
+      }
     });
 
     if (error) {
