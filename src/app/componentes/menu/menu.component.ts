@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { IonicModule, IonicSlides } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
@@ -16,7 +16,7 @@ export class MenuComponent  implements OnInit {
 
   public bebidas : any[] = []
   public platos : any[] = []
-  @ViewChildren('swiperRef') swiperRefs!: QueryList<SwiperContainer>
+  
 
   constructor( 
     private supabaseService : SupabaseService
@@ -25,17 +25,11 @@ export class MenuComponent  implements OnInit {
   ngOnInit() {
     this.cargarBebidas()
     this.cargarPlatos()
+
+    //setTimeout(() => this.inicializarSwipers(), 300);
   }
 
-  ngAfterViewInit() {
-    // Inicializar swipers después de que la vista se renderice
-    this.inicializarSwipers();
-    
-    // También reinicializar cuando cambien los datos
-    this.swiperRefs.changes.subscribe(() => {
-      this.inicializarSwipers();
-    });
-  }
+
 
   async cargarPlatos(){
     try {
@@ -55,14 +49,15 @@ export class MenuComponent  implements OnInit {
     }
   }
 
-  inicializarSwipers() {
-    setTimeout(() => {
-      this.swiperRefs.forEach(swiper => {
-        if (swiper && typeof swiper.initialize === 'function') {
-          swiper.initialize();
-        }
-      });
-    }, 100);
-  }
+  // inicializarSwipers() {
+  //   const swipers = document.querySelectorAll('swiper-container');
+  //   swipers.forEach(swiper => {
+  //     if (swiper && !swiper.swiper) {
+  //       (swiper as any).initialize();
+  //     }
+  //   });
+  // }
+
+  
 
 }
