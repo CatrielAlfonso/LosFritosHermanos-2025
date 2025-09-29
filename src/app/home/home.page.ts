@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, computed, OnInit } from '@angular/core';
 import { AuthService } from '../servicios/auth.service';
 import { Router,RouterLink } from '@angular/router';
+import { UserService } from '../servicios/user';
+import { User } from '@supabase/supabase-js';
 
 @Component({
   selector: 'app-home',
@@ -13,13 +15,29 @@ export class HomePage implements OnInit {
   esMaitre: boolean = false;
   esCocinero: boolean = false;
   esBartender: boolean = false;
-  perfilUsuario: string = '';
+  perfilUsuario: string | null = null;
   nombreUsuario: string = '';
+  userData : any | null = null
+  tipoUsuario : string | null = null
+  isLoading = true;
+  authUser = computed(() => this.authService.userActual());
+  // userDataAuth = computed(() => {
+  //   const user = this.authUser()
+  //   if(!user) return null
+  //   return {
+  //     email: user.email,
+  //     //tipo: user.user_metadata?.tipo || 'cliente',
+  //     //nombre: user.user_metadata?.nombre || 'Usuario'
+  //   };
+  // })
 
   constructor(
     private authService: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private userService : UserService
+  ) {
+      
+  }
 
   ngOnInit() {
   //   this.verificarUsuario();
@@ -36,15 +54,31 @@ export class HomePage implements OnInit {
   //   this.esCocinero = this.authService.perfilUsuario === 'cocinero';
   //   this.esBartender = this.authService.perfilUsuario === 'bartender';
   // }
-  this.authService.perfilUsuario$.subscribe(perfil => {
-    this.perfilUsuario = perfil ?? '';
-    this.esAdmin = perfil === 'supervisor';
-    this.esMaitre = perfil === 'maitre';
-    this.esCocinero = perfil === 'cocinero';
-    this.esBartender = perfil === 'bartender';
-  });
-  console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+  // this.authService.perfilUsuario$.subscribe(perfil => {
+  //   this.perfilUsuario = perfil ?? '';
+  //   this.esAdmin = perfil === 'supervisor';
+  //   this.esMaitre = perfil === 'maitre';
+  //   this.esCocinero = perfil === 'cocinero';
+  //   this.esBartender = perfil === 'bartender';
+  // });
+  // console.log('Perfil usuario en HomePage:', this.perfilUsuario);
 
+    this.loadUserData();
+    console.log('se ejecuta el on init')
+  }
+
+
+   async loadUserData() {
+    this.isLoading = true;
+    
+    const user = await this.userService.loadCurrentUser();
+    this.tipoUsuario = user?.tipo || null;
+    this.userData = user || null;
+    this.nombreUsuario = user?.datos.nombre
+    this.perfilUsuario = user?.tipo || null
+    console.log('user: ', user)
+    console.log('userData: ', this.userData)
+    this.isLoading = false;
   }
 
   async verificarUsuario() {
@@ -109,8 +143,10 @@ export class HomePage implements OnInit {
 
   async cerrarSesion() {
     await this.authService.signOut();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/bienvenida']);
   }
+
+  
 }
 
 

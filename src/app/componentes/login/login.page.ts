@@ -16,6 +16,7 @@ import {
   IonList,
   IonPopover
 } from '@ionic/angular/standalone';
+import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 
 @Component({
   selector: 'app-login',
@@ -47,7 +48,8 @@ export class LoginPage implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private feedbackService: FeedbackService
   ) {
     this.loginForm = this.fb.group({
       correo: ['', [Validators.required, Validators.email]],
@@ -108,7 +110,7 @@ export class LoginPage implements OnInit {
     if (this.correoError || this.contraseniaError) {
       return;
     }
-
+    //this.feedbackService.showLoading()
     this.loadingService.show();
 
     try {
@@ -152,11 +154,11 @@ export class LoginPage implements OnInit {
         return;
       }
 
-      try {
-        await this.registrarPushToken(usuario.id);
-      } catch (error) {
-        console.error('Error al registrar push token:', error);
-      }
+      // try {
+      //   await this.registrarPushToken(usuario.id);
+      // } catch (error) {
+      //   console.error('Error al registrar push token:', error);
+      // }
 
       this.loginForm.reset();
       this.router.navigate(['/home']);
