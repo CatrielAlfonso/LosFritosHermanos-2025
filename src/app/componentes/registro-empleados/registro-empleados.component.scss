@@ -112,13 +112,13 @@
 
   ion-button[type="submit"] {
     margin-top: 0.3rem;
-    --background: var(--ion-color-fritos-red);
-    --background-hover: var(--ion-color-fritos-red-shade);
-    --color: var(--ion-color-fritos-red-contrast);
+    --background: var(--ion-color-fritos-blue);
+    --background-hover: var(--ion-color-fritos-blue-shade);
+    --color: var(--ion-color-fritos-blue-contrast);
     font-weight: bold;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
-    height: 28px;
+    height: 45px;
     font-size: 1.2rem;
     min-width: 100px;
     max-width: 180px;
@@ -134,7 +134,7 @@
 
     &:active {
       transform: scale(0.95);
-      background-color: rgba(0, 118, 28, 0.15);
+      background-color: rgba(27, 26, 78, 0.395);
     }
   }
 

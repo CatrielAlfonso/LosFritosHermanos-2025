@@ -1,7 +1,8 @@
-import { Component, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { IonicModule, IonicSlides } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
+import { SwiperContainer } from 'swiper/element';
 
 
 @Component({
@@ -15,6 +16,7 @@ export class MenuComponent  implements OnInit {
 
   public bebidas : any[] = []
   public platos : any[] = []
+  
 
   constructor( 
     private supabaseService : SupabaseService
@@ -23,7 +25,11 @@ export class MenuComponent  implements OnInit {
   ngOnInit() {
     this.cargarBebidas()
     this.cargarPlatos()
+
+    //setTimeout(() => this.inicializarSwipers(), 300);
   }
+
+
 
   async cargarPlatos(){
     try {
@@ -42,5 +48,16 @@ export class MenuComponent  implements OnInit {
       console.log('error al traer las bebidas: ', error)
     }
   }
+
+  // inicializarSwipers() {
+  //   const swipers = document.querySelectorAll('swiper-container');
+  //   swipers.forEach(swiper => {
+  //     if (swiper && !swiper.swiper) {
+  //       (swiper as any).initialize();
+  //     }
+  //   });
+  // }
+
+  
 
 }

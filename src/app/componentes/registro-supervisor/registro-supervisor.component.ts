@@ -96,7 +96,7 @@ export class RegistroSupervisorComponent  implements OnInit {
       }
 
 
-      const usuario = await this.authService.registro(correo, contrasenia);
+      const usuario = await this.authService.registro(correo, contrasenia, perfil, nombre);
       if (!usuario) {
         this.mensajeError = 'Error al crear el usuario';
         this.loadingService.hide();
