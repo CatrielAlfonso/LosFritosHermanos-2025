@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, computed, OnInit } from '@angular/core';
 import { AuthService } from '../servicios/auth.service';
 import { Router,RouterLink } from '@angular/router';
+import { UserService } from '../servicios/user';
+import { User } from '@supabase/supabase-js';
 import { SupabaseService } from '../servicios/supabase.service';
-import { PushNotificationService } from '../servicios/push-notification.service';
 
 @Component({
   selector: 'app-home',
@@ -15,36 +16,71 @@ export class HomePage implements OnInit {
   esMaitre: boolean = false;
   esCocinero: boolean = false;
   esBartender: boolean = false;
-  perfilUsuario: string = '';
+  perfilUsuario: string | null = null;
   nombreUsuario: string = '';
+  userData : any | null = null
+  tipoUsuario : string | null = null
+  isLoading = true;
+  authUser = computed(() => this.authService.userActual());
+  // userDataAuth = computed(() => {
+  //   const user = this.authUser()
+  //   if(!user) return null
+  //   return {
+  //     email: user.email,
+  //     //tipo: user.user_metadata?.tipo || 'cliente',
+  //     //nombre: user.user_metadata?.nombre || 'Usuario'
+  //   };
+  // })
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private supabase: SupabaseService,
-    private pushNotificationService: PushNotificationService
-  ) {}
-
-  async ngOnInit() {
-    const { data: { user } } = await this.authService.getCurrentUser();
-    if (!user) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    await this.verificarUsuario();
-    
-    this.authService.perfilUsuario$.subscribe(perfil => {
-      console.log('Perfil recibido:', perfil);
-      this.perfilUsuario = perfil ?? '';
-      this.esAdmin = perfil === 'supervisor';
-      this.esMaitre = perfil === 'maitre';
-      this.esCocinero = perfil === 'cocinero';
-      this.esBartender = perfil === 'bartender';
+    private userService : UserService,
+    private supabase : SupabaseService
+  ) {
       
-    });
-    console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+  }
 
+  ngOnInit() {
+  //   this.verificarUsuario();
+
+  //   const user = this.authService.usuarioActual;
+
+  //   if (user) {
+  //    // o traer el nombre desde DB
+
+  //   // Levanto los flags desde el servicio
+  //   this.perfilUsuario = this.authService.perfilUsuario;
+  //   this.esAdmin = this.authService.esAdmin;
+  //   this.esMaitre = this.authService.esMaitre;
+  //   this.esCocinero = this.authService.perfilUsuario === 'cocinero';
+  //   this.esBartender = this.authService.perfilUsuario === 'bartender';
+  // }
+  // this.authService.perfilUsuario$.subscribe(perfil => {
+  //   this.perfilUsuario = perfil ?? '';
+  //   this.esAdmin = perfil === 'supervisor';
+  //   this.esMaitre = perfil === 'maitre';
+  //   this.esCocinero = perfil === 'cocinero';
+  //   this.esBartender = perfil === 'bartender';
+  // });
+  // console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+
+    this.loadUserData();
+    console.log('se ejecuta el on init')
+  }
+
+
+   async loadUserData() {
+    this.isLoading = true;
+    
+    const user = await this.userService.loadCurrentUser();
+    this.tipoUsuario = user?.tipo || null;
+    this.userData = user || null;
+    this.nombreUsuario = user?.datos.nombre
+    this.perfilUsuario = user?.tipo || null
+    console.log('user: ', user)
+    console.log('userData: ', this.userData)
+    this.isLoading = false;
   }
 
   async verificarUsuario() {
@@ -146,12 +182,8 @@ export class HomePage implements OnInit {
     }
   }
 
-  irARegistro(tipoRegistro?: string) {
-    if (tipoRegistro) {
-      this.router.navigate(['/registro'], { queryParams: { tipo: tipoRegistro } });
-    } else {
-      this.router.navigate(['/registro']);
-    }
+  irARegistro(ruta?: string) {
+    this.router.navigate([ruta]);
   }
 
   irARegistroBebidas(tipoRegistro?: string) {
@@ -164,11 +196,13 @@ export class HomePage implements OnInit {
 
   async cerrarSesion() {
     await this.authService.signOut();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/bienvenida']);
   }
 
-  irAAprobacionClientes() {
-    this.router.navigate(['/aprobacion-clientes']);
+  irAAprobacionClientes(){
+    this.router.navigate(['/aprobacion-clientes'])
   }
+
+  
 }
 
