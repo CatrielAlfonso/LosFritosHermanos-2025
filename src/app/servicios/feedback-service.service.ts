@@ -45,19 +45,39 @@ export class FeedbackService {
     await toast.present();
   }
 
-  async showLoading() {
-    const texto = this.mensajesGraciosos.loading[
+  async showLoading(textoPersonalizado?: string) {
+
+
+    if (textoPersonalizado) {
+      const loading = await this.loadingCtrl.create({
+        message: textoPersonalizado,
+        spinner: 'crescent',
+        cssClass: 'custom-loading'
+        });
+      await loading.present();
+      return loading;
+    }
+    else {
+      const texto = this.mensajesGraciosos.loading[
       Math.floor(Math.random() * this.mensajesGraciosos.loading.length)
-    ];
+      ];
 
-    const loading = await this.loadingCtrl.create({
-      message: texto,
-      spinner: 'crescent',
-      cssClass: 'custom-loading'
-    });
+      const loading = await this.loadingCtrl.create({
+        message: texto,
+        spinner: 'crescent',
+        cssClass: 'custom-loading'
+      });
 
-    await loading.present();
-    return loading;
+      await loading.present();
+      return loading;
+    }
+    
+
   }
+
+  hide() {
+    this.loadingCtrl.dismiss();
+  }
+
 
 }

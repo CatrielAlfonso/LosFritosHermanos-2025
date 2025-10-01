@@ -55,11 +55,30 @@ const routes: Routes = [
   },
   {
     path: 'supervisor',
-    loadChildren: () => import('./componentes/supervisor/supervisor.component').then( m => m.SupervisorComponent)
+    loadComponent: () => import('./componentes/supervisor/supervisor.component').then(m => m.SupervisorComponent),
+    children: [
+      {
+        path: 'registro-mesa',
+        loadComponent: () => import('./componentes/registro-mesa/registro-mesa.component').then(m => m.RegistroMesaComponent)
+      },
+      {
+        path: 'verificar-clientes',
+        loadComponent: () => import('./componentes/aprobacion-clientes/aprobacion-clientes.component').then(m => m.AprobacionClientesComponent)
+      },
+      {
+        path: '',
+        redirectTo: 'mesas',
+        pathMatch: 'full'
+      }
+    ]
   },
   {
     path: 'registro-mesa',
     loadComponent: () => import('./componentes/registro-mesa/registro-mesa.component').then(m => m.RegistroMesaComponent)
+  },
+  {
+    path: 'verificar-clientes',
+    loadComponent: () => import('./componentes/aprobacion-clientes/aprobacion-clientes.component').then(m => m.AprobacionClientesComponent)
   },
   {
     path: 'registro-plato',
