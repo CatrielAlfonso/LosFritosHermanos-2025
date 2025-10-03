@@ -1,3 +1,42 @@
-<p>
-  anonimo works!
-</p>
+<ion-content class="anonimo-page fritos-theme" fullscreen>
+   <div class="anonimo-wrapper">
+    <div class="anonimo-container">
+      <img
+        src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/crispy2.png"
+        alt="Logo"
+        class="anonimo-logo"
+      />
+
+      <h2 class="anonimo-title">Ingreso Anónimo</h2>
+      <p class="anonimo-subtitle">Ingresá tu nombre y sacate una foto 📸</p>
+
+      <form [formGroup]="anonimoForm" (ngSubmit)="registrarAnonimo()">
+        <!-- Nombre -->
+        <ion-item>
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label position="floating">Nombre</ion-label>
+          <ion-input type="text" formControlName="nombre"></ion-input>
+        </ion-item>
+
+        <!-- Foto -->
+        <ion-item>
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          <ion-label>Foto</ion-label>
+          <ion-button slot="end" (click)="tomarFoto()">Tomar Foto</ion-button>
+        </ion-item>
+
+        <div *ngIf="imagenURL" class="preview-wrapper">
+          <img [src]="imagenURL" alt="Preview" />
+        </div>
+
+        <!-- Botones -->
+        <ion-button expand="block" type="submit" [disabled]="anonimoForm.invalid">
+          INGRESAR COMO ANÓNIMO
+        </ion-button>
+        <ion-button expand="block" color="medium" (click)="volverBienvenida()">
+          VOLVER A BIENVENIDA
+        </ion-button>
+      </form>
+    </div>
+  </div>
+</ion-content>
