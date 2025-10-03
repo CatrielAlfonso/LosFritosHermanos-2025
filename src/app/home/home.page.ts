@@ -203,6 +203,10 @@ export class HomePage implements OnInit {
     this.router.navigate(['/aprobacion-clientes'])
   }
 
+  irAMaitreMesas(){
+    this.router.navigate(['/maitre'])
+  }
+
   
 }
 
