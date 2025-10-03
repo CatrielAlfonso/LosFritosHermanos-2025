@@ -1,0 +1,184 @@
+<ion-header class="header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="volverAlMenu()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="titulo-carrito">Mi Carrito</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="container-carrito">
+  <!-- Estado vacío -->
+  <div *ngIf="items().length === 0" class="estado-vacio">
+    <ion-icon name="cart-outline" class="icono-vacio"></ion-icon>
+    <h2>Tu carrito está vacío</h2>
+    <p>Agregá productos deliciosos desde el menú</p>
+    <ion-button (click)="volverAlMenu()" fill="solid" color="primary">
+      Ver Menú
+    </ion-button>
+  </div>
+
+  <!-- Lista de productos -->
+  <div *ngIf="items().length > 0" class="lista-items">
+    <div class="lista-contenedor">
+      <div *ngFor="let item of items()" class="producto-item">
+        <div class="producto-contenido">
+          <!-- Imagen -->
+          <div class="producto-imagen">
+            <img [src]="item.imagen" [alt]="item.nombre" class="imagen-producto" />
+          </div>
+          
+          <!-- Información -->
+          <div class="producto-info">
+            <h3 class="producto-nombre">{{item.nombre}}</h3>
+            <p class="producto-precio-unitario">{{item.precioUnitario | currency}} c/u</p>
+            <p *ngIf="item.observaciones" class="producto-observaciones">
+              {{item.observaciones}}
+            </p>
+          </div>
+
+          <!-- Controles -->
+          <div class="producto-controls">
+            <div class="control-cantidad">
+              <button class="btn-cantidad btn-menos" (click)="disminuirCantidad(item)">
+                <ion-icon name="remove-outline"></ion-icon>
+              </button>
+              
+              <span class="cantidad-actual">
+                {{item.cantidad}}
+              </span>
+              
+              <button class="btn-cantidad btn-mas" (click)="aumentarCantidad(item)">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+            </div>
+            
+            <div class="producto-total">
+              <span class="precio-total">{{item.precioTotal | currency}}</span>
+            </div>
+
+            <!-- Botón eliminar -->
+            <!-- <button class="btn-eliminar" (click)="eliminarItem(item)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Footer fijo con resumen -->
+<ion-footer *ngIf="items().length > 0" class="footer-carrito">
+  <ion-toolbar class="toolbar-resumen">
+    <div class="resumen-pedido">
+      <div class="resumen-info">
+        <span class="total-items">{{totalItems()}} productos</span>
+        <span class="total-pedido">{{total() | currency}}</span>
+      </div>
+      <ion-button 
+        class="boton-confirmar"
+        expand="block" 
+        fill="solid" 
+        color="primary"
+        (click)="confirmarPedido()">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Confirmar Pedido
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>
+
+
+<!-- <ion-header class="header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="volverAlMenu()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="titulo-carrito">Mi Carrito</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="container-carrito">
+  
+  <div *ngIf="items().length === 0" class="estado-vacio">
+    <ion-icon name="cart-outline" class="icono-vacio"></ion-icon>
+    <h2>Tu carrito está vacío</h2>
+    <p>Agregá productos deliciosos desde el menú</p>
+    <ion-button (click)="volverAlMenu()" fill="solid" color="primary">
+      Ver Menú
+    </ion-button>
+  </div>
+
+  
+  <div *ngIf="items().length > 0" class="lista-items">
+    <ion-list class="lista-contenedor">
+      <ion-item-sliding *ngFor="let item of items()" class="item-carrito">
+        <ion-item class="item-contenido">
+          <div class="item-imagen" slot="start">
+            <img [src]="item.imagen" [alt]="item.nombre" class="imagen-producto" />
+          </div>
+          
+          <div class="item-info">
+            <h3 class="item-nombre">{{item.nombre}}</h3>
+            <p class="item-precio-unitario">{{item.precioUnitario | currency}} c/u</p>
+            <p *ngIf="item.observaciones" class="item-observaciones">
+              {{item.observaciones}}
+            </p>
+          </div>
+
+          <div class="item-controls" slot="end">
+            <div class="control-cantidad">
+              <button class="btn-cantidad btn-menos" (click)="disminuirCantidad(item)">
+                <ion-icon name="remove-outline"></ion-icon>
+              </button>
+              
+              <span class="cantidad-actual">
+                {{item.cantidad}}
+              </span>
+              
+              <button class="btn-cantidad btn-mas" (click)="aumentarCantidad(item)">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+            </div>
+            
+            <div class="item-total">
+              <span class="precio-total">{{item.precioTotal | currency}}</span>
+            </div>
+          </div>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="eliminarItem(item)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-list>
+  </div>
+</ion-content>
+
+
+<ion-footer *ngIf="items().length > 0" class="footer-carrito">
+  <ion-toolbar class="toolbar-resumen">
+    <div class="resumen-pedido">
+      <div class="resumen-info">
+        <span class="total-items">{{totalItems()}} productos</span>
+        <span class="total-pedido">{{total() | currency}}</span>
+      </div>
+      <ion-button 
+        class="boton-confirmar"
+        expand="block" 
+        fill="solid" 
+        color="primary"
+        (click)="confirmarPedido()">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Confirmar Pedido
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer> -->
