@@ -88,11 +88,7 @@ const routes: Routes = [
     path: 'aprobacion-clientes',
     loadComponent: () => import('./componentes/aprobacion-clientes/aprobacion-clientes.component').then(m => m.AprobacionClientesComponent)
   },
-  {
-    path: 'maitre',
-    loadComponent: () => import('./componentes/maitre-mesas/maitre-mesas.component').then(m => m.MaitreMesasComponent)
-  },
-  
+
  
 ];
 
