@@ -69,6 +69,10 @@ const routes: Routes = [
     path: 'aprobacion-clientes',
     loadComponent: () => import('./componentes/aprobacion-clientes/aprobacion-clientes.component').then(m => m.AprobacionClientesComponent)
   },
+  {
+    path: 'carrito',
+    loadComponent: () => import('./componentes/carrito/carrito.component').then(m => m.CarritoComponent)
+  },
 
  
 ];
