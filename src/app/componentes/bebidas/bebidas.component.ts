@@ -5,18 +5,26 @@ import { IonContent, IonText,IonLabel, IonInput, IonItem, IonTextarea,IonButton,
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { VistaPreviaFotosPipe } from 'src/app/pipes/vista-previa-fotos-pipe';
 import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { ViewChildren, QueryList, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-bebidas',
   templateUrl: './bebidas.component.html',
   styleUrls: ['./bebidas.component.scss'],
   imports: [IonItem, IonContent, IonLabel, ReactiveFormsModule,IonInput, IonItem,  IonTextarea, IonButton, IonIcon, IonText,
-    VistaPreviaFotosPipe, CommonModule
+    VistaPreviaFotosPipe, CommonModule, RouterLink
   ]
 })
 export class BebidasComponent {
 
+ @ViewChildren('fileInput0, fileInput1, fileInput2')
+  fileInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
+  abrirFileInput(index: number) {
+    const inputs = this.fileInputs.toArray(); // convertir QueryList a array
+    inputs[index]?.nativeElement.click();
+  } 
 
  form = this.fb.group({
     nombre: ['', Validators.required],
@@ -30,6 +38,8 @@ export class BebidasComponent {
 
   selectedFiles: (File | null)[] = [null, null, null];
   mensaje = '';
+  router = inject(Router);
+
 
   constructor(private fb: FormBuilder, private bebidaService: BebidaService, private feedback: FeedbackService ) {}
 
@@ -88,6 +98,17 @@ export class BebidasComponent {
       await loading.dismiss();
       this.feedback.showToast('error', `Error al guardar: ${err.message}`);
     }
+  }
+
+  async volverPaginaPrincipal()
+  {
+    // Lógica para volver a la página principal
+    this.feedback.showLoading();
+      //volver al home
+      this.feedback.hide();
+      this.router.navigate(['/login']);
+      
+    
   }
 
 }

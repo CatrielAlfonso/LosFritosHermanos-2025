@@ -1,0 +1,61 @@
+/* ion-content host: fondo app */
+.anonimo-page {
+  --background: #4666de; /* fondo azul */
+}
+
+/* wrapper que ocupa toda la pantalla y centra su contenido */
+.anonimo-wrapper {
+  min-height: 100vh;              /* asegura altura completa de la ventana */
+  display: flex;
+  align-items: center;            /* centrar vertical */
+  justify-content: center;        /* centrar horizontal */
+  padding: 20px;                  /* espacio lateral para móviles */
+  box-sizing: border-box;
+  /* opcional: respetar notch / safe-area */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* la "caja" centrada */
+.anonimo-container {
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  padding: 22px;
+  width: 100%;
+  max-width: 420px;               /* ancho máximo */
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  text-align: center;
+}
+
+/* imagen circular */
+.anonimo-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 12px auto;
+  display: block;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+/* titulos y subtitulos */
+.anonimo-title { color: #efbf2d; font-size: 1.6rem; margin-bottom: 6px; }
+.anonimo-subtitle { color: #fff; margin-bottom: 16px; }
+
+/* items e inputs */
+ion-item {
+  --background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  --color: #fff;
+}
+ion-label { color: #ffd351 !important; font-weight: 600; }
+ion-input { color: #fff; }
+
+/* preview foto */
+.preview-wrapper { margin: 10px 0 16px 0; }
+.preview-wrapper img { width: 90px; height: 90px; object-fit: cover; border-radius: 10px; border: 2px solid #efbf2d; }
+
+/* botones */
+ion-button { border-radius: 10px; margin-top: 10px; }

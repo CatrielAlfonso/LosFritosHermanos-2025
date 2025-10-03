@@ -3,6 +3,32 @@
 **Entrega final:** 04/10/2025  
 
 ---
+## 🍗 Los Fritos Hermanos
+
+<p align="center">
+  <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Logo Los Fritos Hermanos" width="200" />
+</p>
+
+### 📱 Aplicación de gestión para restaurante
+La aplicación **Los Fritos Hermanos** busca digitalizar la experiencia de clientes, mozos, cocineros, bartenders, maîtres y supervisores.  
+Permite gestionar mesas, pedidos, clientes registrados o anónimos, juegos con descuentos y encuestas de satisfacción.  
+
+---
+
+## 🎨 Identidad visual
+
+### 📌 Paleta de colores
+| Color        | Hex       | Uso principal |
+|--------------|-----------|---------------|
+| Azul fritos  | `#4666de` | Fondo principal, headers |
+| Rojo fritos  | `#dc2234` | Botones de acción (guardar, confirmar, rechazar) |
+| Amarillo     | `#efbf2d` | Detalles, acentos, títulos |
+| Verde        | `#28a745` | Confirmaciones, éxito |
+| Naranja      | `#f39c12` | Advertencias, secundarios |
+
+<p align="center">
+  <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/mockupApp.jpg" alt="Paleta de colores" width="400" />
+</p>
 
 ## 📆 Planificación semanal (mínimo 6 puntos por semana)
 
@@ -41,8 +67,8 @@
 | 4     | Catriel       | master/punto-4-mesa              | ✅ Completado   | 12/09/2025 |25/09/2025 |
 | 5     | Lucas       | master/punto-5-cliente-registrado| ✅ Completado  | 06/09/2025 | 12/09/2025 |
 | 6     | Catriel     | master/punto-6-verificar-cliente | 🚧 En progreso| 06/09/2025 | |
-| 7     | Catriel       | master/punto-7-rechazo-cliente   | 🚧 En progreso  | 24/09/2025 | -- |
-| 8     | Catriel       | master/punto-8-aceptacion-cliente| 🚧 En progreso | 24/09/2025 | -- |
+| 7     | Tomas       | master/punto-7-rechazo-cliente   | ✅ Completado  | 24/09/2025 | -- |
+| 8     | Tomas       | master/punto-8-aceptacion-cliente| ✅ Completado| 24/09/2025 | -- |
 | 9     | Catriel     | master/punto-9-cliente-anonimo   | 🚧 En progreso | 19/09/2025 | ... |
 | 10    | Tomas       | master/punto-10-asignacion-mesa  | ⏳ Pendiente | -- | -- |
 | 11    | Lucas       | master/punto-11-menu-consulta    | ⏳ Pendiente | -- | -- |
@@ -73,5 +99,6 @@
 - 12/09/2025: Punto 6 (verificiacion-cliente) pasó de Catriel → Tomas.
 - 24/09/2025: Punto 7 (rechazo-cliente) pasó de Tomas → Catriel.
 - 24/09/2025: Punto 8 (aceptacion-cliente) pasó de Tomas → Catriel.
-
+- 26/09/2025: Punto 7 (rechazo-cliente) pasó de Catriel → Tomas.
+- 26/09/2025: Punto 8 (aceptacion-cliente) pasó de Catriel → Tomas.
 ---
