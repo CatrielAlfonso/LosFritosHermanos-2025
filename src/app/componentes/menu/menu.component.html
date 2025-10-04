@@ -23,6 +23,9 @@
       <ion-card-content class="descripcion">
         {{plato.descripcion}}
       </ion-card-content>
+      <ion-card-content class="descripcion" style="color: red;">
+        Tiempo de elaboracion: {{plato.tiempo_elaboracion}} minutos
+      </ion-card-content>
 
       <!-- NUEVO: Control de cantidad tipo PedidosYa -->
       <div class="control-cantidad-container">
@@ -84,6 +87,9 @@
 
       <ion-card-content class="descripcion">
         {{bebida.descripcion}}
+      </ion-card-content>
+      <ion-card-content class="descripcion" style="color: red;">
+        Tiempo de elaboracion: {{bebida.tiempo_elaboracion}} minutos
       </ion-card-content>
 
       <!-- NUEVO: Control de cantidad tipo PedidosYa -->
