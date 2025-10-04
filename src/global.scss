@@ -270,6 +270,25 @@ ion-button {
   opacity: 0.8;
 }
 
+/* Este código DEBE IR en src/global.scss o similar */
+
+/* 2. Configuración de la Cámara y Modal: Fondo Transparente */
+/* Clase que se añade al 'body' en tiempo de escaneo para mostrar la cámara */
+.scanner-active {
+  /* Oculta la vista web para que la cámara nativa se vea detrás */
+  visibility: hidden;
+  /* Asegura que el color de fondo no bloquee la vista */
+  background-color: transparent !important;
+}
+
+/* Asegúrate de que los elementos de Ionic también sean transparentes en modo escaneo */
+.scanner-active ion-content,
+.scanner-active ion-header,
+.scanner-active .full-screen-grid {
+  --background: transparent !important;
+  background: transparent !important;
+}
+
 
 .custom-toast {
   --background: #efbf2d;

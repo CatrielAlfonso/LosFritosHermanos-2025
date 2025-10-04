@@ -1,0 +1,131 @@
+/* Fondo de la página */
+.mesas-page {
+    --background: #f0f4f8; /* Fondo muy claro para contrastar con los paneles */
+}
+
+/* ----------------------------------- */
+/* DISEÑO DE PANTALLA COMPLETA (Grid)  */
+/* ----------------------------------- */
+.maitre-grid {
+    height: 100%; 
+    display: flex;
+    box-sizing: border-box;
+}
+
+.panel {
+    height: 100%;
+    overflow-y: auto; /* Scroll dentro del panel */
+    padding-bottom: 120px; /* Espacio para el panel de asignación fijo */
+}
+
+/* Panel Izquierdo: Lista de Espera (Aprox. 35% del ancho) */
+.espera-panel {
+    flex-basis: 35%;
+    flex-shrink: 0;
+    border-right: 1px solid #ddd;
+    background: #ffffff; 
+}
+
+/* Panel Derecho: Mesas (Aprox. 65% del ancho) */
+.mesas-panel {
+    flex-grow: 1;
+    background: #f0f4f8;
+    position: relative;
+}
+
+.panel-title {
+    color: #4666de; /* Azul Fritos Hermanos */
+    font-weight: 700;
+    font-size: 1.3rem;
+    padding-top: 10px;
+}
+
+/* ----------------------------------- */
+/* ESTILOS DE LISTA DE ESPERA          */
+/* ----------------------------------- */
+.cliente-item {
+    --background: #ffffff;
+    --border-radius: 0;
+    --inner-border-width: 0;
+    border-bottom: 1px solid #eee;
+    
+    ion-icon { color: #4666de; }
+
+    &.item-selected {
+        --background: rgba(239, 191, 45, 0.15); /* Fondo amarillo tenue */
+        border-left: 5px solid #efbf2d; /* Borde de color de marca */
+        ion-label h2 { font-weight: bold; color: #4666de; }
+    }
+}
+
+/* ----------------------------------- */
+/* ESTILOS DE MESAS Y CARDS            */
+/* ----------------------------------- */
+ion-card {
+    border-radius: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+/* Mesa Disponible */
+.mesa-disponible {
+    background: #e6f7ff;
+    ion-card-title { color: #007bff; }
+    ion-icon { color: #28a745; }
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Mesa Ocupada */
+.mesa-ocupada {
+    background: #ffe6e6;
+    ion-card-title { color: #dc3545; }
+    ion-icon { color: #dc3545; }
+}
+
+/* Mesa Seleccionada para Asignar */
+.mesa-selected {
+    border-color: #efbf2d; /* Borde de selección llamativo */
+    box-shadow: 0 0 15px rgba(239, 191, 45, 0.5);
+    transform: scale(1.03);
+}
+
+/* ----------------------------------- */
+/* PANEL DE ACCIÓN FIJO                */
+/* ----------------------------------- */
+.asignacion-panel {
+    position: fixed;
+    bottom: 0;
+    left: 35%; /* Inicia donde termina el panel de espera */
+    right: 0;
+    background: #ffffff;
+    padding: 10px 20px 20px 20px;
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    
+    ion-item {
+        --background: transparent;
+        strong { color: #4666de; }
+    }
+}
+
+/* Para pantallas muy pequeñas, hacer que los paneles se apilen */
+@media (max-width: 768px) {
+    .maitre-grid {
+        flex-direction: column;
+    }
+    .espera-panel {
+        flex-basis: auto;
+        border-right: none;
+        border-bottom: 5px solid #eee;
+        min-height: 40vh; /* Para que se vea en el móvil */
+    }
+    .asignacion-panel {
+        left: 0;
+    }
+}
