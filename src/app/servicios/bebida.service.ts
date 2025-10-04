@@ -32,14 +32,13 @@ export class BebidaService {
   async agregarBebida(bebida: {
     nombre: string;
     descripcion: string;
-    tiempoElaboracion: number;
+    tiempo_elaboracion: number;
     precio: number;
-    foto1: string;
-    foto2: string;
-    foto3: string;
+    imagenes: string[];
+    tipo: string;
   }) {
     const { data, error } = await this.sb.supabase
-      .from('bebidas')
+      .from('productos')
       .insert([bebida]);
 
     if (error) throw error;
