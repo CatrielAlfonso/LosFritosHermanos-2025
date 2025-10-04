@@ -979,7 +979,6 @@ export class RegistroComponent implements OnInit {
 
   
 
-  
 
   irAlLogin() {
     this.router.navigate(['/login']);
