@@ -9,6 +9,7 @@ import { LoadingService } from 'src/app/servicios/loading.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { toDataURL } from 'qrcode';
 import { IonCheckbox, IonTextarea } from '@ionic/angular/standalone';
+import { FeedbackService } from '../../servicios/feedback-service.service';
 import { HttpClient } from '@angular/common/http';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 
@@ -100,6 +101,7 @@ export class RegistroComponent implements OnInit {
     private route: ActivatedRoute,
     private sb: SupabaseService,
     private authService: AuthService,
+    private feedback: FeedbackService,
     private loadingCtrl: LoadingController,
     private loadingService: LoadingService,
     private http: HttpClient,
@@ -564,7 +566,9 @@ export class RegistroComponent implements OnInit {
       } else {
         this.mensajeError = 'No se detectó ningún código.';
       }
-    } catch (error) {
+    } catch (error:Error | any) {
+      console.log('Error al escanear DNI:', error);
+      this.feedback.showToast('error', error.message);
       this.mensajeError = 'Error al escanear DNI';
     }
   }
