@@ -1,42 +1,83 @@
 <ion-content class="anonimo-page fritos-theme" fullscreen>
-   <div class="anonimo-wrapper">
-    <div class="anonimo-container">
-      <img
-        src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/crispy2.png"
-        alt="Logo"
-        class="anonimo-logo"
-      />
-
-      <h2 class="anonimo-title">Ingreso Anónimo</h2>
-      <p class="anonimo-subtitle">Ingresá tu nombre y sacate una foto 📸</p>
-
-      <form [formGroup]="anonimoForm" (ngSubmit)="registrarAnonimo()">
-        <!-- Nombre -->
-        <ion-item>
+  <div class="full-screen-grid">
+    
+    <div class="anonimo-panel">
+      
+      <header class="ion-padding-vertical">
+        <img
+          src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/crispy2.png"
+          alt="Logo"
+          class="anonimo-logo"
+        />
+        <h2 class="anonimo-title">Ingreso Anónimo</h2>
+        <p class="anonimo-subtitle">Registrate con nombre y foto para la lista de espera.</p>
+      </header>
+      
+      <form [formGroup]="anonimoForm" (ngSubmit)="registrarAnonimo()" class="ion-padding">
+        <ion-item class="fritos-input">
           <ion-icon slot="start" name="person-outline"></ion-icon>
-          <ion-label position="floating">Nombre</ion-label>
+          <ion-label position="floating">Tu Nombre</ion-label>
           <ion-input type="text" formControlName="nombre"></ion-input>
         </ion-item>
 
-        <!-- Foto -->
-        <ion-item>
+        <ion-item class="fritos-input">
           <ion-icon slot="start" name="camera-outline"></ion-icon>
-          <ion-label>Foto</ion-label>
-          <ion-button slot="end" (click)="tomarFoto()">Tomar Foto</ion-button>
+          <ion-label>Foto de Perfil</ion-label>
+          <ion-button fill="clear" color="secondary" slot="end" (click)="tomarFoto()">
+            <ion-icon slot="icon-only" name="camera"></ion-icon>
+          </ion-button>
         </ion-item>
 
         <div *ngIf="imagenURL" class="preview-wrapper">
           <img [src]="imagenURL" alt="Preview" />
         </div>
-
-        <!-- Botones -->
-        <ion-button expand="block" type="submit" [disabled]="anonimoForm.invalid">
-          INGRESAR COMO ANÓNIMO
-        </ion-button>
-        <ion-button expand="block" color="medium" (click)="volverBienvenida()">
-          VOLVER A BIENVENIDA
+        
+        <ion-button expand="block" type="submit" [disabled]="anonimoForm.invalid" class="ion-margin-top">
+          <ion-icon slot="start" name="log-in-outline"></ion-icon>
+          ENTRAR A LA FILA
         </ion-button>
       </form>
+
     </div>
+    
+    <div class="qr-panel ion-padding">
+      
+      <p class="qr-subtitle">O escanea tu **QR de Ingreso** o de **Mesa**.</p>
+      
+      <ion-button 
+        expand="block" 
+        (click)="startScan()" 
+        [disabled]="isScanning" 
+        class="scan-button"
+        color="secondary"
+      >
+        <ion-icon slot="start" [name]="isScanning ? 'stop-circle-outline' : 'qr-code-outline'"></ion-icon>
+        {{ isScanning ? 'DETENER ESCANEO' : 'ESCANEAR CÓDIGO QR' }}
+      </ion-button>
+
+      <div *ngIf="scanResult" class="scan-result-card">
+        <ion-label class="ion-text-wrap">
+          <small>Resultado Reciente:</small>
+          <h3>{{ scanResult }}</h3>
+        </ion-label>
+        
+        <div class="action-buttons-group">
+          <ion-button fill="clear" size="small" (click)="copyToClipboard()">
+            <ion-icon slot="icon-only" name="clipboard-outline"></ion-icon>
+          </ion-button>
+          
+          <ion-button fill="clear" size="small" *ngIf="isURL(scanResult)" (click)="showUrlConfirmation(scanResult!)">
+            <ion-icon slot="icon-only" name="open-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+      
+      <ion-button expand="block" fill="clear" color="light" class="ion-margin-top" (click)="volverBienvenida()">
+        <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+        Volver
+      </ion-button>
+      
+    </div>
+    
   </div>
 </ion-content>
