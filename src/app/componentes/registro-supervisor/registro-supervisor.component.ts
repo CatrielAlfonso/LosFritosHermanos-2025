@@ -116,7 +116,8 @@ export class RegistroSupervisorComponent  implements OnInit {
         dni,
         cuil,
         imagenPerfil,
-        perfil
+        perfil,
+        uid: usuario.id 
       };
 
       const { error } = await this.sb.supabase.from('empleados').insert([nuevoSupervisor]);
