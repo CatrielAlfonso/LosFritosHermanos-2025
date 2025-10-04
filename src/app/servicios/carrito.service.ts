@@ -4,7 +4,8 @@ export interface CartItem {
   id: string;                    
   productoId: string;           
   nombre: string;               
-  tipo: 'comida' | 'bebida';    
+  tipo: 'comida' | 'bebida' | 'postre';    
+  tiempoElaboracion : string;
   precioUnitario: number;       
   cantidad: number;             
   observaciones?: string;       
@@ -13,14 +14,24 @@ export interface CartItem {
 }
 
 export interface Pedido {
-  id?: string;                  
-  clienteId: string;           
-  items: CartItem[];          
-  estado: 'pendiente' | 'preparacion' | 'listo' | 'entregado' | 'cancelado';
-  total: number;               
-  fechaPedido: Date;           
-  mesa?: string;               
-  observacionesGenerales?: string; 
+  cliente_id : string
+  comidas : any[]
+  bebidas : any[]
+  postres : any[]
+  precio : number        
+  tiempo_estimado : number
+  confirmado : boolean
+  mesa : string
+  estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'cancelado'
+  estado_comida : 'listo' | 'en preparacion' | 'cancelado'
+  estado_bebida : 'listo' | 'en preparacion' | 'cancelado'
+  estado_postre : 'listo' | 'en preparacion' | 'cancelado'
+  recepcion : boolean
+  pagado : number
+  cuenta: number               
+  fecha_pedido: Date
+  motivo_rechazo : string
+  observaciones_generales?: string; 
 }
 
 
@@ -86,6 +97,7 @@ export class CarritoService {
         productoId: producto.id,
         nombre: producto.nombre,
         tipo: producto.tipo, 
+        tiempoElaboracion: producto.tiempoElaboracion,
         precioUnitario: producto.precio,
         cantidad: cantidad,
         observaciones: observaciones,
@@ -162,6 +174,50 @@ export class CarritoService {
   private generarIdUnico(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }
+
+
+  generarPedidoParaConfirmacion(clienteId: string, mesa: string = '1', observaciones : string): Pedido {
+    const items = this.obtenerItems();
+    
+    const comidas = items.filter(item => item.tipo === 'comida');
+    const bebidas = items.filter(item => item.tipo === 'bebida');
+    const postres = items.filter(item => item.tipo === 'postre'); 
+    
+    const tiempoElaboracion = this.calcularTiempoElaboracionNumerico(items);
+    
+    const total = this.totalPrecio();
+
+    const pedido: Pedido = {
+      cliente_id: clienteId,
+      comidas: comidas,
+      bebidas: bebidas,
+      postres: postres, // Por ahora vacío
+      precio: total,
+      tiempo_estimado: tiempoElaboracion,
+      confirmado: false,
+      mesa: mesa,
+      estado: 'pendiente',
+      estado_comida: comidas.length > 0 ? 'en preparacion' : 'listo',
+      estado_bebida: bebidas.length > 0 ? 'en preparacion' : 'listo',
+      estado_postre: 'listo', // Por defecto
+      recepcion: false,
+      pagado: 0,
+      cuenta: total,
+      fecha_pedido: new Date(),
+      motivo_rechazo: '',
+      observaciones_generales: observaciones
+    };
+
+    return pedido;
+  }
+
+  private calcularTiempoElaboracionNumerico(items: CartItem[]): number {
+    if (items.length === 0) return 0;
+    
+    const tiempos = items.map(item => parseInt(item.tiempoElaboracion) || 0);
+    return Math.max(...tiempos);
+  }
+
 
 
 
