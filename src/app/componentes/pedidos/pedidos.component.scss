@@ -1,0 +1,256 @@
+:host {
+  font-family: sans-serif;
+}
+
+/* Header */
+.header ion-toolbar {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);  
+  --color: var(--ion-color-fritos-blue);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.396);
+}
+
+.titulo-pedidos {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Contenido principal */
+.container-pedidos {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
+}
+
+/* Estado vacío */
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  text-align: center;
+  padding: 20px;
+}
+
+.icono-vacio {
+  font-size: 4rem;
+  color: var(--ion-color-fritos-blue);
+  margin-bottom: 20px;
+}
+
+.estado-vacio h2 {
+  color: var(--ion-color-fritos-blue);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.estado-vacio p {
+  color: var(--ion-color-fritos-blue);
+  margin-bottom: 30px;
+}
+
+/* Lista de pedidos */
+.lista-pedidos {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Item de pedido */
+.pedido-item {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 20px;
+}
+
+.pedido-cancelado {
+  opacity: 0.8;
+  border-left: 4px solid var(--ion-color-danger);
+}
+
+/* Header del pedido */
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.pedido-fecha {
+  color: var(--ion-color-fritos-blue);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.estado-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.estado-pendiente {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.estado-en-preparacion {
+  background: #cce7ff;
+  color: #004085;
+}
+
+.estado-listo {
+  background: #d1edff;
+  color: #0c5460;
+}
+
+.estado-entregado {
+  background: #d4edda;
+  color: #155724;
+}
+
+.estado-cancelado {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.total-pedido {
+  color: var(--ion-color-primary);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+/* Motivo de rechazo */
+.motivo-rechazo {
+  background: #fff8f8;
+  border: 1px solid #ffebee;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.motivo-rechazo ion-icon {
+  color: var(--ion-color-danger);
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.motivo-content {
+  flex: 1;
+}
+
+.motivo-content strong {
+  color: var(--ion-color-danger);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.motivo-content p {
+  color: #666;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Resumen de productos */
+.resumen-productos {
+  margin-bottom: 16px;
+}
+
+.producto-resumen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.producto-resumen:last-child {
+  border-bottom: none;
+}
+
+.producto-cantidad {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+  min-width: 30px;
+}
+
+.producto-nombre {
+  color: var(--ion-color-fritos-blue);
+  flex: 1;
+}
+
+/* Botones de acción */
+.pedido-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn-modificar, .btn-eliminar {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-modificar {
+  background: var(--ion-color-primary);
+  color: white;
+}
+
+.btn-eliminar {
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.btn-modificar:active, .btn-eliminar:active {
+  transform: scale(0.98);
+}
+
+/* Info adicional */
+.pedido-info-adicional {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ion-color-fritos-blue);
+  font-size: 0.9rem;
+}
+
+.info-item ion-icon {
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .pedido-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .pedido-actions {
+    flex-direction: column;
+  }
+}

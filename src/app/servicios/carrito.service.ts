@@ -22,7 +22,7 @@ export interface Pedido {
   tiempo_estimado : number
   confirmado : boolean
   mesa : string
-  estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'cancelado'
+  estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'cancelado' | 'rechazado'
   estado_comida : 'listo' | 'en preparacion' | 'cancelado'
   estado_bebida : 'listo' | 'en preparacion' | 'cancelado'
   estado_postre : 'listo' | 'en preparacion' | 'cancelado'
@@ -186,7 +186,7 @@ export class CarritoService {
     const tiempoElaboracion = this.calcularTiempoElaboracionNumerico(items);
     
     const total = this.totalPrecio();
-
+    console.log(clienteId)
     const pedido: Pedido = {
       cliente_id: clienteId,
       comidas: comidas,

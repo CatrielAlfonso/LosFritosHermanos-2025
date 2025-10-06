@@ -100,6 +100,10 @@ const routes: Routes = [
     path: 'pedidos-mozo',
     loadComponent: () => import('./componentes/pedidos-mozo/pedidos-mozo.component').then(m => m.PedidosMozoComponent)
   },
+  {
+    path: 'pedidos',
+    loadComponent: () => import('./componentes/pedidos/pedidos.component').then(m => m.PedidosComponent)
+  },
   
  
 ];
