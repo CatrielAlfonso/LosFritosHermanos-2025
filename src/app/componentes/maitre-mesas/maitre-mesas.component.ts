@@ -88,10 +88,12 @@ export class MaitreMesasComponent  implements OnInit {
 
   seleccionarCliente(cliente: ClienteEspera) {
     this.clienteSeleccionado = cliente;
+    console.log("clienteSeleccionado: ", this.clienteSeleccionado);
     this.feedback.showToast('exito', `Cliente ${cliente.nombre} seleccionado.`);
   }
 
   seleccionarMesa(mesa: Mesa) {
+    console.log(mesa);
     if (mesa.ocupada) {
       this.feedback.showToast('error', 'Mesa ocupada. No se puede reasignar.');
       this.mesaSeleccionada = null;
@@ -132,6 +134,8 @@ export class MaitreMesasComponent  implements OnInit {
     const loading = await this.feedback.showLoading('Asignando mesa...');
     
     try {
+
+      let clienteDefinitivoId: number;
       // 1. Actualizar la tabla 'mesas' (establecer ocupada y cliente asignado)
       const { error: errorMesa } = await this.sb.supabase
         .from('mesas')
@@ -148,6 +152,14 @@ export class MaitreMesasComponent  implements OnInit {
         .eq('id', cliente.id);
         
       if (errorEspera) throw errorEspera;
+
+      // cliente sentado
+      const {error: errorCliente }= await this.sb.supabase.from('clientes').update(
+        {
+          sentado: true,
+        }).eq('id', cliente.id,);
+
+      if (errorCliente) throw errorCliente;
 
       // 3. ENVIAR PUSH NOTIFICATION al cliente (A IMPLEMENTAR)
       // Lógica simulada: notificar al dispositivo del cliente (celular 3)
