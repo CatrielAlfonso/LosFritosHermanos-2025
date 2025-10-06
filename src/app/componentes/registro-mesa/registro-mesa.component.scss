@@ -2,11 +2,25 @@
   --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
 
   .center-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    padding: 0.5rem;
+    width: 100%;
+    max-width: 450px; /* Ancho máximo para el formulario */
+    padding: 1rem;
+    
+    /* Permite que el contenido se desplace dentro del wrapper si es muy largo */
+    // Si el formulario es más grande que la pantalla, puedes usar esto:
+    // overflow-y: auto; 
+    // max-height: 100%;
+  }
+
+  /* El formulario debe tomar el ancho máximo del wrapper */
+  .mesa-form-container {
+    width: 100%;
+    /* Remueve los max-width y margin: 0 auto; de los items y el formulario,
+       ya que el .center-wrapper los controla. */
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 5px 25px rgba(27, 55, 105, 0.2);
   }
 
   .register-container {
@@ -114,22 +128,24 @@
 
   ion-button[type="submit"] {
     margin-top: 0.3rem;
-    --background: var(--ion-color-fritos-red);
-    --background-hover: var(--ion-color-fritos-red-shade);
-    --color: var(--ion-color-fritos-red-contrast);
-    font-weight: bold;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
-    height: 28px;
-    font-size: 1.2rem;
+    /* ... otros estilos de color ... */
+    
+    /* ELIMINA O COMENTA ESTAS LÍNEAS PARA QUE EL BOTÓN OCUPE EL ANCHO COMPLETO */
+    /*
     min-width: 100px;
     max-width: 180px;
     margin-left: auto;
     margin-right: auto;
     display: block;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
+    */
+
+    /* Ajuste para que se vea más grande y sea prominente */
+    height: 48px; 
+    font-size: 1.2rem;
+    
+    /* Asegura que el botón se adhiera al ancho del contenedor 'form-actions' */
+    width: 100%; 
+}
 
   ion-button[type="submit"]::part(native) {
     transition: transform 0.15s ease;
@@ -139,6 +155,20 @@
       background-color: rgba(0, 118, 28, 0.15);
     }
   }
+
+  .form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* Espacio entre los botones si añades el de Volver */
+    margin-top: 1rem;
+}
+
+/* Ajusta los ion-item para que ocupen todo el ancho del formulario, no 380px */
+.registro-mesa-content ion-item {
+    /* ... */
+    max-width: 100%; /* CLAVE: Ahora el item ocupa el 100% del formulario */
+    /* ... */
+}
 
   .error-message {
     color: #ff0000;

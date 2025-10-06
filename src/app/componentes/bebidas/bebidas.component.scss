@@ -1,25 +1,29 @@
 .bebida-content {
-  --background: #4666de; /* azul como fondo principal */
+  --background: #4666de;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   height: 100%;
-  padding: 16px 0; /* solo arriba y abajo */
+  
+  /* CLAVE PARA EL BORDE INFERIOR (Home bar en iOS o Android) */
+  --padding-bottom: var(--ion-safe-area-bottom, 16px); 
+  
+  /* Removemos el padding: 16px 0; para usar las variables oficiales de Ionic */
+  padding: 0; 
 }
 
 /* Contenedor con aire lateral */
+/* 3. Asegurar que el contenido del formulario tenga el padding */
 .form-container {
-  padding: 0 20px; /* espacio a los costados */
-  /*espacio en los bordes inferiores*/
-  flex: 1; /* para que ocupe todo el espacio disponible */
-  overflow-y: auto; /* para que sea scrollable si es necesario */
-  /**(evitar que el contenido toque los bordes inferiores) */
+  padding: 0 20px; 
+  flex: 1; 
+  overflow-y: auto; 
   margin-bottom: 16px;
-
 }
 
 /* Header animado */
 .header-animado {
+  padding-top: var(--ion-safe-area-top);
   text-align: center;
   color: #efbf2d;
   margin-bottom: 20px;

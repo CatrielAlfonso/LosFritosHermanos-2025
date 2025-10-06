@@ -8,14 +8,17 @@
 /* ----------------------------------- */
 .maitre-grid {
     height: 100%; 
-    display: flex;
-    box-sizing: border-box;
+    // display: flex;
+    // box-sizing: border-box;
+    display: flex; /* O usa grid, pero flex es más simple para dos columnas */
+  height: 100%; /* Asegura que el grid ocupe toda la altura visible */
+  overflow: hidden; /* Evita scrolls dobles */
 }
 
 .panel {
-    height: 100%;
-    overflow-y: auto; /* Scroll dentro del panel */
-    padding-bottom: 120px; /* Espacio para el panel de asignación fijo */
+   display: flex;
+  flex-direction: column;
+  //border: 1px solid red; 
 }
 
 /* Panel Izquierdo: Lista de Espera (Aprox. 35% del ancho) */
@@ -27,10 +30,9 @@
 }
 
 /* Panel Derecho: Mesas (Aprox. 65% del ancho) */
-.mesas-panel {
-    flex-grow: 1;
-    background: #f0f4f8;
-    position: relative;
+.mesas-panel ion-grid {
+  flex: 1; /* CLAVE: Permite que el grid crezca y que el panel sea scrollable si la lista es grande */
+  overflow-y: auto; /* Permite el scroll solo en el grid si es necesario */
 }
 
 .panel-title {
@@ -62,6 +64,13 @@
 /* ESTILOS DE MESAS Y CARDS            */
 /* ----------------------------------- */
 ion-card {
+    height: 100%; // O una altura fija, ej: 120px
+  min-height: 120px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
     border-radius: 10px;
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;

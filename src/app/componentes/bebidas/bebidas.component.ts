@@ -29,11 +29,12 @@ export class BebidasComponent {
  form = this.fb.group({
     nombre: ['', Validators.required],
     descripcion: ['', [Validators.required, Validators.minLength(5)]],
-    tiempoElaboracion: [null, [Validators.required, Validators.min(1)]],
+    tiempo_elaboracion: [null, [Validators.required, Validators.min(1)]],
     precio: [null, [Validators.required, Validators.min(0)]],
-    foto1: [null as File | null, Validators.required],
-    foto2: [null as File | null, Validators.required],
-    foto3: [null as File | null, Validators.required]
+    tipo: 'bebida',
+    foto1: [null as File | null],
+    foto2: [null as File | null],
+    foto3: [null as File | null]
   });
 
   selectedFiles: (File | null)[] = [null, null, null];
@@ -66,11 +67,11 @@ export class BebidasComponent {
   async onSubmit() 
   {
     if (this.form.invalid || this.selectedFiles.some(f => !f)) {
-      this.feedback.showToast('error', '❌ Tenés que subir las 3 fotos capo 😅');
+      this.feedback.showToast('error', '❌ Debes completar todos los campos del producto y subir las 3 fotos.');
       return;
     }
 
-    const loading = await this.feedback.showLoading();
+    const loading = await this.feedback.showLoading("Guardando bebida...");
 
     try {
       const urls: string[] = [];
@@ -82,15 +83,14 @@ export class BebidasComponent {
       await this.bebidaService.agregarBebida({
         nombre: this.form.value.nombre!,
         descripcion: this.form.value.descripcion!,
-        tiempoElaboracion: this.form.value.tiempoElaboracion!,
+        tiempo_elaboracion: this.form.value.tiempo_elaboracion!,
         precio: this.form.value.precio!,
-        foto1: urls[0],
-        foto2: urls[1],
-        foto3: urls[2]
+        imagenes: urls,
+        tipo: this.form.value.tipo!
       });
 
       await loading.dismiss();
-      this.feedback.showToast('exito'); 
+      this.feedback.showToast('exito', '✅ Producto registrado con éxito.'); 
       this.form.reset();
       this.selectedFiles = [null, null, null]; // reset con 3 posiciones
 
