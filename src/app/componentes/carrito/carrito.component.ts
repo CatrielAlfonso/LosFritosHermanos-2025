@@ -93,16 +93,16 @@ export class CarritoComponent {
 
   async realizarPedido() {
     try {
-      
       if (!this.user) {
       throw new Error('Usuario no autenticado');
     }
+    console.log('user', this.user().id)
       const itemsCarrito = this.items();
       if (itemsCarrito.length === 0) {
         throw new Error('El carrito está vacío');
       }
       const pedido = this.carritoService.generarPedidoParaConfirmacion(
-        this.user.id,
+        this.user().id,
         '1',
         '',
       );

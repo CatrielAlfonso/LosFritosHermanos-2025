@@ -8,9 +8,12 @@ import { Pedido } from './carrito.service';
 })
 export class SupabaseService {
   public supabase: SupabaseClient;
-  private todosLosPedidos = signal<any[]>([]);
+  todosLosPedidos = signal<any[]>([]);
   pedidosPendientes = computed(() => 
     this.todosLosPedidos().filter(p => p.estado === 'pendiente')
+  );
+  pedidosDelCliente = (clienteId: string) => computed(() => 
+    this.todosLosPedidos().filter(pedido => pedido.cliente_id === clienteId)
   );
 
   constructor() { 
@@ -126,20 +129,41 @@ export class SupabaseService {
         .order('fecha_pedido', { ascending: true });
       if (error) {
         throw new Error(`Error al obtener los pedidos: ${error.message}`);
+        return null
       }
 
       const pedidosParseados = (data || []).map(pedido => ({
-      ...pedido,
-      comidas: this.parseJsonSafe(pedido.comidas),
-      bebidas: this.parseJsonSafe(pedido.bebidas), 
-      postres: this.parseJsonSafe(pedido.postres)
-    }));
+        ...pedido,
+        comidas: this.parseJsonSafe(pedido.comidas),
+        bebidas: this.parseJsonSafe(pedido.bebidas), 
+        postres: this.parseJsonSafe(pedido.postres)
+      }));
 
       this.todosLosPedidos.set(pedidosParseados)
+      return data
 
     } catch (error) {
       console.error('Error en get pedidos:', error);
       throw error;
+    }
+  }
+
+  async getPedidosCliente(idCliente : string){
+    try{
+      const { data, error } = await this.supabase
+      .from('pedidos')
+      .select('*')
+      .eq('cliente_id', idCliente)
+
+      if (error) {
+        console.log('Error al traer los pedidos del cliente:', error);
+        return null;
+      }
+      return data;
+
+    }catch(error){
+      console.log(`error nal traer los pedidos del cliente`, error)
+      return null
     }
   }
 
@@ -175,6 +199,50 @@ export class SupabaseService {
       .subscribe((status) => {
         console.log('📡 Estado del canal:', status);
       });
+  }
+
+  async cargarPedidos() {
+    const data = await this.getPedidos()
+    console.log('📦 Pedidos cargados:', data);
+    if(data) this.todosLosPedidos.set(data)
+  }
+
+  async actualizarPedido(pedidoId: number, updates: Partial<Pedido>) {
+    try {
+      const { data, error } = await this.supabase
+        .from('pedidos')
+        .update(updates)
+        .eq('id', pedidoId)
+        .select();
+
+      if (error) {
+        throw new Error(`Error al actualizar pedido: ${error.message}`);
+      }
+
+      console.log('✅ Pedido actualizado:', data);
+      return data?.[0] || null;
+      
+    } catch (error) {
+      console.error('Error en actualizarPedido:', error);
+      throw error;
+    }
+  }
+
+  async eliminarPedido(pedidoId : string){
+    try{
+      const { data, error } = await this.supabase
+      .from('pedidos')
+      .delete()
+      .eq('id', pedidoId)
+      
+      if (error) {
+        throw new Error(`Error al eliminar pedido: ${error.message}`);
+      }
+
+    }catch(error){
+      console.error('Error en actualizarPedido:', error);
+      throw error;
+    }
   }
   
 
