@@ -29,7 +29,7 @@ export interface Pedido {
   recepcion : boolean
   pagado : number
   cuenta: number               
-  fecha_pedido: Date
+  fecha_pedido: any
   motivo_rechazo : string
   observaciones_generales?: string; 
 }
@@ -97,7 +97,7 @@ export class CarritoService {
         productoId: producto.id,
         nombre: producto.nombre,
         tipo: producto.tipo, 
-        tiempoElaboracion: producto.tiempoElaboracion,
+        tiempoElaboracion: producto.tiempo_elaboracion,
         precioUnitario: producto.precio,
         cantidad: cantidad,
         observaciones: observaciones,
@@ -203,7 +203,7 @@ export class CarritoService {
       recepcion: false,
       pagado: 0,
       cuenta: total,
-      fecha_pedido: new Date(),
+      fecha_pedido: new Date().toISOString(),
       motivo_rechazo: '',
       observaciones_generales: observaciones
     };
