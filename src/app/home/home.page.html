@@ -62,6 +62,10 @@
     </div>
 
     <div *ngIf="tipoUsuario === 'maitre'" class="maitre-options">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" routerLink="/lista-espera">
+        <ion-icon name="people-outline" slot="start"></ion-icon>
+        Lista de Espera
+      </ion-button>
       <h3 class="fritos-subtitle">Panel de Maître</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro')">

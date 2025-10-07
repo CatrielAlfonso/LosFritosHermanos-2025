@@ -15,20 +15,9 @@ const supabaseUrl = process.env.SUPABASE_URL || 'https://jpwlvaprtxszeimmimlq.su
 const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwd2x2YXBydHhzemVpbW1pbWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxODEyMDAsImV4cCI6MjA3Mjc1NzIwMH0.gkhOncDbc192hLHc4KIT3SLRI6aUIlQt13pf2hY1IA8';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Initialize Firebase Admin usando el archivo JSON directamente
-// Configuración para Fritos Hermanos
-const serviceAccount = {
-  "type": "service_account",
-  "project_id": "fritos-hermanos",
-  "private_key_id": "tu_private_key_id",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nTU_PRIVATE_KEY_AQUI\n-----END PRIVATE KEY-----",
-  "client_email": "firebase-adminsdk-xxx@fritos-hermanos.iam.gserviceaccount.com",
-  "client_id": "127178815661",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xxx%40fritos-hermanos.iam.gserviceaccount.com"
-};
+// Initialize Firebase Admin
+const serviceAccountPath = require('path').join(__dirname, 'fritos-hermanos-firebase-adminsdk-fbsvc-d13be52569.json');
+const serviceAccount = require(serviceAccountPath);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -36,7 +25,11 @@ admin.initializeApp({
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");
-});``
+});
+
+// Importar y usar las rutas de email
+const emailRoutes = require('./routes/email.routes');
+app.use('/api/email', emailRoutes);``
 
 // Función helper para enviar notificaciones
 async function sendNotificationToRole(role, title, body) {
@@ -97,28 +90,57 @@ app.post("/notify-client-table-assigned", async (req, res) => {
   const { clienteEmail, mesaNumero, clienteNombre, clienteApellido } = req.body;
   
   try {
+    // 1. Enviar notificación push
     const { data: cliente, error } = await supabase
       .from("clientes")
       .select("fcm_token")
       .eq("correo", clienteEmail)
       .single();
 
-    if (error || !cliente?.fcm_token) {
-      return res.status(200).send({ message: "Cliente no encontrado o sin token FCM" });
+    if (cliente?.fcm_token) {
+      const message = {
+        notification: {
+          title: "Mesa asignada",
+          body: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`
+        },
+        token: cliente.fcm_token,
+      };
+
+      await admin.messaging().send(message);
     }
 
-    const message = {
-      notification: {
-        title: "Mesa asignada",
-        body: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`
-      },
-      token: cliente.fcm_token,
-    };
+    // 2. Enviar email de confirmación
+    const { sendEmail } = require('./services/email.service');
+    const emailResult = await sendEmail({
+      to: clienteEmail,
+      subject: "Mesa Asignada - Los Fritos Hermanos",
+      text: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>¡Tu mesa está lista!</h2>
+          <p>Hola ${clienteNombre},</p>
+          <p>Te confirmamos que te hemos asignado la <strong>mesa ${mesaNumero}</strong>.</p>
+          <p>Detalles de tu asignación:</p>
+          <ul>
+            <li>Mesa: ${mesaNumero}</li>
+            <li>Nombre: ${clienteNombre} ${clienteApellido}</li>
+          </ul>
+          <p>¡Esperamos que disfrutes tu experiencia en Los Fritos Hermanos!</p>
+          <p>Si necesitas algo, no dudes en consultarnos.</p>
+          <br>
+          <p>Saludos,</p>
+          <p>El equipo de Los Fritos Hermanos</p>
+        </div>
+      `
+    });
 
-    const response = await admin.messaging().send(message);
-    res.status(200).send({ message: "Notification sent successfully.", response });
+    res.status(200).send({ 
+      message: "Notification and email sent successfully.",
+      emailResult
+    });
   } catch (error) {
-    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+    console.error('Error:', error);
+    res.status(500).send({ error: `Failed to send notifications: ${error.message}` });
   }
 });
 

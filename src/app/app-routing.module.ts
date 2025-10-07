@@ -2,6 +2,10 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
+  {
+    path: 'lista-espera',
+    loadComponent: () => import('./components/lista-espera/lista-espera.component').then(m => m.ListaEsperaComponent)
+  },
   
   {
     path: '',
