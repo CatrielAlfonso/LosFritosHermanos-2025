@@ -16,12 +16,25 @@ const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Initialize Firebase Admin
-const serviceAccountPath = require('path').join(__dirname, 'fritos-hermanos-firebase-adminsdk-fbsvc-d13be52569.json');
-const serviceAccount = require(serviceAccountPath);
+let serviceAccount;
+try {
+  if (process.env.FIREBASE_ADMIN_CREDENTIALS) {
+    // En producción, usar credenciales desde variable de entorno
+    serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+  } else {
+    // En desarrollo, intentar usar archivo local
+    const serviceAccountPath = require('path').join(__dirname, 'fritos-hermanos-firebase-adminsdk-fbsvc-d13be52569.json');
+    serviceAccount = require(serviceAccountPath);
+  }
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+} catch (error) {
+  console.error('Error initializing Firebase Admin:', error);
+  // No lanzar el error para permitir que el servidor inicie sin Firebase
+  // Las funciones que dependen de Firebase manejarán el error individualmente
+}
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");
