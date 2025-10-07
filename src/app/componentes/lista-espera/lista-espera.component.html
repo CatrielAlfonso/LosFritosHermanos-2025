@@ -1,0 +1,108 @@
+<ion-content>
+  <div class="lista-espera-container">
+    <div class="header-info">
+      <ion-button fill="clear" class="back-button" (click)="volverAHome()">
+        <ion-icon name="arrow-back"></ion-icon>
+        Volver
+      </ion-button>
+      <h2>Lista de Espera</h2>
+    </div>
+
+    <div *ngIf="cargando" class="loading-container">
+      <p>Cargando lista de espera...</p>
+    </div>
+
+    <div *ngIf="!cargando && listaEspera.length === 0" class="empty-state">
+      <ion-icon name="list-outline" class="empty-icon"></ion-icon>
+      <h3>No hay clientes en lista de espera</h3>
+      <p>La lista de espera está vacía</p>
+    </div>
+
+    <div *ngIf="!cargando && listaEspera.length > 0" class="table-container">
+      <div class="table-header">
+        <div class="header-cell">Nombre</div>
+        <div class="header-cell">Apellido</div>
+        <div class="header-cell">Fecha</div>
+        <div class="header-cell">Mesa</div>
+      </div>
+
+      <div class="table-body">
+        <div 
+          *ngFor="let cliente of listaEspera; let i = index" 
+          class="table-row"
+          [class.odd]="i % 2 === 0"
+          [class.even]="i % 2 === 1">
+          <div class="table-cell nombre">{{ cliente.nombre }}</div>
+          <div class="table-cell apellido">{{ cliente.apellido ? cliente.apellido : '-' }}</div>
+          <div class="table-cell fecha">{{ formatearFecha(cliente.fecha_ingreso) }}</div>
+          <div class="table-cell mesa">{{ cliente.mesa_asignada && cliente.mesa_asignada !== '' ? cliente.mesa_asignada : '-' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <ion-button expand="block" shape="round" class="qr-btn" (click)="escanearParaDisponibilidadMesas()">
+      <div class="qr-btn-content">
+        <ion-icon name="qr-code-outline"></ion-icon>
+        <span>Mesas Disponibles</span>
+      </div>
+    </ion-button>
+    <div *ngIf="mensajeErrorQR" class="qr-error-message">{{ mensajeErrorQR }}</div>
+    <ion-modal [isOpen]="mostrarModalMesas" (didDismiss)="cerrarModalMesasDisponibles()">
+      <ng-template>
+        <ion-content>
+          <div class="modal-title-container">
+            <ion-button fill="clear" class="close-button" (click)="cerrarModalMesasDisponibles()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+            <h2 class="modal-title">Mesas disponibles</h2>
+          </div>
+          <div class="clientes-container">
+            <div *ngFor="let mesa of mesasDisponibles" class="cliente-item">
+              <div class="cliente-info">
+                <div class="cliente-nombre">Mesa N° {{ mesa.numero }}</div>
+                <div class="cliente-correo">{{ mesa.tipo | titlecase }}<br>({{ mesa.comensales }} personas)</div>
+              </div>
+              <div class="mesa-actions">
+                <div *ngIf="mesa.imagen" class="mesa-imagen-small">
+                  <img [src]="mesa.imagen" alt="Imagen Mesa" />
+                </div>
+                <ion-button fill="outline" color="success" size="small" (click)="asignarClienteAMesa(mesa)">
+                  <ion-icon name="person-add" slot="start"></ion-icon>
+                  Asignar
+                </ion-button>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="mesasDisponibles.length === 0" class="modal-empty">
+            No hay mesas disponibles.
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <ion-modal [isOpen]="mostrarModalClientes" (didDismiss)="cerrarModalClientes()">
+      <ng-template>
+        <ion-content>
+          <div class="modal-title-container">
+            <ion-button fill="clear" class="close-button" (click)="cerrarModalClientes()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+            <h2 class="modal-title">Asignar cliente a Mesa {{ mesaSeleccionada?.numero }}</h2>
+          </div>
+          <div class="clientes-container">
+            <div *ngFor="let cliente of clientesDisponibles" class="cliente-item" (click)="asignarMesaACliente(cliente.id)">
+              <div class="cliente-info">
+                <div class="cliente-nombre">{{ cliente.nombre }} {{ cliente.apellido || '' }}</div>
+                <div class="cliente-correo">{{ formatearFecha(cliente.fecha_ingreso) }}</div>
+              </div>
+              <ion-icon name="chevron-forward" class="cliente-arrow"></ion-icon>
+            </div>
+          </div>
+          <div *ngIf="clientesDisponibles.length === 0" class="modal-empty">
+            No hay clientes disponibles.
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+  </div>
+</ion-content>

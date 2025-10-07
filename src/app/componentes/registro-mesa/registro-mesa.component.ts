@@ -4,15 +4,20 @@ import { toDataURL } from 'qrcode';
 //import { dataURLtoBlob } from '../utils/blob-utils'; // tu helper
 import { SupabaseService } from '../../servicios/supabase.service';
 import { LoadingService } from '../../servicios/loading.service';
-import { IonIcon,IonItem,IonLabel, IonButton,IonInput,IonSelect,IonSelectOption, IonContent } from "@ionic/angular/standalone";
+import { IonIcon,IonItem, IonButtons,
+  IonToolbar, IonTitle, IonBackButton,
+  IonLabel, IonButton,IonInput,IonSelect,IonSelectOption, IonHeader,IonContent } from "@ionic/angular/standalone";
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 
 @Component({
   selector: 'app-registro-mesa',
   templateUrl: './registro-mesa.component.html',
   styleUrls: ['./registro-mesa.component.scss'],
-  imports: [IonContent, ReactiveFormsModule,IonIcon,IonItem,IonInput,IonLabel, IonButton,IonSelectOption,IonSelect,CommonModule]
+  imports: [IonContent, IonButtons,
+    IonHeader,IonToolbar, IonTitle, IonBackButton,
+   ReactiveFormsModule,IonIcon,IonItem,IonInput,IonLabel, IonButton,IonSelectOption,IonSelect,CommonModule]
 })
 export class RegistroMesaComponent {
 
@@ -40,12 +45,14 @@ export class RegistroMesaComponent {
   constructor(
     private fb: FormBuilder,
     private sb: SupabaseService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private feedback: FeedbackService,
   ) {}
 
   async registrarMesa() {
     if (this.mesaForm.invalid) {
       this.mensajeError = 'Por favor completa todos los campos correctamente';
+      this.feedback.showToast('error', this.mensajeError);
       return;
     }
 
@@ -61,6 +68,7 @@ export class RegistroMesaComponent {
         .maybeSingle();
 
       if (mesaExistente) {
+        this.feedback.showToast('error', 'Esta mesa ya existe');
         this.mensajeError = 'Esta mesa ya existe';
         this.loadingService.hide();
         return;
@@ -99,10 +107,13 @@ export class RegistroMesaComponent {
       if (error) throw error;
 
       this.mensajeExito = 'Mesa registrada exitosamente!';
+      this.feedback.showToast('exito', 'Mesa registrada exitosamente!');
       this.mesaForm.reset();
     } catch (e: any) {
+      this.feedback.showToast('error', 'Error al registrar mesa: ' + e.message);
       this.mensajeError = 'Error: ' + e.message;
     } finally {
+      
       this.loadingService.hide();
     }
   }

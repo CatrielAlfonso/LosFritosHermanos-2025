@@ -5,31 +5,42 @@ import { IonContent, IonText,IonLabel, IonInput, IonItem, IonTextarea,IonButton,
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { VistaPreviaFotosPipe } from 'src/app/pipes/vista-previa-fotos-pipe';
 import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { ViewChildren, QueryList, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-bebidas',
   templateUrl: './bebidas.component.html',
   styleUrls: ['./bebidas.component.scss'],
   imports: [IonItem, IonContent, IonLabel, ReactiveFormsModule,IonInput, IonItem,  IonTextarea, IonButton, IonIcon, IonText,
-    VistaPreviaFotosPipe, CommonModule
+    VistaPreviaFotosPipe, CommonModule, RouterLink
   ]
 })
 export class BebidasComponent {
 
+ @ViewChildren('fileInput0, fileInput1, fileInput2')
+  fileInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
+  abrirFileInput(index: number) {
+    const inputs = this.fileInputs.toArray(); // convertir QueryList a array
+    inputs[index]?.nativeElement.click();
+  } 
 
  form = this.fb.group({
     nombre: ['', Validators.required],
     descripcion: ['', [Validators.required, Validators.minLength(5)]],
-    tiempoElaboracion: [null, [Validators.required, Validators.min(1)]],
+    tiempo_elaboracion: [null, [Validators.required, Validators.min(1)]],
     precio: [null, [Validators.required, Validators.min(0)]],
-    foto1: [null as File | null, Validators.required],
-    foto2: [null as File | null, Validators.required],
-    foto3: [null as File | null, Validators.required]
+    tipo: 'bebida',
+    foto1: [null as File | null],
+    foto2: [null as File | null],
+    foto3: [null as File | null]
   });
 
   selectedFiles: (File | null)[] = [null, null, null];
   mensaje = '';
+  router = inject(Router);
+
 
   constructor(private fb: FormBuilder, private bebidaService: BebidaService, private feedback: FeedbackService ) {}
 
@@ -56,11 +67,11 @@ export class BebidasComponent {
   async onSubmit() 
   {
     if (this.form.invalid || this.selectedFiles.some(f => !f)) {
-      this.feedback.showToast('error', '❌ Tenés que subir las 3 fotos capo 😅');
+      this.feedback.showToast('error', '❌ Debes completar todos los campos del producto y subir las 3 fotos.');
       return;
     }
 
-    const loading = await this.feedback.showLoading();
+    const loading = await this.feedback.showLoading("Guardando bebida...");
 
     try {
       const urls: string[] = [];
@@ -72,15 +83,14 @@ export class BebidasComponent {
       await this.bebidaService.agregarBebida({
         nombre: this.form.value.nombre!,
         descripcion: this.form.value.descripcion!,
-        tiempoElaboracion: this.form.value.tiempoElaboracion!,
+        tiempo_elaboracion: this.form.value.tiempo_elaboracion!,
         precio: this.form.value.precio!,
-        foto1: urls[0],
-        foto2: urls[1],
-        foto3: urls[2]
+        imagenes: urls,
+        tipo: this.form.value.tipo!
       });
 
       await loading.dismiss();
-      this.feedback.showToast('exito'); 
+      this.feedback.showToast('exito', '✅ Producto registrado con éxito.'); 
       this.form.reset();
       this.selectedFiles = [null, null, null]; // reset con 3 posiciones
 
@@ -88,6 +98,17 @@ export class BebidasComponent {
       await loading.dismiss();
       this.feedback.showToast('error', `Error al guardar: ${err.message}`);
     }
+  }
+
+  async volverPaginaPrincipal()
+  {
+    // Lógica para volver a la página principal
+    this.feedback.showLoading();
+      //volver al home
+      this.feedback.hide();
+      this.router.navigate(['/login']);
+      
+    
   }
 
 }

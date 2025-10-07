@@ -1,3 +1,160 @@
+<ion-header class="header">
+  <ion-toolbar>
+    <ion-title class="titulo-menu" id="titulo-menu">Platos principales</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="container-prods">
+  @for(plato of platos; track plato){
+    <ion-card class="container-plato">
+      <swiper-container pagination="true" class="bebida-swiper">
+        @for(foto of plato.imagenes; track foto){
+          <swiper-slide>
+            <img [src]="foto" [alt]="plato.nombre + 'foto'" class="bebida-image" />
+          </swiper-slide>
+        }
+      </swiper-container>
+
+      <ion-card-header>
+        <ion-card-subtitle class="precio-destacado">{{plato.precio | currency}}</ion-card-subtitle>
+        <ion-card-title class="plato-nombre">{{plato.nombre}}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content class="descripcion">
+        {{plato.descripcion}}
+      </ion-card-content>
+      <ion-card-content class="descripcion" style="color: red;">
+        Tiempo de elaboracion: {{plato.tiempo_elaboracion}} minutos
+      </ion-card-content>
+
+      <!-- NUEVO: Control de cantidad tipo PedidosYa -->
+      <div class="control-cantidad-container">
+        <!-- Estado inicial: Botón Agregar -->
+        <ion-button 
+          *ngIf="obtenerCantidadProducto(plato.id) === 0"
+          class="boton-agregar-inicial"
+          expand="block" 
+          fill="solid" 
+          color="primary"
+          (click)="agregarAlCarrito(plato)">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Agregar
+        </ion-button>
+
+        <!-- Estado con items: Control +/- -->
+        <div *ngIf="obtenerCantidadProducto(plato.id) > 0" class="control-cantidad">
+          <button class="btn-cantidad btn-menos" (click)="restarProducto(plato)">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          
+          <span class="cantidad-actual">
+            {{obtenerCantidadProducto(plato.id)}}
+          </span>
+          
+          <button class="btn-cantidad btn-mas" (click)="agregarAlCarrito(plato)">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+    </ion-card> 
+  }
+  
+  @for(bebida of bebidas; track bebida){
+    <ion-card class="container-plato">
+      <swiper-container pagination="true" class="bebida-swiper">
+        @if(bebida.foto1){
+          <swiper-slide>
+            <img [src]="bebida.foto1" [alt]="bebida.nombre + ' foto 1'" class="bebida-image" />
+          </swiper-slide>
+        }
+        @if(bebida.foto2){
+          <swiper-slide>
+            <img [src]="bebida.foto2" [alt]="bebida.nombre + ' foto 2'" class="bebida-image" />
+          </swiper-slide>
+        }
+        @if(bebida.foto3){
+          <swiper-slide>
+            <img [src]="bebida.foto3" [alt]="bebida.nombre + ' foto 3'" class="bebida-image" />
+          </swiper-slide>
+        }
+      </swiper-container>
+
+      <ion-card-header>
+        <ion-card-subtitle class="precio-destacado">{{bebida.precio | currency}}</ion-card-subtitle>
+        <ion-card-title class="plato-nombre">{{bebida.nombre}}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content class="descripcion">
+        {{bebida.descripcion}}
+      </ion-card-content>
+      <ion-card-content class="descripcion" style="color: red;">
+        Tiempo de elaboracion: {{bebida.tiempo_elaboracion}} minutos
+      </ion-card-content>
+
+      <!-- NUEVO: Control de cantidad tipo PedidosYa -->
+      <div class="control-cantidad-container">
+        <!-- Estado inicial: Botón Agregar -->
+        <ion-button 
+          *ngIf="obtenerCantidadProducto(bebida.id) === 0"
+          class="boton-agregar-inicial"
+          expand="block" 
+          fill="solid" 
+          color="primary"
+          (click)="agregarAlCarrito(bebida)">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Agregar
+        </ion-button>
+
+        <!-- Estado con items: Control +/- -->
+        <div *ngIf="obtenerCantidadProducto(bebida.id) > 0" class="control-cantidad">
+          <button class="btn-cantidad btn-menos" (click)="restarProducto(bebida)">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          
+          <span class="cantidad-actual">
+            {{obtenerCantidadProducto(bebida.id)}}
+          </span>
+          
+          <button class="btn-cantidad btn-mas" (click)="agregarAlCarrito(bebida)">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+    </ion-card> 
+  }
+
+  <!-- Barra flotante del carrito -->
+  <div class="barra-carrito-flotante" *ngIf="totalItems() > 0">
+    <div class="barra-contenido">
+      <div class="barra-info">
+        <span class="cantidad-items">{{totalItems()}} items</span>
+        <span class="precio-total">{{totalPrecio() | currency}}</span>
+      </div>
+      <ion-button 
+        class="boton-ver-carrito"
+        fill="solid" 
+        color="primary"
+        (click)="irAlCarrito()">
+        <ion-icon name="cart-outline" slot="start"></ion-icon>
+        Ver Carrito
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+
+
+
+
+
+
+
+
+
+
+
+
 
   <!-- <div class="container-plato">   PRIMER ESTILO QUE HABIA HECHO TIPO MENU PEDIDOS YA
     <div class="info-plato">
@@ -10,7 +167,7 @@
     </div>
   </div> -->
 
-<ion-header class="header">
+<!-- <ion-header class="header">
   <ion-toolbar>
     <ion-title class="titulo-menu" id="titulo-menu">Platos principales</ion-title>
   </ion-toolbar>
@@ -20,6 +177,7 @@
   @for(plato of platos; track plato){
     <ion-card  class="container-plato">
       <swiper-container 
+        
         pagination="true" 
         class="bebida-swiper"
       >
@@ -43,8 +201,9 @@
   }
   @for(bebida of bebidas; track bebida){
     <ion-card class="container-plato">
-      <!-- Slides para las 3 fotos -->
+      
       <swiper-container 
+        
         pagination="true" 
         class="bebida-swiper"
       >
@@ -75,7 +234,11 @@
       </ion-card-content>
     </ion-card> 
   }
-</ion-content>
+</ion-content>  MENU QUE ESTA BIEN -->
+
+
+
+
 
 
 

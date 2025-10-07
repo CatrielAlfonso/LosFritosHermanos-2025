@@ -11,8 +11,13 @@ import { IonContent,IonButton, IonIcon} from "@ionic/angular/standalone";
 })
 export class BienvenidaComponent  implements OnInit {
 
-  constructor() { }
+  constructor(private router:Router) { }
 
   ngOnInit() {}
+
+  irAnonimo()
+  {
+    this.router.navigate(['/anonimo']);
+  }
 
 }

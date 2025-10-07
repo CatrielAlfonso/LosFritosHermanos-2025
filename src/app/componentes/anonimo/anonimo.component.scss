@@ -1,0 +1,132 @@
+/* ion-content host: fondo app */
+.anonimo-page {
+  // Color principal de fondo
+  --background: #4666de; 
+}
+
+/* ----------------------------------- */
+/* DISEÑO DE PANTALLA COMPLETA (Grid)  */
+/* ----------------------------------- */
+.full-screen-grid {
+  height: 100%; // Asegura que ocupe todo el ion-content
+  display: flex; // Usaremos flexbox para dividir la pantalla verticalmente
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* PANEL SUPERIOR: Formulario (Ocupa la mayor parte, 70% o más) */
+.anonimo-panel {
+  flex-grow: 1; // Crece para ocupar el espacio
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; // Los elementos van al inicio
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1); // Transparencia sutil
+}
+
+/* PANEL INFERIOR: QR y Volver (Ocupa la parte inferior, 30% o menos) */
+.qr-panel {
+  flex-shrink: 0; // No se encoge
+  padding: 20px;
+  background: #2b49b3; // Color sólido más oscuro que el fondo principal
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
+  text-align: center;
+}
+
+/* ----------------------------------- */
+/* ESTILOS DE ELEMENTOS                */
+/* ----------------------------------- */
+
+// Logo y títulos
+.anonimo-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 8px auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+.anonimo-title { 
+  color: #efbf2d; 
+  font-size: 1.8rem; 
+  margin-bottom: 4px;
+}
+.anonimo-subtitle { 
+  color: #fff; 
+  margin-bottom: 20px; 
+}
+.qr-subtitle {
+  color: #fff; 
+  opacity: 0.8;
+  margin-bottom: 15px;
+  font-weight: 300;
+}
+
+// Items e Inputs (Usamos tu estilo de "glassmorphism" sutil)
+.fritos-input {
+  --background: rgba(255,255,255,0.12);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  --color: #fff;
+  ion-label { color: #ffd351 !important; font-weight: 600; }
+  ion-input { color: #fff; }
+}
+
+// Preview Foto
+.preview-wrapper { 
+  margin: 10px 0 16px 0; 
+  display: flex;
+  justify-content: center;
+}
+.preview-wrapper img { 
+  width: 80px; 
+  height: 80px; 
+  object-fit: cover; 
+  border-radius: 50%; // Circular para perfil
+  border: 3px solid #efbf2d; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+// Botones
+ion-button { 
+  --border-radius: 8px; 
+  margin: 8px 0; 
+}
+
+.scan-button {
+  font-weight: bold;
+  --box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+// Resultado del Escaneo
+.scan-result-card {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  small {
+    color: #555;
+    display: block;
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+  }
+}
+
+.action-buttons-group {
+  display: flex;
+  ion-button {
+    --color: #4666de;
+    margin: 0 2px;
+  }
+}

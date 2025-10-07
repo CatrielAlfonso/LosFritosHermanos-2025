@@ -7,7 +7,7 @@
   </div>
 
   <!-- Formulario de carga -->
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-bebida">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-bebida form-container">
 
     <ion-item lines="full">
       <ion-label position="floating">Nombre</ion-label>
@@ -21,7 +21,7 @@
 
     <ion-item lines="full">
       <ion-label position="floating">Tiempo elaboración (min)</ion-label>
-      <ion-input type="number" formControlName="tiempoElaboracion"></ion-input>
+      <ion-input type="number" formControlName="tiempo_elaboracion"></ion-input>
     </ion-item>
 
     <ion-item lines="full">
@@ -30,7 +30,7 @@
     </ion-item>
 
     <!-- Subida de fotos -->
-    <ion-item>
+    <!-- <ion-item>
   <ion-label>Foto 1</ion-label>
     <input type="file" accept="image/*" (change)="onFileSelected($event,0)" />
   </ion-item>
@@ -43,8 +43,32 @@
   <ion-item>
     <ion-label>Foto 3</ion-label>
     <input type="file" accept="image/*" (change)="onFileSelected($event, 2)" />
-  </ion-item>
+  </ion-item> -->
 
+  <div class="upload-container">
+  <ion-button expand="block" color="fritos-blue" (click)="abrirFileInput(0)">
+    <ion-icon name="camera-outline" slot="start"></ion-icon>
+    Subir Foto 1
+  </ion-button>
+  <input #fileInput0 type="file" hidden accept="image/*" (change)="onFileSelected($event,0)" />
+</div>
+
+<div class="upload-container">
+  <ion-button expand="block" color="fritos-blue" (click)="abrirFileInput(1)">
+    <ion-icon name="camera-outline" slot="start"></ion-icon>
+    Subir Foto 2
+  </ion-button>
+  <input #fileInput1 type="file" hidden accept="image/*" (change)="onFileSelected($event,1)" />
+</div>
+
+<div class="upload-container">
+  <ion-button expand="block" color="fritos-blue" (click)="abrirFileInput(2)">
+    <ion-icon name="camera-outline" slot="start"></ion-icon>
+    Subir Foto 3
+  </ion-button>
+  <input #fileInput2 type="file" hidden accept="image/*" (change)="onFileSelected($event,2)" />
+</div>
+    
     <!-- Vista previa -->
   <!-- <div class="preview-fotos" *ngIf="selectedFiles.length > 0">
     <div *ngFor="let file of selectedFiles">
@@ -66,6 +90,10 @@
     <ion-button expand="block" type="submit" class="btn-guardar">
       <ion-icon name="save-outline"></ion-icon>
       Guardar Bebida
+    </ion-button>
+    <ion-button expand="block" type="submit" class="btn-volver" routerLink="/home">
+      <ion-icon name="arrow-undo-circle-outline"></ion-icon>
+      Volver a Página Principal
     </ion-button>
   </form>
 

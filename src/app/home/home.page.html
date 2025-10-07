@@ -21,7 +21,7 @@
 
 
   <div id="container" class="fritos-card" *ngIf="!nombreUsuario">
-    <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Logo" class="login-logo fritos-bounce" />
+    <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/crispy2.png" alt="Logo" class="login-logo fritos-bounce" />
     <strong class="fritos-logo">¡Bienvenido a Los Fritos Hermanos!</strong>
     <p class="fritos-subtitle">Tu aplicación de comida rápida favorita</p>
     <ion-button color="fritos-red" class="fritos-button" routerLink="/login">
@@ -31,25 +31,25 @@
 
  
   <div id="container" class="fritos-card" *ngIf="nombreUsuario">
-    <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Logo" class="login-logo fritos-bounce" />
+    <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/crispy2.png" alt="Logo" class="login-logo fritos-bounce" />
     <strong class="fritos-logo">¡Bienvenido, {{ nombreUsuario }}!</strong>
-    <p class="fritos-subtitle">Perfil: {{ perfilUsuario | titlecase }}</p>
+    <p class="fritos-subtitle">Perfil: {{ tipoUsuario | titlecase }}</p>
 
   
-    <div *ngIf="esAdmin" class="admin-options">
+    <div *ngIf="tipoUsuario === 'dueño' || tipoUsuario === 'supervisor'" class="admin-options">
       <h3 class="fritos-subtitle">Panel de Administración</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('empleado')">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro-empleados')">
         <ion-icon name="person-add-outline" slot="start"></ion-icon>
         Registrar Empleado
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irARegistro('mesa')">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irARegistro('/registro-mesa')">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Registrar Mesa
       </ion-button>
 
-      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irARegistro()">
+      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irARegistro('/registro')">
         <ion-icon name="people-outline" slot="start"></ion-icon>
         Gestionar Clientes
       </ion-button>
@@ -61,36 +61,47 @@
 
     </div>
 
-    <div *ngIf="esMaitre && !esAdmin" class="maitre-options">
+    <div *ngIf="tipoUsuario === 'maitre'" class="maitre-options">
       <h3 class="fritos-subtitle">Panel de Maître</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('cliente')">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro')">
         <ion-icon name="person-add-outline" slot="start"></ion-icon>
         Registrar Cliente
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irAMaitreMesas()">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Gestionar Mesas
+      </ion-button>
+
+      <ion-button 
+        *ngIf="perfilUsuario === 'maitre'" 
+        expand="block" 
+        class="btn-pedidos"
+        (click)="irAListaEspera()">
+        <div class="boton-contenido-columna">
+          <ion-icon name="list-outline"></ion-icon>
+          <span class="boton-texto">Lista de Espera</span>
+        </div>
       </ion-button>
     </div>
 
  
-    <div *ngIf="esCocinero && !esAdmin" class="cocinero-options">
+    <div *ngIf="tipoUsuario === 'cocinero'" class="cocinero-options">
       <h3 class="fritos-subtitle">Panel de Cocinero</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('producto')">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro-plato')">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Registrar Producto
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" >
         <ion-icon name="list-outline" slot="start"></ion-icon>
         Ver Pedidos
       </ion-button>
     </div>
 
-    <div *ngIf="esBartender && !esAdmin" class="bartender-options">
+    <div *ngIf="tipoUsuario === 'bartender'" class="bartender-options">
       <h3 class="fritos-subtitle">Panel de Bartender</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/bebidas']" routerLinkActive="router-link-active" >
@@ -104,15 +115,15 @@
       </ion-button>
     </div>
 
-    <div *ngIf="perfilUsuario === 'cliente'" class="cliente-options">
+    <div *ngIf="tipoUsuario === 'cliente'" class="cliente-options">
       <h3 class="fritos-subtitle">Panel de Cliente</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Ver Menú
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/escaner']">
         <ion-icon name="qr-code-outline" slot="start"></ion-icon>
         Escanear QR Mesa
       </ion-button>

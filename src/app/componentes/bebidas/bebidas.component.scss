@@ -1,14 +1,29 @@
 .bebida-content {
-  --background: #4666de; /* azul como fondo principal */
+  --background: #4666de;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   height: 100%;
-  padding: 16px;
+  
+  /* CLAVE PARA EL BORDE INFERIOR (Home bar en iOS o Android) */
+  --padding-bottom: var(--ion-safe-area-bottom, 16px); 
+  
+  /* Removemos el padding: 16px 0; para usar las variables oficiales de Ionic */
+  padding: 0; 
+}
+
+/* Contenedor con aire lateral */
+/* 3. Asegurar que el contenido del formulario tenga el padding */
+.form-container {
+  padding: 0 20px; 
+  flex: 1; 
+  overflow-y: auto; 
+  margin-bottom: 16px;
 }
 
 /* Header animado */
 .header-animado {
+  padding-top: var(--ion-safe-area-top);
   text-align: center;
   color: #efbf2d;
   margin-bottom: 20px;
@@ -27,41 +42,18 @@
   color: #fff;
 }
 
-.preview-fotos {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.preview-fotos img {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border: 2px solid #efbf2d;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  transition: transform 0.2s;
-}
-
-.preview-fotos img:hover {
-  transform: scale(1.1);
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-/* Formulario */
+/* Inputs */
 .form-bebida ion-item {
   --background: rgba(255, 255, 255, 0.1);
   --color: #fff;
   border-radius: 12px;
-  margin-bottom: 15px;
+  margin: 0 0 15px 0; /* separación entre inputs */
+  padding: 4px;
 }
 
+/* Labels */
 ion-label {
-  color: #efbf2d !important;
+  color: #ffd75e !important;
   font-weight: bold;
 }
 
@@ -69,35 +61,48 @@ ion-input, ion-textarea {
   color: #fff;
 }
 
-/* Upload de archivos */
-.file-upload {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(239, 191, 45, 0.2);
-  border: 2px dashed #efbf2d;
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 20px;
-  color: #efbf2d;
+/* Botones de upload */
+.upload-container {
+  margin: 10px 0;
 }
 
-/* Botón guardar */
+.upload-container ion-button {
+  --background: #efbf2d;
+  --color: #000;
+  font-weight: bold;
+  border-radius: 12px;
+}
+
+/* Vista previa fotos */
+.preview-fotos {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  justify-content: center;
+}
+
+.preview-fotos img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border: 2px solid #efbf2d;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Botones principales */
 .btn-guardar {
   --background: #dc2234;
-  --background-activated: #b81c29;
-  --color: #fff;
-  font-weight: bold;
-  font-size: 1.2rem;
-  border-radius: 16px;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.4);
-  animation: pulse 2s infinite;
+  margin-top: 20px;
+  border-radius: 12px;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+.btn-volver {
+  --background: #efbf2d;
+  --color: #000;
+  margin-top: 10px;
+  margin-bottom: 20px; /* <-- separación del borde inferior */
+  border-radius: 12px;
 }
 
 /* Mensajes */
@@ -105,4 +110,11 @@ ion-input, ion-textarea {
   margin-top: 20px;
   text-align: center;
   font-size: 1.1rem;
+  color: #fff;
+}
+
+/* Animaciones */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }

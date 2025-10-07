@@ -55,11 +55,30 @@ const routes: Routes = [
   },
   {
     path: 'supervisor',
-    loadChildren: () => import('./componentes/supervisor/supervisor.component').then( m => m.SupervisorComponent)
+    loadComponent: () => import('./componentes/supervisor/supervisor.component').then(m => m.SupervisorComponent),
+    children: [
+      {
+        path: 'registro-mesa',
+        loadComponent: () => import('./componentes/registro-mesa/registro-mesa.component').then(m => m.RegistroMesaComponent)
+      },
+      {
+        path: 'verificar-clientes',
+        loadComponent: () => import('./componentes/aprobacion-clientes/aprobacion-clientes.component').then(m => m.AprobacionClientesComponent)
+      },
+      {
+        path: '',
+        redirectTo: 'mesas',
+        pathMatch: 'full'
+      }
+    ]
   },
   {
     path: 'registro-mesa',
     loadComponent: () => import('./componentes/registro-mesa/registro-mesa.component').then(m => m.RegistroMesaComponent)
+  },
+  {
+    path: 'verificar-clientes',
+    loadComponent: () => import('./componentes/aprobacion-clientes/aprobacion-clientes.component').then(m => m.AprobacionClientesComponent)
   },
   {
     path: 'registro-plato',
@@ -69,7 +88,31 @@ const routes: Routes = [
     path: 'aprobacion-clientes',
     loadComponent: () => import('./componentes/aprobacion-clientes/aprobacion-clientes.component').then(m => m.AprobacionClientesComponent)
   },
-
+  {
+    path: 'carrito',
+    loadComponent: () => import('./componentes/carrito/carrito.component').then(m => m.CarritoComponent)
+  },
+  {
+    path: 'maitre',
+    loadComponent: () => import('./componentes/maitre-mesas/maitre-mesas.component').then(m => m.MaitreMesasComponent)
+  },
+  {
+    path: 'pedidos-mozo',
+    loadComponent: () => import('./componentes/pedidos-mozo/pedidos-mozo.component').then(m => m.PedidosMozoComponent)
+  },
+  {
+    path: 'pedidos',
+    loadComponent: () => import('./componentes/pedidos/pedidos.component').then(m => m.PedidosComponent)
+  },
+  {
+    path: 'escaner',
+    loadChildren: () => import('./componentes/escaner/escaner.component').then( m => m.EscanerComponent)
+  },
+   {
+    path: 'lista-espera',
+    loadComponent: () => import('./componentes/lista-espera/lista-espera.component').then(m => m.ListaEsperaComponent)
+  },
+  
  
 ];
 

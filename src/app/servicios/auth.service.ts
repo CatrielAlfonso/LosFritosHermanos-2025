@@ -1,8 +1,8 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { User } from '@supabase/supabase-js';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
+import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
 
 @Injectable({
   providedIn: 'root'
@@ -15,10 +15,94 @@ export class AuthService {
   esMaitre: boolean = false;
   perfilUsuario: string = '';
 
-  constructor(
-  ) { }
 
-  async logIn(correo: string, contrasenia: string)
+  public userActual: WritableSignal<User | null> = signal<User | null>(null);
+
+  constructor(
+  ) { 
+    this.setupAuthListener()
+  }
+
+  private setupAuthListener() {
+
+    this.sb.supabase.auth.onAuthStateChange((event, session) => {
+      console.log(event);
+      console.log(session);
+      this.userActual.set(session !== null ? session.user : null);
+    });
+  }
+
+  async logIn(correo: string, contrasenia: string) {
+    const { data, error } = await this.sb.supabase.auth.signInWithPassword({
+      email: correo,
+      password: contrasenia
+    });
+
+    console.log('Login data:', data);
+    if (error) throw error;
+
+    const { data: cliente } = await this.sb.supabase
+      .from('clientes')
+      .select('id, validado, aceptado')
+      .eq('correo', correo)
+      .single();
+
+    if (cliente) {
+      if (cliente.validado === null) {
+        await this.sb.supabase.auth.signOut();
+        throw new Error('Tu cuenta está pendiente de aprobación. Por favor, espera a que un administrador la revise.');
+      } else if (cliente.validado === false) {
+        await this.sb.supabase.auth.signOut();
+        throw new Error('Tu cuenta fue rechazada. Por favor, contacta al administrador para más información.');
+      }
+    }
+
+    this.usuarioActual = data?.user || null;
+
+    const { data: empleado } = await this.sb.supabase
+      .from('empleados')
+      .select('*')
+      .eq('correo', correo)
+      .single();
+
+    const { data: supervisor } = await this.sb.supabase
+      .from('supervisores')
+      .select('id')
+      .eq('correo', correo)
+      .single();
+
+    this.esAdmin = !!supervisor;
+    
+
+    if (empleado && empleado.perfil === 'maitre') {
+    this.setPerfil('maitre');
+    } else if (supervisor) {
+      this.setPerfil('supervisor');
+    } else if (empleado) {
+      this.setPerfil(empleado.perfil);
+    } else if (cliente) {
+      this.setPerfil('cliente');
+    }
+
+    return this.usuarioActual;
+  }
+
+  async obtenerIdUsuarioActual(): Promise<string | null> {
+    try {
+      const { data, error } = await this.sb.supabase.auth.getUser();
+      if (error) {
+        console.error('Error obteniendo usuario actual:', error);
+        return null;
+      }
+      return data.user ? data.user.id : null;
+    } catch (error) {
+      console.error('Error inesperado obteniendo usuario actual:', error);
+      return null;
+    }
+  }
+
+
+  async logearse(correo: string, contrasenia: string)
   {
 
     // 1. Autenticación
@@ -79,10 +163,16 @@ export class AuthService {
 
   }
 
-  async registro(correo: string, contrasenia: string) {
+  async registro(correo: string, contrasenia: string, tipoUsuario : string, nombre : string) {
     const { data, error } = await this.sb.supabase.auth.signUp({
       email: correo,
-      password: contrasenia
+      password: contrasenia,
+      options: {
+        data: {
+          display_name: nombre,
+          tipoUsuario: tipoUsuario
+        }
+      }
     });
 
     if (error) {
@@ -136,9 +226,9 @@ export class AuthService {
 
       if (email) {
         try {
-          const { PushNotificationService } = await import('./push-notification.service');
-          const pushService = new PushNotificationService();
-          await pushService.borrarFcmToken(email);
+          //const { PushNotificationService } = await import('./push-notification.service');
+          //const pushService = new PushNotificationService();
+          //await pushService.borrarFcmToken(email);
         } catch (error) {
           console.error('Error al borrar FCM token:', error);
         }

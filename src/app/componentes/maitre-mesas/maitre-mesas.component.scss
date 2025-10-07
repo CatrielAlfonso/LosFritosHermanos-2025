@@ -1,0 +1,163 @@
+/* Fondo de la página */
+.mesas-page {
+    --background: #f0f4f8; /* Fondo muy claro para contrastar con los paneles */
+}
+
+/* ----------------------------------- */
+/* DISEÑO DE PANTALLA COMPLETA (Grid)  */
+/* ----------------------------------- */
+.maitre-grid {
+    height: 100%; 
+    // display: flex;
+    // box-sizing: border-box;
+    display: flex; /* O usa grid, pero flex es más simple para dos columnas */
+  height: 100%; /* Asegura que el grid ocupe toda la altura visible */
+  overflow: hidden; /* Evita scrolls dobles */
+}
+
+.panel {
+   display: flex;
+  flex-direction: column;
+  //border: 1px solid red; 
+}
+
+/* Panel Izquierdo: Lista de Espera (Aprox. 35% del ancho) */
+.espera-panel {
+    flex-basis: 35%;
+    flex-shrink: 0;
+    border-right: 1px solid #ddd;
+    background: #ffffff; 
+}
+
+.mesas-panel {
+  display: flex;
+  flex-direction: column; /* Apila el título, el grid y el panel de asignación */
+  flex: 1; /* CLAVE: Ocupa el espacio restante horizontalmente */
+  min-width: 50%; /* O lo que necesites para el layout de dos columnas */
+
+  .mesas-content-scroll { 
+    flex: 1; 
+    overflow-y: auto; /* ¡AQUÍ ESTÁ EL SCROLL! */
+    padding-bottom: 20px; /* Espacio extra al final */
+  }
+}
+
+/* Panel Derecho: Mesas (Aprox. 65% del ancho) */
+.mesas-panel ion-grid {
+    
+  flex: 1; /* CLAVE: Permite que el grid crezca y que el panel sea scrollable si la lista es grande */
+  overflow-y: auto; /* Permite el scroll solo en el grid si es necesario */
+}
+
+.panel-title {
+    color: #4666de; /* Azul Fritos Hermanos */
+    font-weight: 700;
+    font-size: 1.3rem;
+    padding-top: 10px;
+}
+
+/* ----------------------------------- */
+/* ESTILOS DE LISTA DE ESPERA          */
+/* ----------------------------------- */
+.cliente-item {
+    --background: #ffffff;
+    --border-radius: 0;
+    --inner-border-width: 0;
+    border-bottom: 1px solid #eee;
+    
+    ion-icon { color: #4666de; }
+
+    &.item-selected {
+        --background: rgba(239, 191, 45, 0.15); /* Fondo amarillo tenue */
+        border-left: 5px solid #efbf2d; /* Borde de color de marca */
+        ion-label h2 { font-weight: bold; color: #4666de; }
+    }
+}
+
+/* ----------------------------------- */
+/* ESTILOS DE MESAS Y CARDS            */
+/* ----------------------------------- */
+ion-card {
+    height: 100%; // O una altura fija, ej: 120px
+  min-height: 120px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+    border-radius: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+/* Mesa Disponible */
+.mesa-disponible {
+    background: #e6f7ff;
+    ion-card-title { color: #007bff; }
+    ion-icon { color: #28a745; }
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Mesa Ocupada */
+.mesa-ocupada {
+    background: #ffe6e6;
+    ion-card-title { color: #dc3545; }
+    ion-icon { color: #dc3545; }
+}
+
+/* Mesa Seleccionada para Asignar */
+.mesa-selected {
+    border-color: #efbf2d; /* Borde de selección llamativo */
+    box-shadow: 0 0 15px rgba(239, 191, 45, 0.5);
+    transform: scale(1.03);
+}
+
+/* ----------------------------------- */
+/* PANEL DE ACCIÓN FIJO                */
+/* ----------------------------------- */
+.asignacion-panel {
+    // position: fixed;
+    // bottom: 0;
+    // left: 35%; /* Inicia donde termina el panel de espera */
+    // right: 0;
+    // background: #ffffff;
+    // padding: 10px 20px 20px 20px;
+    // box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+    // z-index: 10;
+    // display: flex;
+    // flex-direction: column;
+
+    flex-shrink: 0; /* Evita que se encoja cuando el contenido es grande */
+    background: #ffffff; /* Mantén el fondo y el estilo de sombra */
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+    
+    //hacer que se mantenga visible al hacer scroll
+    position: sticky;
+    bottom: 0;
+    left: 0;
+
+    ion-item {
+        --background: transparent;
+        strong { color: #4666de; }
+    }
+}
+
+/* Para pantallas muy pequeñas, hacer que los paneles se apilen */
+@media (max-width: 768px) {
+    .maitre-grid {
+        flex-direction: column;
+    }
+    .espera-panel {
+        flex-basis: auto;
+        border-right: none;
+        border-bottom: 5px solid #eee;
+        min-height: 40vh; /* Para que se vea en el móvil */
+    }
+    .asignacion-panel {
+        left: 0;
+    }
+}
