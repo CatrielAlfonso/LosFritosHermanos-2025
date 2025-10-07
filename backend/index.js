@@ -18,25 +18,50 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 let serviceAccount;
 try {
+  console.log('Iniciando configuración de Firebase...');
   if (process.env.FIREBASE_ADMIN_CREDENTIALS) {
-
-    serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+    console.log('Usando credenciales desde variable de entorno');
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+      console.log('JSON parseado correctamente');
+      console.log('Project ID:', serviceAccount.project_id);
+      console.log('Client Email:', serviceAccount.client_email);
+    } catch (parseError) {
+      console.error('Error parseando JSON de Firebase:', parseError);
+      console.log('Primeros 100 caracteres de FIREBASE_ADMIN_CREDENTIALS:', process.env.FIREBASE_ADMIN_CREDENTIALS.substring(0, 100));
+    }
   } else {
-
+    console.log('Usando archivo local de credenciales');
     const serviceAccountPath = require('path').join(__dirname, 'fritos-hermanos-firebase-adminsdk-fbsvc-d13be52569.json');
     serviceAccount = require(serviceAccountPath);
   }
 
+  console.log('Intentando inicializar Firebase Admin...');
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
+  console.log('Firebase Admin inicializado correctamente');
 } catch (error) {
-  console.error('Error initializing Firebase Admin:', error);
-
+  console.error('Error completo inicializando Firebase Admin:', error);
+  console.error('Stack trace:', error.stack);
 }
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");
+});
+
+app.get("/debug-env", (req, res) => {
+  const envStatus = {
+    firebase_credentials_length: process.env.FIREBASE_ADMIN_CREDENTIALS ? process.env.FIREBASE_ADMIN_CREDENTIALS.length : 0,
+    firebase_credentials_start: process.env.FIREBASE_ADMIN_CREDENTIALS ? process.env.FIREBASE_ADMIN_CREDENTIALS.substring(0, 50) + '...' : 'no disponible',
+    supabase: {
+      url: process.env.SUPABASE_URL || 'usando valor por defecto',
+      key_length: process.env.SUPABASE_KEY ? process.env.SUPABASE_KEY.length : 0
+    },
+    node_env: process.env.NODE_ENV || 'no definido',
+    port: process.env.PORT || '3000 (default)'
+  };
+  res.json(envStatus);
 });
 
 app.get("/check-env", (req, res) => {
