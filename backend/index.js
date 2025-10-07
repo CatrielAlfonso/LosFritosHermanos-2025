@@ -39,6 +39,27 @@ app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
 
+app.get("/check-env", (req, res) => {
+  const envStatus = {
+    supabase: {
+      url: !!process.env.SUPABASE_URL,
+      key: !!process.env.SUPABASE_KEY
+    },
+    firebase: {
+      credentials: !!process.env.FIREBASE_ADMIN_CREDENTIALS
+    },
+    sendgrid: {
+      api_key: !!process.env.SENDGRID_API_KEY,
+      from_email: !!process.env.SENDGRID_FROM_EMAIL
+    },
+    server: {
+      node_env: process.env.NODE_ENV,
+      port: process.env.PORT
+    }
+  };
+  res.json(envStatus);
+});
+
 
 const emailRoutes = require('./routes/email.routes');
 app.use('/api/email', emailRoutes);``
