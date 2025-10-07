@@ -207,6 +207,10 @@ export class HomePage implements OnInit {
     this.router.navigate(['/maitre'])
   }
 
+  irAListaEspera()
+  {
+    this.router.navigate(['/lista-espera']);
+  }
   
 }
 

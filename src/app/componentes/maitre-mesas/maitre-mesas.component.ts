@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AlertController, ToastController, IonContent, IonHeader, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonIcon, IonButton,IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButtons, IonCardSubtitle } from '@ionic/angular/standalone';
 import { SupabaseService } from '../../servicios/supabase.service';
 import { FeedbackService } from '../../servicios/feedback-service.service';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
 
 interface ClienteEspera {
@@ -33,9 +34,17 @@ export class MaitreMesasComponent  implements OnInit {
 
    clientesEspera: ClienteEspera[] = [];
   mesas: Mesa[] = [];
-  
+  usuario: any = null;
   clienteSeleccionado: ClienteEspera | null = null;
   mesaSeleccionada: Mesa | null = null;
+  mesaAsignada: any = null;
+  notificacion: { mensaje: string, tipo: 'exito' | 'error' | 'info' } | null = null;
+  qrEnProceso: boolean = false;
+    clienteSentado: boolean = false;
+  mostrarBotonHacerPedido: boolean = false;
+    clienteInfo: any = null;
+  mostrarBotonVerEstadoPedido: boolean = false;
+
 
   constructor(
     private sb: SupabaseService,
@@ -212,5 +221,228 @@ export class MaitreMesasComponent  implements OnInit {
     });
     await alert.present();
   }
+
+
+   async escanearQR() {
+    this.qrEnProceso = true;
+    this.feedback.showLoading('Escaneando QR...');
+    try {
+      const { barcodes } = await BarcodeScanner.scan();
+      if (barcodes.length > 0) {
+        const codigoEscaneado = barcodes[0].displayValue;
+        await this.procesarCodigoEscaneado(codigoEscaneado);
+      } else {
+        await this.mostrarNotificacion('No se detectó ningún código QR.', 'info');
+      }
+    } catch (error) {
+      await this.mostrarNotificacion('Error al escanear el código QR.', 'error');
+    } finally {
+      this.feedback.hide();
+      this.qrEnProceso = false;
+    }
+  }
+
+  async procesarCodigoEscaneado(codigo: string) {
+    const codigoEsperado = 'b71c9d3a4e1f5a62c3340b87df0e8a129cab6e3d';
+    
+    if (codigo === codigoEsperado) {
+      await this.agregarAListaEspera();
+    } else {
+      await this.mostrarNotificacion('Código inválido', 'error');
+    }
+  }
+
+  async agregarAListaEspera() {
+    try {
+      if (!this.usuario) {
+        await this.mostrarNotificacion('No se pudo obtener la información del usuario.', 'error');
+        return;
+      }
+
+      const { data: clienteEnLista } = await this.sb.supabase
+        .from('lista_espera')
+        .select('*')
+        .eq('correo', this.usuario.email)
+        .single();
+
+      if (clienteEnLista) {
+        await this.mostrarNotificacion('Ya en Lista', 'exito');
+        return;
+      }
+
+      const { data: cliente, error: errorCliente } = await this.sb.supabase
+        .from('clientes')
+        .select('nombre, apellido, correo')
+        .eq('correo', this.usuario.email)
+        .single();
+
+      if (errorCliente || !cliente) {
+        await this.mostrarNotificacion('No se pudo obtener la información del cliente.', 'error');
+        return;
+      }
+
+      const ahora = new Date();
+      const fechaFormateada = ahora.toLocaleString('es-AR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'America/Argentina/Buenos_Aires'
+      });
+
+      const [fecha, hora] = fechaFormateada.replace(',', '').split(' ');
+      const [dia, mes, anio] = fecha.split('/');
+      const fechaFinal = `${anio}-${mes}-${dia} ${hora}:00`;
+
+      const { error: errorInsert } = await this.sb.supabase
+        .from('lista_espera')
+        .insert([{
+          nombre: cliente.nombre,
+          apellido: cliente.apellido,
+          correo: cliente.correo,
+          fecha_ingreso: fechaFinal
+        }]);
+
+      if (errorInsert) {
+        await this.mostrarNotificacion('No se pudo agregar a la lista de espera: ' + errorInsert.message, 'error');
+        return;
+      }
+
+      // try {
+      //   await this.pushNotificationService.notificarMaitreNuevoCliente(
+      //     cliente.nombre,
+      //     cliente.apellido
+      //   );
+      // } catch (error) {
+      // }
+
+      await this.mostrarNotificacion('Has sido agregado exitosamente a la lista de espera.', 'exito');
+      
+    } catch (error) {
+      await this.mostrarNotificacion('Error inesperado al agregar a la lista de espera.', 'error');
+    }
+  }
+
+  async escanearMesaAsignada() {
+    this.feedback.showLoading("Escaneando QR de mesa...");
+    
+    try {
+      const { barcodes } = await BarcodeScanner.scan();
+      
+      if (barcodes.length > 0) {
+        const codigoEscaneado = barcodes[0].displayValue;
+        await this.validarMesaEscaneada(codigoEscaneado);
+      } else {
+        this.feedback.showLoading('QR inválido, escanea el QR de tu mesa');
+      }
+    } catch (error) {
+      this.feedback.showLoading('QR inválido, escanea el QR de tu mesa');
+    } finally {
+      this.feedback.hide();
+    }
+  }
+
+  async validarMesaEscaneada(codigoEscaneado: string) {
+    
+    let qrValido = false;
+    try {
+      const datosQR = JSON.parse(codigoEscaneado);
+
+      const numeroMesaQR = String(datosQR.numeroMesa);
+      const mesaAsignadaStr = String(this.mesaAsignada);
+      
+      if (numeroMesaQR === mesaAsignadaStr) {
+        qrValido = true;
+      }
+    } catch (e) {
+      const patronEsperado = `numeroMesa: ${this.mesaAsignada}`;
+      
+      if (codigoEscaneado.includes(patronEsperado)) {
+        qrValido = true;
+      }
+    }
+    
+    if (!qrValido) {
+      //this.mostrarMensajeError('QR inválido, escanea el QR de tu mesa');
+      this.feedback.showToast('error', 'QR inválido, escanea el QR de tu mesa');
+    } else {
+      await this.marcarClienteSentado();
+    }
+  }
+
+   async marcarClienteSentado() {
+    try {
+      const { error } = await this.sb.supabase
+        .from('clientes')
+        .update({
+          sentado: true
+        })
+        .eq('correo', this.usuario.email);
+
+      if (error) {
+        this.mostrarNotificacion('No se pudo marcar el cliente como sentado.', 'error');
+      } else {
+        this.mostrarNotificacion('¡Bienvenido!', 'exito');
+        this.clienteSentado = true;
+        this.mostrarBotonHacerPedido = false;
+        //await this.verificarPedidoExistente();
+      }
+    } catch (error) {
+      this.mostrarNotificacion('Error al marcar el cliente como sentado.', 'error');
+    }
+  }
+
+  async cargarClienteInfo() {
+    if (!this.usuario ) return;
+    
+    try {
+      const { data, error } = await this.sb.supabase
+        .from('clientes')
+        .select('*')
+        .eq('correo', this.usuario.email)
+        .single();
+      
+      if (!error && data) {
+        this.clienteInfo = data;
+        
+      }
+    } catch (error) {
+    }
+  }
+
+  // async verificarPedidoExistente() {
+  //   if (!this.mesaAsignada ) {
+  //     this.mostrarBotonVerEstadoPedido = false;
+  //     this.pedidoActualCliente = null;
+  //     return;
+  //   }
+  //   const { data, error } = await this.sb.supabase
+  //     .from('pedidos')
+  //     .select('*')
+  //     .eq('mesa', this.mesaAsignada)
+  //     .order('id', { ascending: false })
+  //     .limit(1);
+  //   if (!error && data && data.length > 0) {
+  //     this.mostrarBotonVerEstadoPedido = true;
+  //     this.pedidoActualCliente = data[0];
+  //     this.mostrarBotonHacerPedido = false;
+  //   } else {
+  //     this.mostrarBotonVerEstadoPedido = false;
+  //     this.pedidoActualCliente = null;
+  //     this.mostrarBotonHacerPedido = this.clienteSentado;
+  //   }
+
+  //   await this.cargarClienteInfo();
+  // }
+
+   mostrarNotificacion(mensaje: string, tipo: 'exito' | 'error' | 'info' = 'info') {
+    this.notificacion = { mensaje, tipo };
+    setTimeout(() => {
+      this.notificacion = null;
+    }, 3500);
+  }
+
 
 }

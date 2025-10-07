@@ -29,8 +29,22 @@
     background: #ffffff; 
 }
 
+.mesas-panel {
+  display: flex;
+  flex-direction: column; /* Apila el título, el grid y el panel de asignación */
+  flex: 1; /* CLAVE: Ocupa el espacio restante horizontalmente */
+  min-width: 50%; /* O lo que necesites para el layout de dos columnas */
+
+  .mesas-content-scroll { 
+    flex: 1; 
+    overflow-y: auto; /* ¡AQUÍ ESTÁ EL SCROLL! */
+    padding-bottom: 20px; /* Espacio extra al final */
+  }
+}
+
 /* Panel Derecho: Mesas (Aprox. 65% del ancho) */
 .mesas-panel ion-grid {
+    
   flex: 1; /* CLAVE: Permite que el grid crezca y que el panel sea scrollable si la lista es grande */
   overflow-y: auto; /* Permite el scroll solo en el grid si es necesario */
 }
@@ -106,17 +120,26 @@ ion-card {
 /* PANEL DE ACCIÓN FIJO                */
 /* ----------------------------------- */
 .asignacion-panel {
-    position: fixed;
-    bottom: 0;
-    left: 35%; /* Inicia donde termina el panel de espera */
-    right: 0;
-    background: #ffffff;
-    padding: 10px 20px 20px 20px;
+    // position: fixed;
+    // bottom: 0;
+    // left: 35%; /* Inicia donde termina el panel de espera */
+    // right: 0;
+    // background: #ffffff;
+    // padding: 10px 20px 20px 20px;
+    // box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+    // z-index: 10;
+    // display: flex;
+    // flex-direction: column;
+
+    flex-shrink: 0; /* Evita que se encoja cuando el contenido es grande */
+    background: #ffffff; /* Mantén el fondo y el estilo de sombra */
     box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
     
+    //hacer que se mantenga visible al hacer scroll
+    position: sticky;
+    bottom: 0;
+    left: 0;
+
     ion-item {
         --background: transparent;
         strong { color: #4666de; }

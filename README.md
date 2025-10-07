@@ -69,13 +69,13 @@ Permite gestionar mesas, pedidos, clientes registrados o anónimos, juegos con d
 | 6     | Catriel     | master/punto-6-verificar-cliente | 🚧 En progreso| 06/09/2025 | |
 | 7     | Tomas       | master/punto-7-rechazo-cliente   | ✅ Completado  | 24/09/2025 | -- |
 | 8     | Tomas       | master/punto-8-aceptacion-cliente| ✅ Completado| 24/09/2025 | -- |
-| 9     | Catriel     | master/punto-9-cliente-anonimo   | 🚧 En progreso | 19/09/2025 | ... |
-| 10    | Tomas       | master/punto-10-asignacion-mesa  | ⏳ Pendiente | -- | -- |
-| 11    | Lucas       | master/punto-11-menu-consulta    | ⏳ Pendiente | -- | -- |
-| 12    | Catriel     | master/punto-12-pedido           | ⏳ Pendiente | -- | -- |
-| 13    | Tomas       | master/punto-13-rechazo-pedido   | ⏳ Pendiente | -- | -- |
-| 14    | Lucas       | master/punto-14-confirmar-pedido | ⏳ Pendiente | -- | -- |
-| 15    | Catriel     | master/punto-15-bar              | ⏳ Pendiente | -- | -- |
+| 9     | Catriel     | master/punto-9-cliente-anonimo   | ✅ Completado | 19/09/2025 | ... |
+| 10    | Tomas       | master/punto-10-asignacion-mesa  | 🚧 En progreso| -- | -- |
+| 11    | Lucas       | master/punto-11-menu-consulta    | 🚧 En progreso   | -- | -- |
+| 12    | Lucas      | master/punto-12-pedido           | 🚧 En progreso | -- | -- |
+| 13    | Tomas       | master/punto-13-rechazo-pedido   | 🚧 En progreso | -- | -- |
+| 14    | Lucas       | master/punto-14-confirmar-pedido | 🚧 En progreso | -- | -- |
+| 15    | Catriel     | master/punto-15-bar              | 🚧 En progreso | -- | -- |
 | 16    | Tomas       | master/punto-16-cocina           | ⏳ Pendiente | -- | -- |
 | 17    | Lucas       | master/punto-17-juegos           | 🚧 En progreso | 12/09/2025 | ... |
 | 18    | Catriel     | master/punto-18-confirmar-sectores| ⏳ Pendiente | -- | -- |

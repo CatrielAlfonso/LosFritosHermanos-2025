@@ -73,6 +73,17 @@
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Gestionar Mesas
       </ion-button>
+
+      <ion-button 
+      *ngIf="perfilUsuario === 'maitre'" 
+      expand="block" 
+      class="btn-pedidos"
+      (click)="irAListaEspera()">
+      <div class="boton-contenido-columna">
+        <ion-icon name="list-outline"></ion-icon>
+        <span class="boton-texto">Lista de Espera</span>
+      </div>
+    </ion-button>
     </div>
 
  
@@ -112,7 +123,7 @@
         Ver Menú
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/escaner']">
         <ion-icon name="qr-code-outline" slot="start"></ion-icon>
         Escanear QR Mesa
       </ion-button>
