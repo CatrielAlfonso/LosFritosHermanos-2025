@@ -1,0 +1,92 @@
+<ion-header class="header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="volverAHome()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="titulo-pedidos">Mis Pedidos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="container-pedidos">
+  <!-- Estado vacío -->
+  <div *ngIf="misPedidos().length === 0" class="estado-vacio">
+    <ion-icon name="receipt-outline" class="icono-vacio"></ion-icon>
+    <h2>No tenés pedidos</h2>
+    <p>Realizá tu primer pedido desde el menú</p>
+    <ion-button (click)="irAlMenu()" fill="solid" color="primary">
+      Ver Menú
+    </ion-button>
+  </div>
+
+  <!-- Lista de pedidos -->
+  <div *ngIf="misPedidos().length > 0" class="lista-pedidos">
+    <div *ngFor="let pedido of misPedidos()" class="pedido-item" 
+         [class.pedido-cancelado]="pedido.estado === 'cancelado'">
+      
+      <!-- Header del pedido -->
+      <div class="pedido-header">
+        <div class="pedido-info">
+          <h2 class="pedido-fecha">{{pedido.fecha_pedido | date:'dd/MM/yyyy HH:mm'}}</h2>
+          <div class="estado-badge" [class]="'estado-' + pedido.estado">
+            {{getEstadoTexto(pedido.estado)}}
+          </div>
+        </div>
+        <div class="pedido-total">
+          <span class="total-pedido">{{pedido.total | currency}}</span>
+        </div>
+      </div>
+
+      <!-- Motivo de rechazo -->
+      <div *ngIf="pedido.estado === 'cancelado' && pedido.motivo_rechazo" 
+           class="motivo-rechazo">
+        <ion-icon name="warning-outline"></ion-icon>
+        <div class="motivo-content">
+          <strong>Motivo del rechazo:</strong>
+          <p>{{pedido.motivo_rechazo}}</p>
+        </div>
+      </div>
+
+      <!-- Resumen de productos -->
+      <div class="resumen-productos">
+        <div class="producto-resumen" *ngFor="let comida of pedido.comidas">
+          <span class="producto-cantidad">{{comida.cantidad}}x</span>
+          <span class="producto-nombre">{{comida.nombre}}</span>
+        </div>
+        <div class="producto-resumen" *ngFor="let bebida of pedido.bebidas">
+          <span class="producto-cantidad">{{bebida.cantidad}}x</span>
+          <span class="producto-nombre">{{bebida.nombre}}</span>
+        </div>
+        <div class="producto-resumen" *ngFor="let postre of pedido.postres">
+          <span class="producto-cantidad">{{postre.cantidad}}x</span>
+          <span class="producto-nombre">{{postre.nombre}}</span>
+        </div>
+      </div>
+
+      <!-- Botones para pedidos cancelados -->
+      <div *ngIf="pedido.estado === 'cancelado'" class="pedido-actions">
+        <button class="btn-modificar" (click)="modificarPedido(pedido)">
+          <ion-icon name="create-outline"></ion-icon>
+          Modificar
+        </button>
+        <button class="btn-eliminar" (click)="eliminarPedido(pedido)">
+          <ion-icon name="trash-outline"></ion-icon>
+          Eliminar
+        </button>
+      </div>
+
+      <!-- Info adicional para otros estados -->
+      <div *ngIf="pedido.estado !== 'cancelado'" class="pedido-info-adicional">
+        <div class="info-item">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>Tiempo estimado: {{pedido.tiempo_estimado}} min</span>
+        </div>
+        <div class="info-item">
+          <ion-icon name="location-outline"></ion-icon>
+          <span>Mesa: {{pedido.mesa}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
