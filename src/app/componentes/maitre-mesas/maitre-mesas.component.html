@@ -39,46 +39,49 @@
 
     <div class="panel mesas-panel ion-padding">
       <h3 class="panel-title">Mesas del Local ({{ mesas.length }})</h3>
+      <div class="mesas-scroll-area">
+        <ion-grid>
+          <ion-row>
+            @for (mesa of mesas; track mesa.numero) {
+                <ion-col size="6" size-md="4" size-lg="3">
+                    <ion-card 
+                      (click)="seleccionarMesa(mesa)"
+                      [class.mesa-disponible]="!mesa.ocupada"
+                      [class.mesa-ocupada]="mesa.ocupada"
+                      [class.mesa-selected]="mesaSeleccionada?.numero === mesa.numero"
+                    >
+                      <ion-card-header>
+                        <ion-card-title>Mesa N° {{ mesa.numero }}</ion-card-title>
+                        <ion-card-subtitle>{{ mesa.tipo }} ({{ mesa.comensales }} Pax)</ion-card-subtitle>
+                      </ion-card-header>
+                      </ion-card>
+                </ion-col>
+            }
+          </ion-row>
+        </ion-grid>
       
-      <ion-grid>
-        <ion-row>
-          @for (mesa of mesas; track mesa.numero) {
-              <ion-col size="6" size-md="4" size-lg="3">
-                  <ion-card 
-                    (click)="seleccionarMesa(mesa)"
-                    [class.mesa-disponible]="!mesa.ocupada"
-                    [class.mesa-ocupada]="mesa.ocupada"
-                    [class.mesa-selected]="mesaSeleccionada?.numero === mesa.numero"
-                  >
-                    <ion-card-header>
-                      <ion-card-title>Mesa N° {{ mesa.numero }}</ion-card-title>
-                      <ion-card-subtitle>{{ mesa.tipo }} ({{ mesa.comensales }} Pax)</ion-card-subtitle>
-                    </ion-card-header>
-                    </ion-card>
-              </ion-col>
-          }
-        </ion-row>
-      </ion-grid>
-      <div class="asignacion-panel ion-padding-horizontal">
-        <ion-item lines="none" class="ion-no-padding">
-            <ion-label class="ion-text-wrap">
-                <p class="ion-text-uppercase">Cliente: <strong>{{ clienteSeleccionado?.nombre || 'Ninguno' }}</strong></p>
-                <p class="ion-text-uppercase">Mesa: <strong>{{ mesaSeleccionada?.numero || 'Ninguna' }}</strong></p>
-            </ion-label>
-        </ion-item>
+
         
-        <ion-button 
-          expand="block" 
-          color="success" 
-          [disabled]="!clienteSeleccionado || !mesaSeleccionada"
-          (click)="asignarMesa()"
-        >
-          <ion-icon name="send-outline" slot="start"></ion-icon>
-          ASIGNAR MESA Y NOTIFICAR
-        </ion-button>
+        </div>
       </div>
-
     </div>
-
+    
+    <div class="asignacion-panel ion-padding-horizontal">
+          <ion-item lines="none" class="ion-no-padding">
+              <ion-label class="ion-text-wrap">
+                  <p class="ion-text-uppercase">Cliente: <strong>{{ clienteSeleccionado?.nombre || 'Ninguno' }}</strong></p>
+                  <p class="ion-text-uppercase">Mesa: <strong>{{ mesaSeleccionada?.numero || 'Ninguna' }}</strong></p>
+              </ion-label>
+          </ion-item>
+          
+          <ion-button 
+            expand="block" 
+            color="success" 
+            [disabled]="!clienteSeleccionado || !mesaSeleccionada"
+            (click)="asignarMesa()"
+          >
+            <ion-icon name="send-outline" slot="start"></ion-icon>
+            ASIGNAR MESA Y NOTIFICAR
+          </ion-button>
   </div>
 </ion-content>

@@ -97,6 +97,14 @@ const routes: Routes = [
     path: 'maitre',
     loadComponent: () => import('./componentes/maitre-mesas/maitre-mesas.component').then(m => m.MaitreMesasComponent)
   },
+  {
+    path: 'escaner',
+    loadChildren: () => import('./componentes/escaner/escaner.component').then( m => m.EscanerComponent)
+  },
+   {
+    path: 'lista-espera',
+    loadComponent: () => import('./componentes/lista-espera/lista-espera.component').then(m => m.ListaEsperaComponent)
+  },
   
  
 ];

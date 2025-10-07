@@ -87,6 +87,21 @@ export class AuthService {
     return this.usuarioActual;
   }
 
+  async obtenerIdUsuarioActual(): Promise<string | null> {
+    try {
+      const { data, error } = await this.sb.supabase.auth.getUser();
+      if (error) {
+        console.error('Error obteniendo usuario actual:', error);
+        return null;
+      }
+      return data.user ? data.user.id : null;
+    } catch (error) {
+      console.error('Error inesperado obteniendo usuario actual:', error);
+      return null;
+    }
+  }
+
+
   async logearse(correo: string, contrasenia: string)
   {
 
