@@ -15,14 +15,14 @@ const supabaseUrl = process.env.SUPABASE_URL || 'https://jpwlvaprtxszeimmimlq.su
 const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwd2x2YXBydHhzemVpbW1pbWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxODEyMDAsImV4cCI6MjA3Mjc1NzIwMH0.gkhOncDbc192hLHc4KIT3SLRI6aUIlQt13pf2hY1IA8';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Initialize Firebase Admin
+
 let serviceAccount;
 try {
   if (process.env.FIREBASE_ADMIN_CREDENTIALS) {
-    // En producción, usar credenciales desde variable de entorno
+
     serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
   } else {
-    // En desarrollo, intentar usar archivo local
+
     const serviceAccountPath = require('path').join(__dirname, 'fritos-hermanos-firebase-adminsdk-fbsvc-d13be52569.json');
     serviceAccount = require(serviceAccountPath);
   }
@@ -32,19 +32,18 @@ try {
   });
 } catch (error) {
   console.error('Error initializing Firebase Admin:', error);
-  // No lanzar el error para permitir que el servidor inicie sin Firebase
-  // Las funciones que dependen de Firebase manejarán el error individualmente
+
 }
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
 
-// Importar y usar las rutas de email
+
 const emailRoutes = require('./routes/email.routes');
 app.use('/api/email', emailRoutes);``
 
-// Función helper para enviar notificaciones
+
 async function sendNotificationToRole(role, title, body) {
   try {
     const { data: users, error } = await supabase
@@ -83,7 +82,7 @@ async function sendNotificationToRole(role, title, body) {
   }
 }
 
-// Notificar maitre nuevo cliente
+
 app.post("/notify-maitre-new-client", async (req, res) => {
   const { clienteNombre, clienteApellido } = req.body;
   
@@ -98,12 +97,12 @@ app.post("/notify-maitre-new-client", async (req, res) => {
   }
 });
 
-// Notificar cliente mesa asignada
+
 app.post("/notify-client-table-assigned", async (req, res) => {
   const { clienteEmail, mesaNumero, clienteNombre, clienteApellido } = req.body;
   
   try {
-    // 1. Enviar notificación push
+
     const { data: cliente, error } = await supabase
       .from("clientes")
       .select("fcm_token")
@@ -122,7 +121,7 @@ app.post("/notify-client-table-assigned", async (req, res) => {
       await admin.messaging().send(message);
     }
 
-    // 2. Enviar email de confirmación
+ 
     const { sendEmail } = require('./services/email.service');
     const emailResult = await sendEmail({
       to: clienteEmail,
@@ -157,7 +156,7 @@ app.post("/notify-client-table-assigned", async (req, res) => {
   }
 });
 
-// Notificar mozos consulta cliente
+
 app.post("/notify-mozos-client-query", async (req, res) => {
   const { clienteNombre, clienteApellido, mesaNumero, consulta } = req.body;
   
@@ -172,7 +171,7 @@ app.post("/notify-mozos-client-query", async (req, res) => {
   }
 });
 
-// Notificar bartender nuevo pedido
+
 app.post("/notify-bartender-new-order", async (req, res) => {
   const { mesaNumero, bebidas } = req.body;
   
@@ -208,7 +207,7 @@ app.post("/notify-bartender-new-order", async (req, res) => {
   }
 });
 
-// Notificar cocinero nuevo pedido
+
 app.post("/notify-cocinero-new-order", async (req, res) => {
   const { mesaNumero, comidas, postres } = req.body;
   
@@ -245,7 +244,7 @@ app.post("/notify-cocinero-new-order", async (req, res) => {
   }
 });
 
-// Notificar mozo pedido listo
+
 app.post("/notify-mozo-order-ready", async (req, res) => {
   const { mesaNumero, tipoProducto, productos, pedidoId } = req.body;
   
@@ -281,7 +280,7 @@ app.post("/notify-mozo-order-ready", async (req, res) => {
   }
 });
 
-// Notificar mozo solicitud cuenta
+
 app.post("/notify-mozo-request-bill", async (req, res) => {
   const { mesaNumero, clienteNombre, clienteApellido } = req.body;
   
