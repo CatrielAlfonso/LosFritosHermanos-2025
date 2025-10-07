@@ -92,10 +92,17 @@ const routes: Routes = [
     path: 'carrito',
     loadComponent: () => import('./componentes/carrito/carrito.component').then(m => m.CarritoComponent)
   },
-
   {
     path: 'maitre',
     loadComponent: () => import('./componentes/maitre-mesas/maitre-mesas.component').then(m => m.MaitreMesasComponent)
+  },
+  {
+    path: 'pedidos-mozo',
+    loadComponent: () => import('./componentes/pedidos-mozo/pedidos-mozo.component').then(m => m.PedidosMozoComponent)
+  },
+  {
+    path: 'pedidos',
+    loadComponent: () => import('./componentes/pedidos/pedidos.component').then(m => m.PedidosComponent)
   },
   {
     path: 'escaner',

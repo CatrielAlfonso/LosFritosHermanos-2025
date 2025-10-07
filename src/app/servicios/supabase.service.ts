@@ -1,18 +1,27 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
+import { Pedido } from './carrito.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SupabaseService {
   public supabase: SupabaseClient;
+  todosLosPedidos = signal<any[]>([]);
+  pedidosPendientes = computed(() => 
+    this.todosLosPedidos().filter(p => p.estado === 'pendiente')
+  );
+  pedidosDelCliente = (clienteId: string) => computed(() => 
+    this.todosLosPedidos().filter(pedido => pedido.cliente_id === clienteId)
+  );
 
   constructor() { 
     this.supabase = createClient(
       environment.supabaseUrl, 
       environment.supabaseKey
     );
+    this.inicializarRealtime();
   }
 
   async subirImagenPerfil(archivo: File): Promise<string> {
@@ -111,5 +120,130 @@ export class SupabaseService {
       throw error;
     }
   }
+
+  async getPedidos(){
+    try {
+      const { data, error } = await this.supabase
+        .from('pedidos')
+        .select('*')
+        .order('fecha_pedido', { ascending: true });
+      if (error) {
+        throw new Error(`Error al obtener los pedidos: ${error.message}`);
+        return null
+      }
+
+      const pedidosParseados = (data || []).map(pedido => ({
+        ...pedido,
+        comidas: this.parseJsonSafe(pedido.comidas),
+        bebidas: this.parseJsonSafe(pedido.bebidas), 
+        postres: this.parseJsonSafe(pedido.postres)
+      }));
+
+      this.todosLosPedidos.set(pedidosParseados)
+      return data
+
+    } catch (error) {
+      console.error('Error en get pedidos:', error);
+      throw error;
+    }
+  }
+
+  async getPedidosCliente(idCliente : string){
+    try{
+      const { data, error } = await this.supabase
+      .from('pedidos')
+      .select('*')
+      .eq('cliente_id', idCliente)
+
+      if (error) {
+        console.log('Error al traer los pedidos del cliente:', error);
+        return null;
+      }
+      return data;
+
+    }catch(error){
+      console.log(`error nal traer los pedidos del cliente`, error)
+      return null
+    }
+  }
+
+  private parseJsonSafe(jsonString: any): any[] {
+    try {
+      if (typeof jsonString === 'string') {
+        return JSON.parse(jsonString);
+      }
+      return jsonString || [];
+    } catch {
+      return [];
+    }
+  }
+
+  private inicializarRealtime() {
+    console.log('🔄 Inicializando realtime...');
+    
+    this.supabase
+      .channel('pedidos-cambios')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'pedidos'
+        },
+        (payload) => {
+          console.log('📦 Cambio detectado en BD:', payload);
+          // Cuando hay cualquier cambio, recargamos los pedidos
+          this.getPedidos();
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 Estado del canal:', status);
+      });
+  }
+
+  async cargarPedidos() {
+    const data = await this.getPedidos()
+    console.log('📦 Pedidos cargados:', data);
+    if(data) this.todosLosPedidos.set(data)
+  }
+
+  async actualizarPedido(pedidoId: number, updates: Partial<Pedido>) {
+    try {
+      const { data, error } = await this.supabase
+        .from('pedidos')
+        .update(updates)
+        .eq('id', pedidoId)
+        .select();
+
+      if (error) {
+        throw new Error(`Error al actualizar pedido: ${error.message}`);
+      }
+
+      console.log('✅ Pedido actualizado:', data);
+      return data?.[0] || null;
+      
+    } catch (error) {
+      console.error('Error en actualizarPedido:', error);
+      throw error;
+    }
+  }
+
+  async eliminarPedido(pedidoId : string){
+    try{
+      const { data, error } = await this.supabase
+      .from('pedidos')
+      .delete()
+      .eq('id', pedidoId)
+      
+      if (error) {
+        throw new Error(`Error al eliminar pedido: ${error.message}`);
+      }
+
+    }catch(error){
+      console.error('Error en actualizarPedido:', error);
+      throw error;
+    }
+  }
+  
 
 }
