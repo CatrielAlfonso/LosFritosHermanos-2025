@@ -15,33 +15,6 @@ const supabaseUrl = process.env.SUPABASE_URL || 'https://jpwlvaprtxszeimmimlq.su
 const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwd2x2YXBydHhzemVpbW1pbWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxODEyMDAsImV4cCI6MjA3Mjc1NzIwMH0.gkhOncDbc192hLHc4KIT3SLRI6aUIlQt13pf2hY1IA8';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-<<<<<<< HEAD
-// Initialize Firebase Admin usando el archivo JSON directamente
-// Configuración para Fritos Hermanos
-const serviceAccount = {
-  "type": "service_account",
-  "project_id": "fritos-hermanos",
-  "private_key_id": "tu_private_key_id",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nTU_PRIVATE_KEY_AQUI\n-----END PRIVATE KEY-----",
-  "client_email": "firebase-adminsdk-xxx@fritos-hermanos.iam.gserviceaccount.com",
-  "client_id": "127178815661",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xxx%40fritos-hermanos.iam.gserviceaccount.com"
-};
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-
-app.get("/", (req, res) => {
-  res.send("Backend is running!");
-});``
-
-// Función helper para enviar notificaciones
-=======
-
 try {
   console.log('Iniciando configuración de Firebase...');
   console.log('Project ID:', process.env.FIREBASE_PROJECT_ID);
@@ -86,7 +59,9 @@ app.get("/check-env", (req, res) => {
       key: !!process.env.SUPABASE_KEY
     },
     firebase: {
-      credentials: !!process.env.FIREBASE_ADMIN_CREDENTIALS
+      project_id: !!process.env.FIREBASE_PROJECT_ID,
+      client_email: !!process.env.FIREBASE_CLIENT_EMAIL,
+      private_key: !!process.env.FIREBASE_PRIVATE_KEY
     },
     sendgrid: {
       api_key: !!process.env.SENDGRID_API_KEY,
@@ -100,12 +75,9 @@ app.get("/check-env", (req, res) => {
   res.json(envStatus);
 });
 
-
 const emailRoutes = require('./routes/email.routes');
-app.use('/api/email', emailRoutes);``
+app.use('/api/email', emailRoutes);
 
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 async function sendNotificationToRole(role, title, body) {
   try {
     const { data: users, error } = await supabase
@@ -117,7 +89,7 @@ async function sendNotificationToRole(role, title, body) {
       throw new Error(`Error fetching ${role}: ${error.message}`);
     }
 
-    if (!users || users.length === 0) {3
+    if (!users || users.length === 0) {
       console.log(`No ${role} found to notify.`);
       return { success: true, message: `No ${role} to notify.` };
     }
@@ -144,11 +116,6 @@ async function sendNotificationToRole(role, title, body) {
   }
 }
 
-<<<<<<< HEAD
-// Notificar maitre nuevo cliente
-=======
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 app.post("/notify-maitre-new-client", async (req, res) => {
   const { clienteNombre, clienteApellido } = req.body;
   
@@ -163,47 +130,16 @@ app.post("/notify-maitre-new-client", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-// Notificar cliente mesa asignada
-=======
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 app.post("/notify-client-table-assigned", async (req, res) => {
   const { clienteEmail, mesaNumero, clienteNombre, clienteApellido } = req.body;
   
   try {
-<<<<<<< HEAD
-=======
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
     const { data: cliente, error } = await supabase
       .from("clientes")
       .select("fcm_token")
       .eq("correo", clienteEmail)
       .single();
 
-<<<<<<< HEAD
-    if (error || !cliente?.fcm_token) {
-      return res.status(200).send({ message: "Cliente no encontrado o sin token FCM" });
-    }
-
-    const message = {
-      notification: {
-        title: "Mesa asignada",
-        body: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`
-      },
-      token: cliente.fcm_token,
-    };
-
-    const response = await admin.messaging().send(message);
-    res.status(200).send({ message: "Notification sent successfully.", response });
-  } catch (error) {
-    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
-  }
-});
-
-// Notificar mozos consulta cliente
-=======
     if (cliente?.fcm_token) {
       const message = {
         notification: {
@@ -216,7 +152,6 @@ app.post("/notify-client-table-assigned", async (req, res) => {
       await admin.messaging().send(message);
     }
 
- 
     const { sendEmail } = require('./services/email.service');
     const emailResult = await sendEmail({
       to: clienteEmail,
@@ -251,8 +186,6 @@ app.post("/notify-client-table-assigned", async (req, res) => {
   }
 });
 
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 app.post("/notify-mozos-client-query", async (req, res) => {
   const { clienteNombre, clienteApellido, mesaNumero, consulta } = req.body;
   
@@ -267,11 +200,6 @@ app.post("/notify-mozos-client-query", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-// Notificar bartender nuevo pedido
-=======
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 app.post("/notify-bartender-new-order", async (req, res) => {
   const { mesaNumero, bebidas } = req.body;
   
@@ -307,11 +235,6 @@ app.post("/notify-bartender-new-order", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-// Notificar cocinero nuevo pedido
-=======
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 app.post("/notify-cocinero-new-order", async (req, res) => {
   const { mesaNumero, comidas, postres } = req.body;
   
@@ -348,11 +271,6 @@ app.post("/notify-cocinero-new-order", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-// Notificar mozo pedido listo
-=======
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 app.post("/notify-mozo-order-ready", async (req, res) => {
   const { mesaNumero, tipoProducto, productos, pedidoId } = req.body;
   
@@ -388,11 +306,6 @@ app.post("/notify-mozo-order-ready", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-// Notificar mozo solicitud cuenta
-=======
-
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 app.post("/notify-mozo-request-bill", async (req, res) => {
   const { mesaNumero, clienteNombre, clienteApellido } = req.body;
   
@@ -428,7 +341,6 @@ app.post("/notify-mozo-request-bill", async (req, res) => {
   }
 });
 
-// Notificar supervisores nuevo cliente
 app.post("/notify-supervisors-new-client", async (req, res) => {
   const { clienteNombre, clienteApellido } = req.body;
   
@@ -443,7 +355,6 @@ app.post("/notify-supervisors-new-client", async (req, res) => {
   }
 });
 
-// Borrar FCM token
 app.post("/clear-fcm-token", async (req, res) => {
   const { email } = req.body;
   
@@ -466,4 +377,4 @@ app.post("/clear-fcm-token", async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
-}); 
+});

@@ -17,25 +17,12 @@ exports.api = functions.https.onRequest((request, response) => {
       supabase = createClient(supabaseUrl, supabaseKey);
 
       try {
-        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-        if (serviceAccountPath) {
-          serviceAccount = require(serviceAccountPath);
-        } else {
-          serviceAccount = {
-            type: functions.config().service_account.type,
-            project_id: functions.config().service_account.project_id,
-            private_key_id: functions.config().service_account.private_key_id,
-            private_key: functions.config().service_account.private_key.replace(/\\n/g, '\n'),
-            client_email: functions.config().service_account.client_email,
-            client_id: functions.config().service_account.client_id,
-            auth_uri: functions.config().service_account.auth_uri,
-            token_uri: functions.config().service_account.token_uri,
-            auth_provider_x509_cert_url: functions.config().service_account.auth_provider_x509_cert_url,
-            client_x509_cert_url: functions.config().service_account.client_x509_cert_url
-          };
-        }
         admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
+          credential: admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID || functions.config().service_account.project_id,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL || functions.config().service_account.client_email,
+            privateKey: (process.env.FIREBASE_PRIVATE_KEY || functions.config().service_account.private_key).replace(/\\n/g, '\n'),
+          }),
         });
       } catch (e) {
         console.error("Error initializing Firebase Admin SDK:", e);
@@ -130,8 +117,6 @@ exports.api = functions.https.onRequest((request, response) => {
       }
     });
 
-<<<<<<< HEAD
-=======
     app.post("/notify-client-table-assigned", async (req, res) => {
       const { clienteNombre, clienteApellido, mesaNumero, fcmToken } = req.body;
 
@@ -156,7 +141,6 @@ exports.api = functions.https.onRequest((request, response) => {
       }
     });
 
->>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
     app.post("/enviar-correo-rechazo", async (req, res) => {
       const { correo, nombre, apellido } = req.body;
 
