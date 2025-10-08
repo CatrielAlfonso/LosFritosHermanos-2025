@@ -71,4 +71,5 @@ Thumbs.db
 
 # Firebase credentials
 *firebase-adminsdk*.json
+backend/config/firebase-config.json
 .env
