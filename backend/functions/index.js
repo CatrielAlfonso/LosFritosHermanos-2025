@@ -130,6 +130,33 @@ exports.api = functions.https.onRequest((request, response) => {
       }
     });
 
+<<<<<<< HEAD
+=======
+    app.post("/notify-client-table-assigned", async (req, res) => {
+      const { clienteNombre, clienteApellido, mesaNumero, fcmToken } = req.body;
+
+      if (!clienteNombre || !mesaNumero || !fcmToken) {
+        return res.status(400).send({ error: "Nombre del cliente, número de mesa y token FCM son requeridos." });
+      }
+
+      try {
+        const message = {
+          notification: {
+            title: 'Mesa Asignada',
+            body: `${clienteNombre} ${clienteApellido || ''}, se te ha asignado la mesa ${mesaNumero}. Por favor, escanea el código QR de la mesa para confirmar tu ubicación.`
+          },
+          token: fcmToken
+        };
+
+        await admin.messaging().send(message);
+        res.status(200).send({ success: true });
+      } catch (error) {
+        console.error('Error al enviar notificación:', error);
+        res.status(500).send({ error: error.message });
+      }
+    });
+
+>>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
     app.post("/enviar-correo-rechazo", async (req, res) => {
       const { correo, nombre, apellido } = req.body;
 

@@ -1,0 +1,105 @@
+<ion-content>
+  <div class="container">
+    <h2>Lista de Espera</h2>
+
+    <!-- Loading spinner -->
+    <div *ngIf="cargando" class="loading-container">
+      <ion-spinner></ion-spinner>
+      <p>Cargando...</p>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="mensajeError" class="error-message">
+      {{ mensajeError }}
+    </div>
+
+    <!-- Lista de espera -->
+    <div *ngIf="!cargando && listaEspera.length > 0" class="table-container">
+      <div class="table-header">
+        <div class="table-cell">Nombre</div>
+        <div class="table-cell">Apellido</div>
+        <div class="table-cell">Ingreso</div>
+        <div class="table-cell">Mesa</div>
+      </div>
+      <div class="table-body">
+        <div
+          *ngFor="let cliente of listaEspera"
+          class="table-row"
+          [class.assigned]="cliente.mesa_asignada"
+        >
+          <div class="table-cell nombre">{{ cliente.nombre }}</div>
+          <div class="table-cell apellido">{{ cliente.apellido ? cliente.apellido : '-' }}</div>
+          <div class="table-cell fecha">{{ formatearFecha(cliente.fecha_ingreso) }}</div>
+          <div class="table-cell mesa">{{ cliente.mesa_asignada && cliente.mesa_asignada !== '' ? cliente.mesa_asignada : '-' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!cargando && listaEspera.length === 0" class="empty-state">
+      <p>No hay clientes en lista de espera</p>
+    </div>
+
+    <!-- QR Scanner error -->
+    <div *ngIf="mensajeErrorQR" class="qr-error-message">{{ mensajeErrorQR }}</div>
+
+    <!-- Mesas disponibles -->
+    <div class="mesas-section">
+      <h3>Mesas Disponibles</h3>
+      <div class="mesas-grid">
+        <ion-card *ngFor="let mesa of mesasDisponibles" class="mesa-card">
+          <ion-card-header>
+            <ion-card-title>Mesa {{ mesa.numero }}</ion-card-title>
+            <ion-card-subtitle>{{ mesa.tipo | titlecase }} - {{ mesa.comensales }} personas</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <div *ngIf="mesa.imagen" class="mesa-imagen">
+              <img [src]="mesa.imagen" alt="Imagen Mesa" />
+            </div>
+            <ion-button expand="block" (click)="asignarClienteAMesa(mesa)">
+              Asignar Cliente
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
+    <!-- Modal de selección de cliente -->
+    <ion-modal [isOpen]="modalClientesVisible" (didDismiss)="cerrarModalClientes()">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Asignar cliente a Mesa {{ mesaSeleccionada?.numero }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="cerrarModalClientes()">Cerrar</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content>
+          <div class="clientes-list">
+            <ion-list>
+              <ion-item *ngFor="let cliente of clientesParaAsignar">
+                <ion-label>
+                  <h2>{{ cliente.nombre }} {{ cliente.apellido }}</h2>
+                  <p>Ingreso: {{ formatearFecha(cliente.fecha_ingreso) }}</p>
+                </ion-label>
+                <ion-button slot="end" (click)="confirmarAsignacion(cliente)">
+                  Asignar
+                </ion-button>
+              </ion-item>
+            </ion-list>
+          </div>
+
+          <div *ngIf="clientesParaAsignar.length === 0" class="empty-state">
+            <p>No hay clientes disponibles para asignar</p>
+          </div>
+
+          <div *ngIf="mensajeErrorAsignacion" class="error-message">
+            {{ mensajeErrorAsignacion }}
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+  </div>
+</ion-content>

@@ -61,7 +61,7 @@
 
     </div>
 
-    <div *ngIf="tipoUsuario === 'maitre'" class="maitre-options">
+    <div *ngIf="esMaitre && !esAdmin" class="maitre-options">
       <h3 class="fritos-subtitle">Panel de Maître</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro')">

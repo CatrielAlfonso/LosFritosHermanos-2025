@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+<<<<<<< HEAD
     "dev": "nodemon index.js"
   },
   "dependencies": {
@@ -12,12 +13,29 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "@supabase/supabase-js": "^2.50.0",
+=======
+    "dev": "nodemon index.js",
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "@supabase/supabase-js": "^2.50.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+>>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
     "firebase-admin": "^12.6.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
   "engines": {
+<<<<<<< HEAD
     "node": "20.x"
   }
 } 
+=======
+    "node": ">=18.x"
+  }
+}
+>>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92

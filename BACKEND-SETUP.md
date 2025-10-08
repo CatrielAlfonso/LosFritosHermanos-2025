@@ -32,6 +32,28 @@ Puedes desplegar el backend en:
 ## 🔧 Configuración (YA LISTA):
 
 ### 1. Variables de entorno
+<<<<<<< HEAD
+=======
+
+#### SendGrid (Nuevo)
+⚠️ **Configuración necesaria para emails**:
+1. Verificar tu email personal en SendGrid:
+   - Ir a SendGrid → Settings → Sender Authentication
+   - Elegir "Verify a Single Sender"
+   - Usar tu email personal (Gmail/Outlook)
+   - Seguir los pasos de verificación
+
+2. Crear archivo `.env` en la carpeta backend con:
+```
+# SendGrid Configuration
+SENDGRID_API_KEY=tu_api_key_de_sendgrid
+SENDGRID_FROM_EMAIL=tu_email_personal@gmail.com  # El email que verificaste
+```
+
+Los emails se enviarán desde tu email personal con el nombre "Los Fritos Hermanos"
+
+#### Existentes
+>>>>>>> e3fee9318b61bfd4da2dc7a6cee374f45569cd92
 ✅ **Ya configuradas directamente en el código**:
 - Supabase URL y Key configuradas
 - Puerto 3000 por defecto
