@@ -31,7 +31,7 @@ try {
       serviceAccount = require('./config/firebase-config.json');
     } else if (process.env.FIREBASE_CONFIG_JSON) {
       console.log('Usando variable de entorno FIREBASE_CONFIG_JSON');
-      serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG_JSON);
+      serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG_JSON.replace(/\\n/g, '\n'));
     } else {
       throw new Error('No se encontró configuración de Firebase');
     }
