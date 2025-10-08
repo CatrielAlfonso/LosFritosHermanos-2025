@@ -8,11 +8,21 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: FIREBASE_ADMIN_CREDENTIALS
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: SENDGRID_FROM_EMAIL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
         sync: false
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_KEY
         sync: false
+      - key: PORT
+        value: 8080
     healthCheckPath: /
     autoDeploy: true

@@ -16,29 +16,18 @@ const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 
-let serviceAccount;
 try {
   console.log('Iniciando configuración de Firebase...');
-  if (process.env.FIREBASE_ADMIN_CREDENTIALS) {
-    console.log('Usando credenciales desde variable de entorno');
-    try {
-      serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
-      console.log('JSON parseado correctamente');
-      console.log('Project ID:', serviceAccount.project_id);
-      console.log('Client Email:', serviceAccount.client_email);
-    } catch (parseError) {
-      console.error('Error parseando JSON de Firebase:', parseError);
-      console.log('Primeros 100 caracteres de FIREBASE_ADMIN_CREDENTIALS:', process.env.FIREBASE_ADMIN_CREDENTIALS.substring(0, 100));
-    }
-  } else {
-    console.log('Usando archivo local de credenciales');
-    const serviceAccountPath = require('path').join(__dirname, 'fritos-hermanos-firebase-adminsdk-fbsvc-d13be52569.json');
-    serviceAccount = require(serviceAccountPath);
-  }
+  console.log('Project ID:', process.env.FIREBASE_PROJECT_ID);
+  console.log('Client Email:', process.env.FIREBASE_CLIENT_EMAIL);
 
   console.log('Intentando inicializar Firebase Admin...');
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY,
+    }),
   });
   console.log('Firebase Admin inicializado correctamente');
 } catch (error) {
