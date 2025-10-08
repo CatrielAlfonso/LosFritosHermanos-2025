@@ -21,15 +21,16 @@ try {
   console.log('Client Email:', process.env.FIREBASE_CLIENT_EMAIL);
 
   // Asegurarse de que la clave privada tenga los saltos de línea correctos
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
-  console.log('Private Key (primeros 50 caracteres):', privateKey.substring(0, 50));
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY.includes('\\n') 
+    ? process.env.FIREBASE_PRIVATE_KEY 
+    : process.env.FIREBASE_PRIVATE_KEY.replace(/([^-])(----)/g, '$1\\n$2').replace(/([^-]$)/g, '$1\\n');
 
   console.log('Intentando inicializar Firebase Admin...');
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: privateKey,
+      privateKey: privateKey.replace(/\\n/g, '\n'),
     }),
   });
   console.log('Firebase Admin inicializado correctamente');
