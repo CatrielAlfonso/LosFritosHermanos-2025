@@ -3,7 +3,10 @@ services:
     name: los-fritos-hermanos-backend
     env: node
     rootDir: backend
-    buildCommand: mkdir -p config && npm install
+    buildCommand: |
+      mkdir -p config
+      echo "$FIREBASE_CONFIG_JSON" > config/firebase-config.json
+      npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -12,11 +15,7 @@ services:
         sync: false
       - key: SENDGRID_FROM_EMAIL
         sync: false
-      - key: FIREBASE_PROJECT_ID
-        sync: false
-      - key: FIREBASE_CLIENT_EMAIL
-        sync: false
-      - key: FIREBASE_PRIVATE_KEY
+      - key: FIREBASE_CONFIG_JSON
         sync: false
       - key: SUPABASE_URL
         sync: false
