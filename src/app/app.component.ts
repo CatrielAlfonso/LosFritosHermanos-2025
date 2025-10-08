@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { AudioService } from './servicios/audio.service';
 
 @Component({
   selector: 'app-root',
@@ -10,10 +11,11 @@ import { StatusBar, Style } from '@capacitor/status-bar';
   standalone: false,
 })
 export class AppComponent implements OnInit {
-  constructor(private platform: Platform) {}
+  constructor(private platform: Platform, private audio:AudioService) {}
 
   async ngOnInit() {
     // Asegurarse de que la plataforma esté lista
+    await this.audio.preload();
     if (this.platform.is('capacitor')) {
       await this.initializeApp();
     }

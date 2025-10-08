@@ -12,13 +12,12 @@ import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
-import { AppRoutingModule } from "src/app/app-routing.module";
 
 @Component({
   selector: 'app-anonimo',
   templateUrl: './anonimo.component.html',
   styleUrls: ['./anonimo.component.scss'],
-  imports: [IonContent, ReactiveFormsModule, IonItem, IonLabel, IonContent, IonIcon, IonButton, IonInput, CommonModule, AppRoutingModule]
+  imports: [IonContent, ReactiveFormsModule, IonItem, IonLabel, IonContent, IonIcon, IonButton, IonInput, CommonModule]
 })
 export class AnonimoComponent  {
 

@@ -1,0 +1,67 @@
+<!-- <ion-content [fullscreen]="true" class="juego-container">
+  
+  <div class="game-area" (click)="onAction($event)">
+
+    <div class="game-overlay" *ngIf="!juegoActivo">
+      <h1 class="fritos-logo">¡El Atrapa-Pollo!</h1>
+      <p class="fritos-subtitle">Haz clic o presiona ESPACIO para saltar y llegar a la meta.</p>
+      <ion-button color="fritos-red" (click)="iniciarJuego()">
+        Comenzar (Primer Intento)
+      </ion-button>
+    </div>
+
+    <div class="pollo" [style.transform]="polloStyle">
+      <ion-icon name="happy-outline" class="pollo-icon"></ion-icon>
+    </div>
+
+    <div 
+      class="meta" 
+      [style.left]="(metaDistancia - distanciaRecorrida) * 0.1 + 'px'"
+      [style.width]="metaAncho + 'px'"
+    >
+      <ion-icon name="cube-outline" class="meta-icon"></ion-icon>
+    </div>
+
+    <div class="score-display">
+      Distancia: {{ distanciaRecorrida }} / {{ metaDistancia }}
+    </div>
+
+    </div>
+
+</ion-content> -->
+
+<ion-content [fullscreen]="true" class="juego-container">
+  
+  <div class="game-area" (click)="onAction($event)">
+    
+    <div class="game-overlay" *ngIf="!juegoActivo">
+      </div>
+
+    <div class="pollo" [style.transform]="polloStyle">
+      <img src="../../../assets/imgs/crispy2.png" alt="Crispy el Pollo" class="crispy-img">
+    </div>
+
+    @for (obs of obstaculos; track obs.id) {
+      <div class="obstaculo-columna" [style.left]="obs.x + 'px'">
+        
+        <div 
+          class="obstaculo-parte" 
+          [style.height]="(obs.huecoY - obs.huecoAltura/2) + 'vh'"
+          [style.top]="'0'"
+        ></div>
+        
+        <div 
+          class="obstaculo-parte" 
+          [style.height]="(100 - (obs.huecoY + obs.huecoAltura/2)) + 'vh'"
+          [style.bottom]="'0'"
+        ></div>
+      </div>
+    }
+
+    <div class="score-display">
+      Distancia Recorrida: {{ distanciaRecorrida | number:'1.0-0' }}
+    </div>
+
+  </div>
+
+</ion-content>

@@ -17,24 +17,6 @@ const routes: Routes = [
     loadChildren: () => import('./pages/screen-splash/screen-splash.module').then( m => m.ScreenSplashPageModule)
   },
   {
-    path: 'lista-espera',
-    loadComponent: () => import('./components/lista-espera/lista-espera.component').then(m => m.ListaEsperaComponent)
-  },
-  
-  {
-    path: '',
-    redirectTo: 'screen',
-    pathMatch: 'full'
-  },
-  {
-    path: 'screen',
-    loadChildren: () => import('./pages/screen/screen.module').then( m => m.ScreenPageModule)
-  },
-  {
-    path: 'screen-splash',
-    loadChildren: () => import('./pages/screen-splash/screen-splash.module').then( m => m.ScreenSplashPageModule)
-  },
-  {
     path: 'login',
     loadComponent: () => import('./componentes/login/login.page').then(m => m.LoginPage)
   },
@@ -130,6 +112,11 @@ const routes: Routes = [
     path: 'lista-espera',
     loadComponent: () => import('./componentes/lista-espera/lista-espera.component').then(m => m.ListaEsperaComponent)
   },
+  {
+    path: 'atrapa-el-pollo',
+    loadComponent: () => import('./games/atrapa-el-pollo/atrapa-el-pollo.component').then(m => m.AtrapaElPolloComponent)
+  }
+
   
  
 ];

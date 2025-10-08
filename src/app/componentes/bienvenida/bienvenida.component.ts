@@ -17,7 +17,7 @@ export class BienvenidaComponent  implements OnInit {
 
   irAnonimo()
   {
-    this.router.navigate(['/anonimo']);
+    this.router.navigate(['/anonimo'])
   }
 
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonContent } from "@ionic/angular/standalone";
+import { AudioService } from '../../servicios/audio.service';
 
 @Component({
   selector: 'app-screen',
@@ -10,9 +11,11 @@ import { IonContent } from "@ionic/angular/standalone";
 })
 export class ScreenPage implements OnInit {
 
-    constructor(private router: Router) {}
+    constructor(private router: Router, private audio:AudioService) {}
 
-  ngOnInit() {
+  async ngOnInit() {
+    await this.audio.preload();
+    this.audio.playInicio();
     setTimeout(() => {
       this.router.navigateByUrl('/bienvenida');
     }, 3800);

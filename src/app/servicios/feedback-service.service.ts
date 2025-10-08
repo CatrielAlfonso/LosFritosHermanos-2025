@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ToastController, LoadingController } from '@ionic/angular';
-
+import { Haptics, ImpactStyle } from '@capacitor/haptics'; 
 
 @Injectable({
   providedIn: 'root'
@@ -42,6 +42,12 @@ export class FeedbackService {
       cssClass: 'custom-toast'
     });
 
+    if (tipo === 'error') {
+      await this.vibrarFuerte(); 
+    } else if (tipo === 'exito') {
+      await this.vibrarSuave();
+    }
+
     await toast.present();
   }
 
@@ -77,6 +83,34 @@ export class FeedbackService {
 
   hide() {
     this.loadingCtrl.dismiss();
+  }
+
+  async vibrarFuerte() {
+    try {
+      await Haptics.impact({ style: ImpactStyle.Heavy }); // Vibración fuerte 💥
+    } catch (err) {
+      console.warn('No se pudo vibrar (no es un dispositivo móvil)');
+    }
+  }
+
+  async vibrarSuave() {
+    try {
+      await Haptics.impact({ style: ImpactStyle.Light }); // Vibración leve ✨
+    } catch (err) {
+      console.warn('No se pudo vibrar (no es un dispositivo móvil)');
+    }
+  }
+
+  async mostrarLoaderPolloFrito() 
+  {
+    const loading = await this.loadingCtrl.create({
+      spinner: null,
+      message: `<img src="/assets/imgs/loader.gif" alt="Cargando..." class="custom-loader">`,
+      cssClass: 'gif-loader',
+      backdropDismiss: false
+    });
+    await loading.present();
+    return loading;
   }
 
 
