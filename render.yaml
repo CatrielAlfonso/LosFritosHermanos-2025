@@ -3,7 +3,7 @@ services:
     name: los-fritos-hermanos-backend
     env: node
     rootDir: backend
-    buildCommand: npm install
+    buildCommand: mkdir -p config && npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
