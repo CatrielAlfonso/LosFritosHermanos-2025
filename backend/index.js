@@ -45,7 +45,7 @@ try {
   console.log('Service account:', serviceAccount);
   console.log('Intentando inicializar Firebase Admin...');
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert(JSON.parse(serviceAccount)),
   });
   console.log('Firebase Admin inicializado correctamente');
 } catch (error) {
