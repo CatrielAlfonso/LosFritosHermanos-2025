@@ -21,7 +21,7 @@ try {
   
   let serviceAccount;
   
-  // Intentar cargar desde archivo de configuración
+
   try {
     const fs = require('fs');
     const configPath = path.join(__dirname, 'config', 'firebase-config.json');
@@ -29,20 +29,13 @@ try {
     if (fs.existsSync(configPath)) {
       console.log('Usando archivo de configuración local');
       serviceAccount = require('./config/firebase-config.json');
-    } else if (process.env.FIREBASE_CONFIG_JSON) {
-      console.log('Usando variable de entorno FIREBASE_CONFIG_JSON');
-      serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG_JSON.replace(/\\n/g, '\n'));
-    } else {
-      throw new Error('No se encontró configuración de Firebase');
-    }
+    } 
   } catch (parseError) {
     console.error('Error al cargar configuración:', parseError);
     throw parseError;
   }
   
-  console.log('Project ID:', serviceAccount.project_id);
-  console.log('Client Email:', serviceAccount.client_email);
-  console.log('Service account:', serviceAccount);
+
   console.log('Intentando inicializar Firebase Admin...');
   admin.initializeApp({
     credential: applicationDefault(),
