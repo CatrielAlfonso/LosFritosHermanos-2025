@@ -38,7 +38,11 @@ try {
 
   console.log('Intentando inicializar Firebase Admin...');
   admin.initializeApp({
-    credential: applicationDefault(),
+    credential: admin.credential.cert({
+      projectId: 'fritos-hermanos',
+      clientEmail: 'firebase-adminsdk-fbsvc@fritos-hermanos.iam.gserviceaccount.com',
+      privateKey: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC2tXhJXd8cgPxM\nC3u3f3awfy8Ep8IKO2vPVl/+SqXU+YQU+4i2BoWvEDQC4VrIJP5ykKDBb3oVdfUd\ncmJZWYEbWX7p3lRPXhDWlNOD2KKHXDb8x+fmozSbU0MtJbEyjgrwtBZZ7ISh22Q4\nYjpgaAzYpzhXIz4gue/59dA50FnU96Fux0nIflmAF+HuklmPjB7NGxhPY2BDnWuR\nhGmmdn86gmcAww6tB6mlesoe9LdV58EQ6EwxWMK8805ZSS5JTIjnGSWBt4w9Ijak\ntmPS1I6ugkt+55LO2QsuzGMpHS5qyut7PCC2tnDHyo2+Wt/V6aOuBdWAVTpi8RMG\nr7IYYxRTAgMBAAECggEAPvRRUYpIRaSGClfMlaIUTeVM2KBLIkZuM99RrSegcz1U\nTvyKkxm1N2hwW2u14Y+pouUFlxEnsjxWLILMs3e9HiTcr42dZEmHqMBYDy52dgiG\no9vnolcq2bg7RdOedkpuJ5kNuIdf/fs/0ZO7BJvljUM1DQVGM3WN5AVYbYtGYLQr\nULusrn+Mpkys7kUrypfku9sm8KVY8JuS/nheq4Xhw/41whldU5YeDYoqEfXk2uDC\n8UnaeNzlY5x5tZAQFfwS7W3Wcn01jZDbSXPpQcHxaR5KcylrWpEStm8U5w1bX2tx\ne7GL5QnaWk1hyQ7mbJYFLzu5QhYlpleDrUVoJg5Y5QKBgQDjTJom4aSUU2UGJBog\nmXYIhEJf66M9gFHUPPXPZj4GqgO1Wn2dvQmAvL1/mTnDJgMQbnALNATN3RNIT3aI\nli/CjnwUgAmPg0h/9TWrcptiKMffRhiKlwffWIUFJ7n5juhPazzgnMscEyX4Nc1r\npJhVzTDNw4ReUK9pp1Txhnj/xQKBgQDNx356bMY5Wt6SADdASCOqK03r6WD4Ach4\nNHERncgqi+0tv75TTFYuoHFW7F+QpcyrZYJFxuEUKewgqBMZuBN5WN8MKX4OG5Lt\nyL3kCBnNpoAYNjPn79jGZtXmX4wdqS8PUkEQj01tvyY9ub8BwRz0MM1oCKR9oYW4\nqwsJ/hytNwKBgH3aSTQkFdtmvXYEAU9xiRA4IwQ3VYBVD3njcvsuEkPgWQNOImV3\naM6WMpp2/auW3XV4oKMjX1GZCfcswGXqOnGQMRWsux5yQ29OFzRh1bUo/Vob1rTN\n4TcCLUzobSnHvctThjabuj5GP+zJ5X6neQ1w+ofDrQQHyshGNVsx6Mc9AoGAYiWW\nY5nh6ZU3tvc3YweFSzKgVbbYMzHWhc6tZzOUNwbKNxnPEzfDmzWXGVhgNEOAHPer\nbNBwpgdgwiqoAYpUb3o92DUqFFx+db9bIpnihL23NtUTaLpy8B44Q0qrL7Jz6aDX\nu6g9y+xxttsTCSksQCPOtKH6opkZiHy8JSX4U30CgYEAvZOGGKB1/hqZoSpUJzus\n9hdSaX95mkBUjBUu1lb46w6SuZcKlulq3aLUzDjeBoSf0n1IpRkXSkobxdC1xnDH\nJs+VElmzUSj0BNwJcd6sPyba9i+q55n14j3q7GECd7anCw+JM93fRn45uPwH+ChE\nrINin1iK/M2sgckI8nT18iA=\n-----END PRIVATE KEY-----\n'
+  })
   });
   console.log('Firebase Admin inicializado correctamente');
 } catch (error) {
@@ -50,42 +54,7 @@ app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
 
-app.get("/debug-env", (req, res) => {
-  const envStatus = {
-    firebase_credentials_length: process.env.FIREBASE_ADMIN_CREDENTIALS ? process.env.FIREBASE_ADMIN_CREDENTIALS.length : 0,
-    firebase_credentials_start: process.env.FIREBASE_ADMIN_CREDENTIALS ? process.env.FIREBASE_ADMIN_CREDENTIALS.substring(0, 50) + '...' : 'no disponible',
-    supabase: {
-      url: process.env.SUPABASE_URL || 'usando valor por defecto',
-      key_length: process.env.SUPABASE_KEY ? process.env.SUPABASE_KEY.length : 0
-    },
-    node_env: process.env.NODE_ENV || 'no definido',
-    port: process.env.PORT || '3000 (default)'
-  };
-  res.json(envStatus);
-});
 
-app.get("/check-env", (req, res) => {
-  const envStatus = {
-    supabase: {
-      url: !!process.env.SUPABASE_URL,
-      key: !!process.env.SUPABASE_KEY
-    },
-    firebase: {
-      project_id: !!process.env.FIREBASE_PROJECT_ID,
-      client_email: !!process.env.FIREBASE_CLIENT_EMAIL,
-      private_key: !!process.env.FIREBASE_PRIVATE_KEY
-    },
-    sendgrid: {
-      api_key: !!process.env.SENDGRID_API_KEY,
-      from_email: !!process.env.SENDGRID_FROM_EMAIL
-    },
-    server: {
-      node_env: process.env.NODE_ENV,
-      port: process.env.PORT
-    }
-  };
-  res.json(envStatus);
-});
 
 const emailRoutes = require('./routes/email.routes');
 app.use('/api/email', emailRoutes);
