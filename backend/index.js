@@ -31,7 +31,7 @@ try {
       serviceAccount = require('./config/firebase-config.json');
     } else if (process.env.FIREBASE_CONFIG_JSON) {
       console.log('Usando variable de entorno FIREBASE_CONFIG_JSON');
-      serviceAccount = process.env.FIREBASE_CONFIG_JSON.replace(/\\n/g, '\n');
+      serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG_JSON.replace(/\\n/g, '\n'));
     } else {
       throw new Error('No se encontró configuración de Firebase');
     }
@@ -42,7 +42,7 @@ try {
   
   console.log('Project ID:', serviceAccount.project_id);
   console.log('Client Email:', serviceAccount.client_email);
-
+  console.log('Service account:', serviceAccount);
   console.log('Intentando inicializar Firebase Admin...');
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
