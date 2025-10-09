@@ -293,3 +293,96 @@
     font-size: 1.3rem;
   }
 }
+
+
+
+
+/* Estados de preparación */
+.estados-preparacion {
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.estado-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ion-color-fritos-blue);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.estado-item.estado-listo {
+  color: var(--ion-color-success);
+  font-weight: 600;
+}
+
+.estado-item ion-icon {
+  font-size: 1.1rem;
+}
+
+/* Pedido listo para entregar */
+.pedido-listo {
+  border-left: 4px solid var(--ion-color-success);
+}
+
+/* Botón entregar */
+.btn-entregar {
+  background: linear-gradient(135deg, var(--ion-color-success), #00a085);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(var(--ion-color-success-rgb), 0.3);
+}
+
+.btn-entregar:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(var(--ion-color-success-rgb), 0.3);
+}
+
+/* Estado esperando preparación */
+.esperando-preparacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ion-color-fritos-blue);
+  opacity: 0.7;
+  font-style: italic;
+  padding: 14px 20px;
+}
+
+/* Diferentes layouts para acciones */
+.acciones-pendientes {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.acciones-listo {
+  width: 100%;
+}
+
+.acciones-preparacion {
+  width: 100%;
+}
+
+/* Responsive para botones */
+@media (max-width: 480px) {
+  .acciones-pendientes {
+    flex-direction: column;
+  }
+}

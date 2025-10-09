@@ -104,6 +104,14 @@ const routes: Routes = [
     path: 'pedidos',
     loadComponent: () => import('./componentes/pedidos/pedidos.component').then(m => m.PedidosComponent)
   },
+  {
+    path: 'cocina',
+    loadComponent: () => import('./componentes/cocina/cocina.component').then(m => m.CocinaComponent)
+  },
+  {
+    path: 'bar',
+    loadComponent: () => import('./componentes/bar/bar.component').then(m => m.BarComponent)
+  },
   
  
 ];

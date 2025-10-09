@@ -107,8 +107,9 @@ export class SupabaseService {
   async getBebidas(): Promise<any[]> {
     try {
       const { data, error } = await this.supabase
-        .from('bebidas')
+        .from('productos')
         .select('*')
+        .eq('tipo', 'bebida')
         .order('nombre', { ascending: true });
       if (error) {
         throw new Error(`Error al obtener las bebidas: ${error.message}`);
@@ -117,6 +118,24 @@ export class SupabaseService {
       return data || [];
     } catch (error) {
       console.error('Error en getBebidas:', error);
+      throw error;
+    }
+  }
+
+  async getPostres(): Promise<any[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('productos')
+        .select('*')
+        .eq('tipo', 'postre')
+        .order('nombre', { ascending: true });
+      if (error) {
+        throw new Error(`Error al obtener las bebidas: ${error.message}`);
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error en getPostre:', error);
       throw error;
     }
   }
@@ -203,7 +222,6 @@ export class SupabaseService {
 
   async cargarPedidos() {
     const data = await this.getPedidos()
-    console.log('📦 Pedidos cargados:', data);
     if(data) this.todosLosPedidos.set(data)
   }
 

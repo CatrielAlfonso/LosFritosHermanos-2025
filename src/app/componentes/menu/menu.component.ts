@@ -39,7 +39,7 @@ export class MenuComponent  implements OnInit {
   ) { }
 
   ngOnInit() {
-    //this.cargarBebidas()
+    this.cargarBebidas()
     this.cargarPlatos()
   }
 
@@ -54,14 +54,14 @@ export class MenuComponent  implements OnInit {
     }
   }
 
-  // async cargarBebidas(){ no se usa mas porque esta todo en productos
-  //   try {
-  //     this.bebidas = await this.supabaseService.getBebidas()
-  //     console.log('bebidas obtenidas con exito: ', this.bebidas)
-  //   }catch(error){
-  //     console.log('error al traer las bebidas: ', error)
-  //   }
-  // }
+  async cargarBebidas(){ 
+    try {
+      this.bebidas = await this.supabaseService.getBebidas()
+      console.log('bebidas obtenidas con exito: ', this.bebidas)
+    }catch(error){
+      console.log('error al traer las bebidas: ', error)
+    }
+  }
 
 
   agregarAlCarrito(producto: any) {

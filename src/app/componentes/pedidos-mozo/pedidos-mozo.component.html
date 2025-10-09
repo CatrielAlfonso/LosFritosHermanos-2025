@@ -12,6 +12,7 @@
     <p>Los pedidos nuevos aparecerán aquí</p>
   </div>
 
+
   <!-- Lista de pedidos -->
   <div *ngIf="pedidosPendientes().length > 0" class="lista-pedidos">
     <div *ngFor="let pedido of pedidosPendientes()" class="pedido-item">
@@ -21,9 +22,24 @@
           <p class="pedido-hora">{{pedido.fecha_pedido | date:'HH:mm'}}</p>
         </div>
         <div class="pedido-total">
-          <span class="total-pedido">{{pedido.total | currency}}</span>
+          <span class="total-pedido">{{pedido.cuenta | currency}}</span>
         </div>
       </div>
+
+      <!-- Estados de preparación -->
+      <div class="estados-preparacion">
+        <div *ngIf="pedido.comidas.length > 0" class="estado-item" 
+             [class.estado-listo]="pedido.estado_comida === 'listo'">
+          <ion-icon [name]="pedido.estado_comida === 'listo' ? 'checkmark-circle' : 'time'"></ion-icon>
+          <span>Cocina: {{getEstadoTexto(pedido.estado_comida)}}</span>
+        </div>
+        <div *ngIf="pedido.bebidas.length > 0" class="estado-item"
+             [class.estado-listo]="pedido.estado_bebida === 'listo'">
+          <ion-icon [name]="pedido.estado_bebida === 'listo' ? 'checkmark-circle' : 'time'"></ion-icon>
+          <span>Bar: {{getEstadoTexto(pedido.estado_bebida)}}</span>
+        </div>
+      </div>
+
 
       <!-- Observaciones generales -->
       <div *ngIf="pedido.observaciones_generales" class="observaciones-generales">
@@ -120,14 +136,38 @@
 
       <!-- Botones de acción -->
       <div class="pedido-actions">
-        <button class="btn-rechazar" (click)="rechazarPedido(pedido)">
-          <ion-icon name="close-circle-outline"></ion-icon>
-          Rechazar
-        </button>
-        <button class="btn-aceptar">
-          <ion-icon name="checkmark-circle-outline"></ion-icon>
-          Aceptar
-        </button>
+
+        <!-- Para pedidos pendientes -->
+        <div *ngIf="pedido.estado === 'pendiente'" class="acciones-pendientes">
+          <button class="btn-rechazar" (click)="rechazarPedido(pedido)">
+            <ion-icon name="close-circle-outline"></ion-icon>
+            Rechazar
+          </button>
+          <button class="btn-aceptar" (click)="aceptarPedido(pedido)">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            Aceptar
+          </button>
+        </div>
+
+        <!-- Para pedidos listos para entregar -->
+        <div *ngIf="pedido.estado === 'en preparacion' && estaListoParaEntregar(pedido)" 
+             class="acciones-listo">
+          <button class="btn-entregar" (click)="entregarPedido(pedido)">
+            <ion-icon name="checkmark-done-outline"></ion-icon>
+            Entregar Pedido
+          </button>
+        </div>
+
+        <!-- Para pedidos en preparación (aún no listos) -->
+        <div *ngIf="pedido.estado === 'en preparacion' && !estaListoParaEntregar(pedido)" 
+             class="acciones-preparacion">
+          <div class="esperando-preparacion">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>Esperando preparación...</span>
+          </div>
+        </div>
+
+        
       </div>
     </div>
   </div>

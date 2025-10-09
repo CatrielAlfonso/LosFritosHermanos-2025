@@ -14,10 +14,25 @@ import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 export class PedidosMozoComponent  implements OnInit {
 
   //pedidosPendientes = signal<any[]>([]);
-  pedidosPendientes = computed(() => this.sb.pedidosPendientes());
+  //pedidosPendientes = computed(() => this.sb.pedidosPendientes());
+  pedidosPendientes = computed(() => {
+  const todosPedidos = this.sb.todosLosPedidos();
+  
+  return todosPedidos.filter(pedido => 
+    pedido.estado === 'pendiente' || 
+    pedido.estado === 'en preparacion' 
+  );
+});
   categoriasAbiertas = signal<{[key: string]: {[categoria: string]: boolean}}>({});
   pedidos :any = []
-  private subscription: any;
+  pedidosListosParaEntregar = computed(() => {
+  const todosPedidos = this.sb.todosLosPedidos();
+  
+  return todosPedidos.filter(pedido => 
+    pedido.estado === 'en preparacion' && 
+    this.estaListoParaEntregar(pedido)
+  );
+});
 
   constructor(private sb : SupabaseService,
     private toastController: ToastController,
@@ -33,14 +48,25 @@ export class PedidosMozoComponent  implements OnInit {
     
   }
 
-  async aceptarPedido(pedido: Pedido) {
-    // await this.sb.actualizarPedido(pedido.id, {
-    //   estado: 'en preparacion',
-    //   confirmado: true
-    // });
-    
-    // 4. Recargás los pedidos para actualizar la signal
-    //await this.cargarPedidos();
+  async aceptarPedido(pedido: any) {
+    try{
+      await this.sb.actualizarPedido(pedido.id, {
+        estado: 'en preparacion',
+        confirmado: true
+      });
+      
+      
+      await this.sb.cargarPedidos();
+      const toast = await this.toastController.create({
+        message: 'Pedido aceptado con exito',
+        duration: 3000,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+    }catch(error){
+      console.log('error al actualizar el pedido por el mozo: ', error)
+    }
   }
 
   suscribirCambiosEnTiempoReal() {
@@ -143,5 +169,74 @@ export class PedidosMozoComponent  implements OnInit {
       await toast.present();
     }
   }
+
+  estaListoParaEntregar(pedido: any): boolean {
+    const tieneComida = pedido.comidas.length > 0;
+    const tieneBebida = pedido.bebidas.length > 0;
+    
+    // console.log('🔍 Debug estaListoParaEntregar:', {
+    //   mesa: pedido.mesa,
+    //   tieneComida,
+    //   tieneBebida, 
+    //   estado_comida: pedido.estado_comida,
+    //   estado_bebida: pedido.estado_bebida,
+    //   comidas: pedido.comidas,
+    //   bebidas: pedido.bebidas,
+    //   precio: pedido.precio
+    // });
+    
+    if (tieneComida && tieneBebida) {
+      return pedido.estado_comida === 'listo' && pedido.estado_bebida === 'listo';
+    }
+    
+    if (tieneComida) {
+      return pedido.estado_comida === 'listo';
+    }
+    
+    if (tieneBebida) {
+      return pedido.estado_bebida === 'listo';
+    }
+    
+    return false;
+  }
+
+  async entregarPedido(pedido: any) {
+    try {
+      await this.sb.actualizarPedido(pedido.id, {
+        estado: 'entregado'
+      });
+      
+      const toast = await this.toastController.create({
+        message: `Pedido de Mesa ${pedido.mesa} entregado`,
+        duration: 3000,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+      
+    } catch (error) {
+      console.error('Error entregando pedido:', error);
+      
+      const toast = await this.toastController.create({
+        message: 'Error al marcar como entregado',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
+  }
+
+
+  getEstadoTexto(estado: string): string {
+    const estados: {[key: string]: string} = {
+      'pendiente': 'Pendiente',
+      'en preparacion': 'En Preparación', 
+      'listo': 'Listo'
+    };
+    return estados[estado] || estado;
+  }
+
+  
 
 }

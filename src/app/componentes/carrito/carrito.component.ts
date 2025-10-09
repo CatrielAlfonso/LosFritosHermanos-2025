@@ -1,7 +1,7 @@
 import { Component, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController, AlertController } from '@ionic/angular';
+import { IonicModule, ModalController, AlertController, ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { CarritoService, CartItem } from 'src/app/servicios/carrito.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
@@ -27,6 +27,7 @@ export class CarritoComponent {
     private authService: AuthService,
     private router: Router,
     private alertController: AlertController,
+    private toastController : ToastController,
     private supabase : SupabaseService
   ) {}
 
@@ -117,12 +118,13 @@ export class CarritoComponent {
 
       console.log('Pedido realizado con éxito:', data);
 
-      const alert = await this.alertController.create({
-        header: 'Pedido Enviado',
-        message: 'Tu pedido ha sido enviado a la cocina. Esperá la confirmación del mozo.',
-        buttons: ['OK']
+      const toast = await this.toastController.create({
+        message: 'Pedido enviado',
+        duration: 3000,
+        color: 'success',
+        position: 'top'
       });
-      await alert.present();
+      await toast.present();
       this.carritoService.limpiarCarrito();
       this.router.navigate(['/home']);
       
