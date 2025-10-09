@@ -7,7 +7,7 @@ require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-
+const { initializeApp, applicationDefault } = require('firebase-admin/app');
 app.use(cors({ origin: true }));
 app.use(express.json());
 
@@ -45,7 +45,7 @@ try {
   console.log('Service account:', serviceAccount);
   console.log('Intentando inicializar Firebase Admin...');
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: applicationDefault(),
   });
   console.log('Firebase Admin inicializado correctamente');
 } catch (error) {
