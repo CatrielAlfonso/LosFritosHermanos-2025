@@ -105,6 +105,18 @@ const routes: Routes = [
     loadComponent: () => import('./componentes/pedidos/pedidos.component').then(m => m.PedidosComponent)
   },
   {
+    path: 'escaner',
+    loadChildren: () => import('./componentes/escaner/escaner.component').then( m => m.EscanerComponent)
+  },
+   {
+    path: 'lista-espera',
+    loadComponent: () => import('./componentes/lista-espera/lista-espera.component').then(m => m.ListaEsperaComponent)
+  },
+  {
+    path: 'atrapa-el-pollo',
+    loadComponent: () => import('./games/atrapa-el-pollo/atrapa-el-pollo.component').then(m => m.AtrapaElPolloComponent)
+  },
+  {
     path: 'cocina',
     loadComponent: () => import('./componentes/cocina/cocina.component').then(m => m.CocinaComponent)
   },

@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: los-fritos-hermanos-backend
+    env: node
+    rootDir: backend
+    buildCommand: |
+      mkdir -p config
+      echo "$FIREBASE_CONFIG_JSON" > config/firebase-config.json
+      npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: SENDGRID_FROM_EMAIL
+        sync: false
+      - key: FIREBASE_CONFIG_JSON
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: PORT
+        value: 8080
+    healthCheckPath: /
+    autoDeploy: true

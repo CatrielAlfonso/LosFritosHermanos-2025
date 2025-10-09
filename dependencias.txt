@@ -18,3 +18,12 @@ colores:
 #efbf2d
 #dc2234
 #4666de
+
+
+///////////
+
+para vibrar el celu
+npm install @capacitor/haptics
+
+para sonidos
+npm install @capacitor-community/native-audio

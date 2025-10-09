@@ -2,11 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const admin = require("firebase-admin");
+const path = require('path');
 require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-
+const { initializeApp, applicationDefault } = require('firebase-admin/app');
 app.use(cors({ origin: true }));
 app.use(express.json());
 
@@ -15,30 +16,49 @@ const supabaseUrl = process.env.SUPABASE_URL || 'https://jpwlvaprtxszeimmimlq.su
 const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwd2x2YXBydHhzemVpbW1pbWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxODEyMDAsImV4cCI6MjA3Mjc1NzIwMH0.gkhOncDbc192hLHc4KIT3SLRI6aUIlQt13pf2hY1IA8';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Initialize Firebase Admin usando el archivo JSON directamente
-// Configuración para Fritos Hermanos
-const serviceAccount = {
-  "type": "service_account",
-  "project_id": "fritos-hermanos",
-  "private_key_id": "tu_private_key_id",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nTU_PRIVATE_KEY_AQUI\n-----END PRIVATE KEY-----",
-  "client_email": "firebase-adminsdk-xxx@fritos-hermanos.iam.gserviceaccount.com",
-  "client_id": "127178815661",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xxx%40fritos-hermanos.iam.gserviceaccount.com"
-};
+try {
+  console.log('Iniciando configuración de Firebase...');
+  
+  let serviceAccount;
+  
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+  try {
+    const fs = require('fs');
+    const configPath = path.join(__dirname, 'config', 'firebase-config.json');
+    
+    if (fs.existsSync(configPath)) {
+      console.log('Usando archivo de configuración local');
+      serviceAccount = require('./config/firebase-config.json');
+    } 
+  } catch (parseError) {
+    console.error('Error al cargar configuración:', parseError);
+    throw parseError;
+  }
+  
+
+  console.log('Intentando inicializar Firebase Admin...');
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: 'fritos-hermanos',
+      clientEmail: 'firebase-adminsdk-fbsvc@fritos-hermanos.iam.gserviceaccount.com',
+      privateKey: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC2tXhJXd8cgPxM\nC3u3f3awfy8Ep8IKO2vPVl/+SqXU+YQU+4i2BoWvEDQC4VrIJP5ykKDBb3oVdfUd\ncmJZWYEbWX7p3lRPXhDWlNOD2KKHXDb8x+fmozSbU0MtJbEyjgrwtBZZ7ISh22Q4\nYjpgaAzYpzhXIz4gue/59dA50FnU96Fux0nIflmAF+HuklmPjB7NGxhPY2BDnWuR\nhGmmdn86gmcAww6tB6mlesoe9LdV58EQ6EwxWMK8805ZSS5JTIjnGSWBt4w9Ijak\ntmPS1I6ugkt+55LO2QsuzGMpHS5qyut7PCC2tnDHyo2+Wt/V6aOuBdWAVTpi8RMG\nr7IYYxRTAgMBAAECggEAPvRRUYpIRaSGClfMlaIUTeVM2KBLIkZuM99RrSegcz1U\nTvyKkxm1N2hwW2u14Y+pouUFlxEnsjxWLILMs3e9HiTcr42dZEmHqMBYDy52dgiG\no9vnolcq2bg7RdOedkpuJ5kNuIdf/fs/0ZO7BJvljUM1DQVGM3WN5AVYbYtGYLQr\nULusrn+Mpkys7kUrypfku9sm8KVY8JuS/nheq4Xhw/41whldU5YeDYoqEfXk2uDC\n8UnaeNzlY5x5tZAQFfwS7W3Wcn01jZDbSXPpQcHxaR5KcylrWpEStm8U5w1bX2tx\ne7GL5QnaWk1hyQ7mbJYFLzu5QhYlpleDrUVoJg5Y5QKBgQDjTJom4aSUU2UGJBog\nmXYIhEJf66M9gFHUPPXPZj4GqgO1Wn2dvQmAvL1/mTnDJgMQbnALNATN3RNIT3aI\nli/CjnwUgAmPg0h/9TWrcptiKMffRhiKlwffWIUFJ7n5juhPazzgnMscEyX4Nc1r\npJhVzTDNw4ReUK9pp1Txhnj/xQKBgQDNx356bMY5Wt6SADdASCOqK03r6WD4Ach4\nNHERncgqi+0tv75TTFYuoHFW7F+QpcyrZYJFxuEUKewgqBMZuBN5WN8MKX4OG5Lt\nyL3kCBnNpoAYNjPn79jGZtXmX4wdqS8PUkEQj01tvyY9ub8BwRz0MM1oCKR9oYW4\nqwsJ/hytNwKBgH3aSTQkFdtmvXYEAU9xiRA4IwQ3VYBVD3njcvsuEkPgWQNOImV3\naM6WMpp2/auW3XV4oKMjX1GZCfcswGXqOnGQMRWsux5yQ29OFzRh1bUo/Vob1rTN\n4TcCLUzobSnHvctThjabuj5GP+zJ5X6neQ1w+ofDrQQHyshGNVsx6Mc9AoGAYiWW\nY5nh6ZU3tvc3YweFSzKgVbbYMzHWhc6tZzOUNwbKNxnPEzfDmzWXGVhgNEOAHPer\nbNBwpgdgwiqoAYpUb3o92DUqFFx+db9bIpnihL23NtUTaLpy8B44Q0qrL7Jz6aDX\nu6g9y+xxttsTCSksQCPOtKH6opkZiHy8JSX4U30CgYEAvZOGGKB1/hqZoSpUJzus\n9hdSaX95mkBUjBUu1lb46w6SuZcKlulq3aLUzDjeBoSf0n1IpRkXSkobxdC1xnDH\nJs+VElmzUSj0BNwJcd6sPyba9i+q55n14j3q7GECd7anCw+JM93fRn45uPwH+ChE\nrINin1iK/M2sgckI8nT18iA=\n-----END PRIVATE KEY-----\n'
+  })
+  });
+  console.log('Firebase Admin inicializado correctamente');
+} catch (error) {
+  console.error('Error completo inicializando Firebase Admin:', error);
+  console.error('Stack trace:', error.stack);
+}
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");
-});``
+});
 
-// Función helper para enviar notificaciones
+
+
+const emailRoutes = require('./routes/email.routes');
+app.use('/api/email', emailRoutes);
+
 async function sendNotificationToRole(role, title, body) {
   try {
     const { data: users, error } = await supabase
@@ -50,7 +70,7 @@ async function sendNotificationToRole(role, title, body) {
       throw new Error(`Error fetching ${role}: ${error.message}`);
     }
 
-    if (!users || users.length === 0) {3
+    if (!users || users.length === 0) {
       console.log(`No ${role} found to notify.`);
       return { success: true, message: `No ${role} to notify.` };
     }
@@ -77,7 +97,6 @@ async function sendNotificationToRole(role, title, body) {
   }
 }
 
-// Notificar maitre nuevo cliente
 app.post("/notify-maitre-new-client", async (req, res) => {
   const { clienteNombre, clienteApellido } = req.body;
   
@@ -92,7 +111,6 @@ app.post("/notify-maitre-new-client", async (req, res) => {
   }
 });
 
-// Notificar cliente mesa asignada
 app.post("/notify-client-table-assigned", async (req, res) => {
   const { clienteEmail, mesaNumero, clienteNombre, clienteApellido } = req.body;
   
@@ -103,26 +121,52 @@ app.post("/notify-client-table-assigned", async (req, res) => {
       .eq("correo", clienteEmail)
       .single();
 
-    if (error || !cliente?.fcm_token) {
-      return res.status(200).send({ message: "Cliente no encontrado o sin token FCM" });
+    if (cliente?.fcm_token) {
+      const message = {
+        notification: {
+          title: "Mesa asignada",
+          body: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`
+        },
+        token: cliente.fcm_token,
+      };
+
+      await admin.messaging().send(message);
     }
 
-    const message = {
-      notification: {
-        title: "Mesa asignada",
-        body: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`
-      },
-      token: cliente.fcm_token,
-    };
+    const { sendEmail } = require('./services/email.service');
+    const emailResult = await sendEmail({
+      to: clienteEmail,
+      subject: "Mesa Asignada - Los Fritos Hermanos",
+      text: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>¡Tu mesa está lista!</h2>
+          <p>Hola ${clienteNombre},</p>
+          <p>Te confirmamos que te hemos asignado la <strong>mesa ${mesaNumero}</strong>.</p>
+          <p>Detalles de tu asignación:</p>
+          <ul>
+            <li>Mesa: ${mesaNumero}</li>
+            <li>Nombre: ${clienteNombre} ${clienteApellido}</li>
+          </ul>
+          <p>¡Esperamos que disfrutes tu experiencia en Los Fritos Hermanos!</p>
+          <p>Si necesitas algo, no dudes en consultarnos.</p>
+          <br>
+          <p>Saludos,</p>
+          <p>El equipo de Los Fritos Hermanos</p>
+        </div>
+      `
+    });
 
-    const response = await admin.messaging().send(message);
-    res.status(200).send({ message: "Notification sent successfully.", response });
+    res.status(200).send({ 
+      message: "Notification and email sent successfully.",
+      emailResult
+    });
   } catch (error) {
-    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+    console.error('Error:', error);
+    res.status(500).send({ error: `Failed to send notifications: ${error.message}` });
   }
 });
 
-// Notificar mozos consulta cliente
 app.post("/notify-mozos-client-query", async (req, res) => {
   const { clienteNombre, clienteApellido, mesaNumero, consulta } = req.body;
   
@@ -137,7 +181,6 @@ app.post("/notify-mozos-client-query", async (req, res) => {
   }
 });
 
-// Notificar bartender nuevo pedido
 app.post("/notify-bartender-new-order", async (req, res) => {
   const { mesaNumero, bebidas } = req.body;
   
@@ -173,7 +216,6 @@ app.post("/notify-bartender-new-order", async (req, res) => {
   }
 });
 
-// Notificar cocinero nuevo pedido
 app.post("/notify-cocinero-new-order", async (req, res) => {
   const { mesaNumero, comidas, postres } = req.body;
   
@@ -210,7 +252,6 @@ app.post("/notify-cocinero-new-order", async (req, res) => {
   }
 });
 
-// Notificar mozo pedido listo
 app.post("/notify-mozo-order-ready", async (req, res) => {
   const { mesaNumero, tipoProducto, productos, pedidoId } = req.body;
   
@@ -246,7 +287,6 @@ app.post("/notify-mozo-order-ready", async (req, res) => {
   }
 });
 
-// Notificar mozo solicitud cuenta
 app.post("/notify-mozo-request-bill", async (req, res) => {
   const { mesaNumero, clienteNombre, clienteApellido } = req.body;
   
@@ -282,7 +322,6 @@ app.post("/notify-mozo-request-bill", async (req, res) => {
   }
 });
 
-// Notificar supervisores nuevo cliente
 app.post("/notify-supervisors-new-client", async (req, res) => {
   const { clienteNombre, clienteApellido } = req.body;
   
@@ -297,7 +336,6 @@ app.post("/notify-supervisors-new-client", async (req, res) => {
   }
 });
 
-// Borrar FCM token
 app.post("/clear-fcm-token", async (req, res) => {
   const { email } = req.body;
   
@@ -320,4 +358,4 @@ app.post("/clear-fcm-token", async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
-}); 
+});

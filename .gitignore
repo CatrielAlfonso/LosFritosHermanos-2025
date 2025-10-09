@@ -68,3 +68,8 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Firebase credentials
+*firebase-adminsdk*.json
+backend/config/firebase-config.json
+.env

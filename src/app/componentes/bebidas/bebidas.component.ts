@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BebidaService } from '../../servicios/bebida.service';
 import { IonContent, IonText,IonLabel, IonInput, IonItem, IonTextarea,IonButton,IonIcon } from "@ionic/angular/standalone";
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 import { VistaPreviaFotosPipe } from 'src/app/pipes/vista-previa-fotos-pipe';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -40,6 +41,7 @@ export class BebidasComponent {
   selectedFiles: (File | null)[] = [null, null, null];
   mensaje = '';
   router = inject(Router);
+  customLoader = inject(CustomLoader)
 
 
   constructor(private fb: FormBuilder, private bebidaService: BebidaService, private feedback: FeedbackService ) {}
@@ -72,6 +74,7 @@ export class BebidasComponent {
     }
 
     const loading = await this.feedback.showLoading("Guardando bebida...");
+    this.customLoader.show();
 
     try {
       const urls: string[] = [];
@@ -91,12 +94,15 @@ export class BebidasComponent {
 
       await loading.dismiss();
       this.feedback.showToast('exito', '✅ Producto registrado con éxito.'); 
+      this.customLoader.hide();
       this.form.reset();
       this.selectedFiles = [null, null, null]; // reset con 3 posiciones
 
     } catch (err: any) {
       await loading.dismiss();
       this.feedback.showToast('error', `Error al guardar: ${err.message}`);
+            this.customLoader.hide();
+
     }
   }
 

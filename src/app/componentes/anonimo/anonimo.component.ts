@@ -17,7 +17,7 @@ import { FeedbackService } from 'src/app/servicios/feedback-service.service';
   selector: 'app-anonimo',
   templateUrl: './anonimo.component.html',
   styleUrls: ['./anonimo.component.scss'],
-  imports: [IonContent, ReactiveFormsModule, IonItem, IonLabel, IonContent, IonIcon, IonButton, IonInput ,CommonModule]
+  imports: [IonContent, ReactiveFormsModule, IonItem, IonLabel, IonContent, IonIcon, IonButton, IonInput, CommonModule]
 })
 export class AnonimoComponent  {
 

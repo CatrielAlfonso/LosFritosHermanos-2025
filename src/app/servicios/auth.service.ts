@@ -1,20 +1,26 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal, OnInit} from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
+import { AudioService } from './audio.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
+export class AuthService implements OnInit {
   sb = inject(SupabaseService);
   router = inject(Router);
+  audio = inject(AudioService);
   usuarioActual: User | null = null;
   esAdmin: boolean = false;
   esMaitre: boolean = false;
   perfilUsuario: string = '';
 
+  async ngOnInit(): Promise<void> {
+    //t//his.setupAuthListener();
+    await this.audio.preload();
+  }
 
   public userActual: WritableSignal<User | null> = signal<User | null>(null);
 
@@ -86,6 +92,21 @@ export class AuthService {
 
     return this.usuarioActual;
   }
+
+  async obtenerIdUsuarioActual(): Promise<string | null> {
+    try {
+      const { data, error } = await this.sb.supabase.auth.getUser();
+      if (error) {
+        console.error('Error obteniendo usuario actual:', error);
+        return null;
+      }
+      return data.user ? data.user.id : null;
+    } catch (error) {
+      console.error('Error inesperado obteniendo usuario actual:', error);
+      return null;
+    }
+  }
+
 
   async logearse(correo: string, contrasenia: string)
   {
@@ -222,6 +243,7 @@ export class AuthService {
       console.error('Error al obtener usuario para borrar token:', error);
     }
     
+    await this.audio.playSalida();
     await this.sb.supabase.auth.signOut();
     this.usuarioActual = null;
     this.esAdmin = false;

@@ -4,6 +4,9 @@ import { Router,RouterLink } from '@angular/router';
 import { UserService } from '../servicios/user';
 import { User } from '@supabase/supabase-js';
 import { SupabaseService } from '../servicios/supabase.service';
+import { ResultadoJuego } from '../games/atrapa-el-pollo/atrapa-el-pollo.component';
+import { JuegosService } from '../servicios/juegos.service';
+import { FeedbackService } from '../servicios/feedback-service.service';
 
 @Component({
   selector: 'app-home',
@@ -16,6 +19,7 @@ export class HomePage implements OnInit {
   esMaitre: boolean = false;
   esCocinero: boolean = false;
   esBartender: boolean = false;
+  esMozo: boolean = false;
   perfilUsuario: string | null = null;
   nombreUsuario: string = '';
   userData : any | null = null
@@ -36,34 +40,38 @@ export class HomePage implements OnInit {
     private authService: AuthService,
     private router: Router,
     private userService : UserService,
-    private supabase : SupabaseService
+    private supabase : SupabaseService,
+    private juegosService: JuegosService,
+    private feedback: FeedbackService
   ) {
       
   }
 
   ngOnInit() {
-  //   this.verificarUsuario();
+    this.verificarUsuario();
 
-  //   const user = this.authService.usuarioActual;
+    const user = this.authService.usuarioActual;
 
-  //   if (user) {
-  //    // o traer el nombre desde DB
+    if (user) {
+     // o traer el nombre desde DB
 
-  //   // Levanto los flags desde el servicio
-  //   this.perfilUsuario = this.authService.perfilUsuario;
-  //   this.esAdmin = this.authService.esAdmin;
-  //   this.esMaitre = this.authService.esMaitre;
-  //   this.esCocinero = this.authService.perfilUsuario === 'cocinero';
-  //   this.esBartender = this.authService.perfilUsuario === 'bartender';
-  // }
-  // this.authService.perfilUsuario$.subscribe(perfil => {
-  //   this.perfilUsuario = perfil ?? '';
-  //   this.esAdmin = perfil === 'supervisor';
-  //   this.esMaitre = perfil === 'maitre';
-  //   this.esCocinero = perfil === 'cocinero';
-  //   this.esBartender = perfil === 'bartender';
-  // });
-  // console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+    // Levanto los flags desde el servicio
+    this.perfilUsuario = this.authService.perfilUsuario;
+    this.esAdmin = this.authService.esAdmin;
+    this.esMaitre = this.authService.esMaitre;
+    this.esCocinero = this.authService.perfilUsuario === 'cocinero';
+    this.esBartender = this.authService.perfilUsuario === 'bartender';
+    this.esMozo = this.authService.perfilUsuario === 'mozo';
+  }
+  this.authService.perfilUsuario$.subscribe(perfil => {
+    this.perfilUsuario = perfil ?? '';
+    this.esAdmin = perfil === 'supervisor';
+    this.esMaitre = perfil === 'maitre';
+    this.esCocinero = perfil === 'cocinero';
+    this.esBartender = perfil === 'bartender';  
+    this.esMozo = perfil === 'mozo';
+  });
+  console.log('Perfil usuario en HomePage:', this.perfilUsuario);
 
     this.loadUserData();
     console.log('se ejecuta el on init')
@@ -122,6 +130,9 @@ export class HomePage implements OnInit {
           this.esCocinero = true;
         } else if (empleado.perfil === 'bartender') {
           this.esBartender = true;
+        }
+        else if (empleado.perfil === 'mozo') {
+          this.esMozo = true;
         }
         this.authService.setPerfil(empleado.perfil);
         return;
@@ -207,6 +218,24 @@ export class HomePage implements OnInit {
     this.router.navigate(['/maitre'])
   }
 
+  irAListaEspera()
+  {
+    this.router.navigate(['/lista-espera']);
+  }
   
+
+  //**JUEGOS */
+
+  manejarResultadoDescuento(resultado: ResultadoJuego) {
+  // 1. Mostrar mensaje de descuento
+  this.feedback.showToast('exito', `¡Ganaste un ${resultado.porcentaje}% de descuento!`);
+
+  // 2. Llamar al servicio para actualizar Supabase y marcar descuento_ganado = true
+  this.juegosService.registrarResultadoDescuento(this.userData.id, resultado.porcentaje, 'atrapa_pollo');
+
+  // 3. Redirigir o cambiar la vista para desbloquear los otros juegos.
+  }
+
+
 }
 

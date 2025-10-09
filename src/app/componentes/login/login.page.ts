@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { LoadingService } from 'src/app/servicios/loading.service';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 
 import {
   IonContent,
@@ -16,7 +17,7 @@ import {
   IonList,
   IonPopover
 } from '@ionic/angular/standalone';
-import { FeedbackService } from 'src/app/servicios/feedback-service.service';
+import { FeedbackService } from '../../servicios/feedback-service.service';
 
 @Component({
   selector: 'app-login',
@@ -49,7 +50,8 @@ export class LoginPage implements OnInit {
     private router: Router,
     private authService: AuthService,
     private loadingService: LoadingService,
-    private feedbackService: FeedbackService
+    private feedbackService: FeedbackService,
+    private customLoader: CustomLoader
   ) {
     this.loginForm = this.fb.group({
       correo: ['', [Validators.required, Validators.email]],
@@ -111,7 +113,9 @@ export class LoginPage implements OnInit {
       return;
     }
     //this.feedbackService.showLoading()
-    this.loadingService.show();
+    //this.loadingService.show();
+    //this.feedbackService.mostrarLoaderPolloFrito();
+    this.customLoader.show();
 
     try {
       const correo = this.loginForm.get('correo')?.value;
@@ -123,7 +127,10 @@ export class LoginPage implements OnInit {
 
       if (contrasenia.length < 6) {
         this.contraseniaError = 'La contraseña debe tener al menos 6 caracteres';
-        this.loadingService.hide();
+        //this.loadingService.hide();
+        setTimeout(async () => {
+           this.customLoader.hide();
+        }, 2000);
         return;
       }
 
@@ -144,13 +151,18 @@ export class LoginPage implements OnInit {
         } else {
           this.errorMessage = 'Correo electrónico o contraseña inválidos';
         }
-        this.loadingService.hide();
+        //this.loadingService.hide();
+        setTimeout(async () => {
+           this.customLoader.hide();
+        }, 2000);
         return;
       }
 
       if (!usuario) {
         this.errorMessage = 'Correo electrónico o contraseña inválidos';
-        this.loadingService.hide();
+        setTimeout(async () => {
+           this.customLoader.hide();
+        }, 2000);
         return;
       }
 
@@ -162,17 +174,23 @@ export class LoginPage implements OnInit {
 
       this.loginForm.reset();
       this.router.navigate(['/home']);
-      this.loadingService.hide();
+      setTimeout(async () => {
+         this.customLoader.hide();
+      }, 2000);
     } catch (e: any) {
       this.errorMessage = e.message || 'Ocurrió un error al iniciar sesión';
-      this.loadingService.hide();
+      setTimeout(async () => {
+         this.customLoader.hide();
+      }, 2000);
     }
   }
 
-  goToRegister() {
-    this.loadingService.show();
+  async goToRegister() {
+    this.customLoader.show();
     this.router.navigateByUrl('/registro');
-    this.loadingService.hide();
+    setTimeout(async () => {
+         this.customLoader.hide();
+      }, 2000);
   }
 
   accesoRapido(type: string) {
