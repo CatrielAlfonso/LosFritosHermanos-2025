@@ -153,7 +153,7 @@ export class LoginPage implements OnInit {
         }
         //this.loadingService.hide();
         setTimeout(async () => {
-           this.customLoader.hide();
+           this.customLoader.hide(); 
         }, 2000);
         return;
       }

@@ -124,7 +124,10 @@ const routes: Routes = [
     path: 'bar',
     loadComponent: () => import('./componentes/bar/bar.component').then(m => m.BarComponent)
   },
-  
+  {
+    path: 'encuestas',
+    loadComponent: () => import('./componentes/encuestas/encuestas.component').then(m => m.EncuestasComponent)
+  }
  
 ];
 

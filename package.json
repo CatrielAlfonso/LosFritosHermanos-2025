@@ -36,6 +36,7 @@
     "@capacitor/toast": "^7.0.2",
     "@ionic/angular": "^8.7.3",
     "@supabase/supabase-js": "^2.57.2",
+    "chart.js": "^4.5.0",
     "ionicons": "^7.4.0",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
