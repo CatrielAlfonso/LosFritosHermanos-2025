@@ -1,0 +1,21 @@
+<div class="component">
+    <div class="puntos">POLLOS:  <p style="margin: 0; padding-left: 10px;" >{{puntos}}</p> <img src="./assets/pollo.svg" alt="pollo"></div>
+    <div class="card" [class.flip]="isFlipping">
+        <p class="num-esquina">{{carta}}</p>
+        <p class="num-principal">{{carta}}</p>
+        <p class="num-esquina">{{carta}}</p>
+    </div>
+    <p class="mensaje">LA SIGUIENTE CARTA ES:</p>
+    <div class="container-options">
+        <div class="option" (click)="mayorMenor('menor')">MENOR</div>
+        <div class="option" (click)="mayorMenor('mayor')">MAYOR</div>
+    </div>
+
+    <!-- <div id="miModal" class="modal">
+        <div class="modal-contenido">
+          <span class="cerrar" (click)="closeModal()">&times;</span>
+          <p>Intentalo otra vez! La carta era un {{carta}}</p>
+          <p>{{this.mensaje}}</p>
+        </div>
+    </div> -->
+</div>

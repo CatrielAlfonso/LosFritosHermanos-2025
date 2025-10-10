@@ -34,7 +34,7 @@
           </div>
         </div>
         <div class="pedido-total">
-          <span class="total-pedido">{{pedido.total | currency}}</span>
+          <span class="total-pedido">{{pedido.cuenta | currency}}</span>
         </div>
       </div>
 
@@ -53,14 +53,17 @@
         <div class="producto-resumen" *ngFor="let comida of pedido.comidas">
           <span class="producto-cantidad">{{comida.cantidad}}x</span>
           <span class="producto-nombre">{{comida.nombre}}</span>
+          <span class="producto-precio">{{comida.precioTotal | currency}}</span>
         </div>
         <div class="producto-resumen" *ngFor="let bebida of pedido.bebidas">
           <span class="producto-cantidad">{{bebida.cantidad}}x</span>
           <span class="producto-nombre">{{bebida.nombre}}</span>
+          <span class="producto-precio">{{bebida.precioTotal | currency}}</span>
         </div>
         <div class="producto-resumen" *ngFor="let postre of pedido.postres">
           <span class="producto-cantidad">{{postre.cantidad}}x</span>
           <span class="producto-nombre">{{postre.nombre}}</span>
+          <span class="producto-precio">{{postre.precioTotal | currency}}</span>
         </div>
       </div>
 
@@ -75,18 +78,44 @@
           Eliminar
         </button>
       </div>
-
+      @if(pedido.estado === 'entregado' && !pedido.solicita_cuenta && !pedido.cuenta_habilitada){
+        <div class="pedido-actions">
+          <button class="btn-pedir-cuenta" (click)="pedirCuenta(pedido)">
+            <ion-icon name="receipt-outline"></ion-icon>
+            Pedir Cuenta
+          </button>
+        </div>
+      }
+      @if(pedido.solicita_cuenta){
+        <div class="pedido-actions">
+          <button class="btn-pedir-cuenta">
+            <ion-icon name="receipt-outline"></ion-icon>
+            Cuenta solicitada
+          </button>
+        </div>
+      }
+      @if(pedido.cuenta_habilitada && !pedido.solicita_cuenta){
+        <div class="pedido-actions">
+          <button class="btn-pedir-cuenta">
+            <ion-icon name="qr-code-outline"></ion-icon>
+            Escanee el QR para ver la cuenta
+          </button>
+        </div>
+      } 
+      
       <!-- Info adicional para otros estados -->
-      <div *ngIf="pedido.estado !== 'cancelado'" class="pedido-info-adicional">
-        <div class="info-item">
-          <ion-icon name="time-outline"></ion-icon>
-          <span>Tiempo estimado: {{pedido.tiempo_estimado}} min</span>
-        </div>
-        <div class="info-item">
-          <ion-icon name="location-outline"></ion-icon>
-          <span>Mesa: {{pedido.mesa}}</span>
-        </div>
-      </div>
+       @if(pedido.estado !== 'cancelado' && pedido.estado !== 'entregado'){
+         <div class="pedido-info-adicional">
+           <div class="info-item">
+             <ion-icon name="time-outline"></ion-icon>
+             <span>Tiempo estimado: {{pedido.tiempo_estimado}} min</span>
+           </div>
+           <div class="info-item">
+             <ion-icon name="location-outline"></ion-icon>
+             <span>Mesa: {{pedido.mesa}}</span>
+           </div>
+         </div>
+       }
     </div>
   </div>
 </ion-content>

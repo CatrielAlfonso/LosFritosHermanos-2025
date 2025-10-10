@@ -32,6 +32,8 @@ export interface Pedido {
   fecha_pedido: any
   motivo_rechazo : string
   observaciones_generales?: string; 
+  solicita_cuenta?: boolean
+  cuenta_habilitada?: boolean
 }
 
 

@@ -246,6 +246,26 @@ export class SupabaseService {
     }
   }
 
+  async actualizarMesa(numeroMesa : number, updates : any){
+    try{
+      const { data, error } = await this.supabase
+        .from('mesas')
+        .update(updates)
+        .eq('numero', numeroMesa)
+        .select();
+
+      if (error) {
+        throw new Error(`Error al actualizar pedido: ${error.message}`);
+      }
+
+      console.log('✅ mesa actualizada:', data);
+      return data?.[0] || null;
+      
+    }catch(error){
+      console.log(error)
+    }
+  }
+
   async eliminarPedido(pedidoId : string){
     try{
       const { data, error } = await this.supabase

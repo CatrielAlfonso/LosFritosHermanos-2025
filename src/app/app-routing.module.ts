@@ -124,6 +124,10 @@ const routes: Routes = [
     path: 'bar',
     loadComponent: () => import('./componentes/bar/bar.component').then(m => m.BarComponent)
   },
+  {
+    path: 'mayor-menor',
+    loadComponent: () => import('./games/mayor-menor/mayor-menor.component').then(m => m.MayorMenorComponent)
+  },
   
  
 ];

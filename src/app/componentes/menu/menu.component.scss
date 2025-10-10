@@ -112,6 +112,10 @@ swiper-container::part(bullet-active) {
   --border-radius: 12px;
   font-weight: 600;
 }
+.barra-spacer {
+  height: 70px; /* Misma altura que la barra */
+  visibility: hidden;
+}
 
 /* NUEVO: Barra flotante del carrito */
 .barra-carrito-flotante {

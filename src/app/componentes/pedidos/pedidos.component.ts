@@ -89,5 +89,11 @@ export class PedidosComponent  implements OnInit {
     await alert.present();
   }
 
+  async pedirCuenta(pedido : any){
+    await this.supabase.actualizarPedido(pedido.id, {
+      solicita_cuenta: true
+    });
+  }
+
 
 }
