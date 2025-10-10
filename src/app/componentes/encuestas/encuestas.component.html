@@ -1,0 +1,369 @@
+<ion-content>
+
+  <div class="volver-wrapper">
+    <ion-button fill="clear" class="back-button" (click)="volverAHome()">
+      <ion-icon name="arrow-back"></ion-icon>
+      Volver
+    </ion-button>
+  </div>
+  
+  <div class="encuesta-container">
+    <h2 class="titulo-encuesta" *ngIf="modo === 'hacer' && mostrarFormulario">
+      Encuesta de Satisfacción
+    </h2>
+    
+    <div *ngIf="mostrarMensajeExito" class="mensaje-exito">
+      <ion-icon name="checkmark-circle"></ion-icon>
+      <span>{{ mensajeExito }}</span>
+    </div>
+    
+    <!-- Vista para hacer encuesta -->
+    <form *ngIf="mostrarFormulario && !encuestaEnviada" [formGroup]="encuestaForm" (ngSubmit)="enviarEncuesta()" class="form-centrado form-grande">
+      <ion-item>
+        <ion-label position="stacked">
+          Satisfacción General (1-10): {{ encuestaForm.get('satisfaccion_general')?.value }}
+        </ion-label>
+        <ion-range 
+        formControlName="satisfaccion_general"
+        min="1" 
+        max="10" 
+        step="1"
+        snaps="true"
+        >
+        <ion-label slot="start">1</ion-label>
+        <ion-label slot="end">10</ion-label>
+      </ion-range>
+    </ion-item>
+    
+    <ion-item>
+      <ion-label position="stacked">
+        Calidad de la Comida (1-10): {{ encuestaForm.get('calidad_comida')?.value }}
+      </ion-label>
+      <ion-range 
+      formControlName="calidad_comida"
+      min="1" 
+      max="10" 
+      step="1"
+      snaps="true"
+      >
+      <ion-label slot="start">1</ion-label>
+      <ion-label slot="end">10</ion-label>
+    </ion-range>
+  </ion-item>
+  
+  <ion-item>
+    <ion-label position="stacked">
+      Calidad del Servicio (1-10): {{ encuestaForm.get('calidad_servicio')?.value }}
+    </ion-label>
+    <ion-range 
+    formControlName="calidad_servicio"
+    min="1" 
+    max="10" 
+    step="1"
+    snaps="true"
+    >
+    <ion-label slot="start">1</ion-label>
+    <ion-label slot="end">10</ion-label>
+  </ion-range>
+</ion-item>
+
+<ion-item>
+  <ion-label position="stacked">
+    Ambiente (1-10): {{ encuestaForm.get('ambiente')?.value }}
+  </ion-label>
+  <ion-range 
+  formControlName="ambiente"
+  min="1" 
+  max="10" 
+  step="1"
+  snaps="true"
+  >
+  <ion-label slot="start">1</ion-label>
+  <ion-label slot="end">10</ion-label>
+</ion-range>
+</ion-item>
+
+<ion-item>
+  <ion-label position="stacked">¿Recomendaría este restaurante?</ion-label>
+  <ion-radio-group formControlName="recomendacion" class="radio-group-full">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" *ngFor="let opcion of [
+          'Definitivamente sí',
+          'Probablemente sí',
+          'No estoy seguro',
+          'Probablemente no',
+          'Definitivamente no'
+        ]">
+                <ion-item lines="none" class="radio-item-full">
+                  <ion-radio slot="start" [value]="opcion"></ion-radio>
+                  <ion-label>{{ opcion }}</ion-label>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-radio-group>
+      </ion-item>
+      
+      <ion-item lines="none" class="checkbox-item-centrado">
+        <ion-checkbox slot="start" formControlName="volverias"></ion-checkbox>
+        <ion-label class="checkbox-label">¿Volvería a visitar este restaurante?</ion-label>
+      </ion-item>
+      
+      <ion-item>
+        <ion-label position="stacked">Tipo de visita</ion-label>
+        <ion-select formControlName="tipo_visita" placeholder="Seleccione el tipo de visita">
+          <ion-select-option value="Cena romántica">Cena romántica</ion-select-option>
+          <ion-select-option value="Cena familiar">Cena familiar</ion-select-option>
+          <ion-select-option value="Cena de negocios">Cena de negocios</ion-select-option>
+          <ion-select-option value="Cena con amigos">Cena con amigos</ion-select-option>
+          <ion-select-option value="Almuerzo">Almuerzo</ion-select-option>
+          <ion-select-option value="Otro">Otro</ion-select-option>
+        </ion-select>
+      </ion-item>
+      
+      <ion-item>
+        <ion-label position="stacked">Comentarios adicionales (opcional)</ion-label>
+        <ion-textarea 
+        formControlName="comentario"
+        placeholder="  Escriba sus comentarios aquí..."
+        rows="4"
+        maxlength="500">
+      </ion-textarea>
+    </ion-item>
+    
+    <div class="fotos-section">
+      <h3>Fotos (máximo 3)</h3>
+      <div class="fotos-container">
+        <div *ngFor="let foto of fotos; let i = index" class="foto-item">
+          <ion-img [src]="foto" alt="Foto de la encuesta"></ion-img>
+          <ion-button 
+          fill="clear" 
+          color="danger" 
+          size="small"
+          (click)="eliminarFoto(i)">
+          <ion-icon name="close-circle"></ion-icon>
+        </ion-button>
+      </div>
+      <ion-button 
+      *ngIf="fotos.length < maxFotos"
+      fill="outline" 
+      (click)="tomarFoto()"
+      class="btn-foto">
+      <ion-icon name="camera"></ion-icon>
+      Agregar Foto
+    </ion-button>
+  </div>
+</div>
+
+<ion-button 
+type="submit" 
+expand="block" 
+[disabled]="!encuestaForm.valid"
+class="btn-enviar">
+<span>Enviar Encuesta</span>
+      </ion-button>
+    </form>
+    
+    <!-- Vista para ver encuestas previas (solo cuando no es modo 'ver') -->
+    <div *ngIf="modo !== 'ver' && !mostrarFormulario" class="encuestas-previas-section">
+      <div *ngIf="encuestas.length === 0" class="no-encuestas">
+        <ion-icon name="clipboard-outline"></ion-icon>
+        <h3>No hay encuestas previas</h3>
+        <p>Aún no se han enviado encuestas</p>
+      </div>
+      
+      <div *ngIf="encuestas.length > 0" class="encuestas-lista">
+        <h3>Encuestas Enviadas ({{ encuestas.length }})</h3>
+        <div *ngFor="let encuesta of encuestas; let i = index" class="encuesta-item">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>{{ encuesta.nombre }} {{ encuesta.apellido }}</ion-card-title>
+              <ion-card-subtitle>{{ encuesta.tipo_visita }}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="encuesta-datos">
+                <div class="encuesta-puntuaciones">
+                  <div class="puntuacion-item">
+                    <span class="puntuacion-label">Satisfacción General:</span>
+                    <span class="puntuacion-valor">{{ encuesta.satisfaccion_general }}/10</span>
+                  </div>
+                  <div class="puntuacion-item">
+                    <span class="puntuacion-label">Calidad de Comida:</span>
+                    <span class="puntuacion-valor">{{ encuesta.calidad_comida }}/10</span>
+                  </div>
+                  <div class="puntuacion-item">
+                    <span class="puntuacion-label">Calidad de Servicio:</span>
+                    <span class="puntuacion-valor">{{ encuesta.calidad_servicio }}/10</span>
+                  </div>
+                  <div class="puntuacion-item">
+                    <span class="puntuacion-label">Ambiente:</span>
+                    <span class="puntuacion-valor">{{ encuesta.ambiente }}/10</span>
+                  </div>
+                </div>
+                <div class="encuesta-opciones">
+                  <div class="opcion-item">
+                    <span class="opcion-label">Recomendación:</span>
+                    <span class="opcion-valor">{{ encuesta.recomendacion }}</span>
+                  </div>
+                  <div class="opcion-item">
+                    <span class="opcion-label">¿Volvería?:</span>
+                    <span class="opcion-valor">{{ encuesta.volverias ? 'Sí' : 'No' }}</span>
+                  </div>
+                </div>
+                <div *ngIf="encuesta.comentario" class="encuesta-comentario">
+                  <span class="comentario-label">Comentario:</span>
+                  <p class="comentario-texto">{{ encuesta.comentario }}</p>
+                </div>
+                <div *ngIf="encuesta.imagenes && encuesta.imagenes.length > 0" class="encuesta-imagenes">
+                  <ion-button 
+                    fill="outline" 
+                    size="small"
+                    (click)="mostrarImagenesEncuesta(encuesta)"
+                    class="btn-ver-imagenes">
+                    <ion-icon name="images"></ion-icon>
+                    Ver {{ encuesta.imagenes.length }} imagen{{ encuesta.imagenes.length > 1 ? 'es' : '' }}
+                  </ion-button>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de gráficos y estadísticas -->
+  <div *ngIf="(mostrarGraficos || modo === 'ver') && encuestas.length > 0" class="estadisticas-imagenes-container">
+    <div class="graficos-section">
+      <div class="estadisticas-header">
+        <h3>Estadísticas de Encuestas ({{ encuestas.length }} encuestas)</h3>
+      </div>
+
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>Satisfacción General</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <canvas id="satisfaccionChart"></canvas>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>Calidad de la Comida</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <canvas id="calidadComidaChart"></canvas>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>Calidad del Servicio</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <canvas id="calidadServicioChart"></canvas>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>Ambiente</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <canvas id="ambienteChart"></canvas>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>Recomendación</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <canvas id="recomendacionChart"></canvas>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>¿Volvería?</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <canvas id="volveriaChart"></canvas>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <!-- Sección de imágenes al final -->
+    <div *ngIf="(mostrarGraficos || modo === 'ver')" class="imagenes-section">
+      <h3>Imágenes de las Encuestas</h3>
+      <div class="imagenes-grid">
+        <div *ngFor="let encuesta of encuestas" class="imagen-item">
+          <ion-button 
+            *ngIf="encuesta.imagenes && encuesta.imagenes.length > 0"
+            fill="outline" 
+            size="small"
+            (click)="mostrarImagenesEncuesta(encuesta)"
+            class="btn-imagen">
+            <ion-icon name="images"></ion-icon>
+            {{ encuesta.nombre }} {{ encuesta.apellido }}
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="mostrarImagenes && encuestaSeleccionada" class="modal-imagenes">
+    <div class="modal-content">
+      <div class="modal-header modal-header-center">
+        <h4>Imágenes de {{ encuestaSeleccionada.nombre }} {{ encuestaSeleccionada.apellido }}</h4>
+        <ion-button fill="clear" size="small" (click)="cerrarImagenes()">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+      </div>
+      <div class="modal-body">
+        <div class="imagenes-modal-lista">
+          <div *ngFor="let imagen of encuestaSeleccionada.imagenes; let i = index" class="imagen-modal-grande">
+            <div class="imagen-modal-img-contenedor">
+              <img [src]="imagen" [alt]="'Imagen ' + (i + 1)" class="img-modal-real" />
+            </div>
+            <p>Imagen {{ i + 1 }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="imagenAmpliada" class="modal-imagen-ampliada">
+    <div class="modal-imagen-content">
+      <ion-button fill="clear" size="small" class="cerrar-modal-imagen" (click)="cerrarImagenAmpliada()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+      <div class="img-ampliada-wrapper">
+        <img [src]="imagenAmpliada" alt="Imagen ampliada" />
+      </div>
+    </div>
+  </div>
+      
+  <div *ngIf="(mostrarGraficos || modo === 'ver') && encuestas.length === 0" class="no-encuestas">
+    <ion-icon name="stats-chart-outline"></ion-icon>
+    <h3>No hay encuestas para mostrar estadísticas</h3>
+    <p>Complete una encuesta para ver las estadísticas</p>
+  </div>
+</ion-content>

@@ -124,11 +124,14 @@ const routes: Routes = [
     path: 'bar',
     loadComponent: () => import('./componentes/bar/bar.component').then(m => m.BarComponent)
   },
+ {
+    path: 'encuestas',
+    loadComponent: () => import('./componentes/encuestas/encuestas.component').then(m => m.EncuestasComponent)
+  },
   {
     path: 'mayor-menor',
     loadComponent: () => import('./games/mayor-menor/mayor-menor.component').then(m => m.MayorMenorComponent)
-  },
-  
+  }, 
  
 ];
 
