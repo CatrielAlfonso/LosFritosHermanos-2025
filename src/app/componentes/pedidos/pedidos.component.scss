@@ -186,6 +186,10 @@
   flex: 1;
 }
 
+.producto-precio{
+  color: var(--ion-color-primary);
+}
+
 /* Botones de acción */
 .pedido-actions {
   display: flex;
@@ -221,6 +225,29 @@
 
 .btn-modificar:active, .btn-eliminar:active {
   transform: scale(0.98);
+}
+
+.btn-pedir-cuenta {
+  background: linear-gradient(135deg, var(--ion-color-primary), #c13584);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.3);
+}
+
+.btn-pedir-cuenta:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(var(--ion-color-primary-rgb), 0.3);
 }
 
 /* Info adicional */

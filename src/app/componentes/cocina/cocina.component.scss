@@ -1,0 +1,278 @@
+:host {
+  font-family: sans-serif;
+}
+
+/* Header */
+.header ion-toolbar {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%); 
+  --color: var(--ion-color-fritos-blue);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.396);
+}
+
+.titulo-cocina {
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+
+/* Contenido principal */
+.container-cocina {
+ --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
+}
+
+/* Estado vacío */
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  text-align: center;
+  padding: 20px;
+}
+
+.icono-vacio {
+  font-size: 4rem;
+  color: #e17055;
+  margin-bottom: 20px;
+}
+
+.estado-vacio h2 {
+  color: #e17055;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.estado-vacio p {
+  color: #e17055;
+  margin-bottom: 30px;
+}
+
+/* Lista de pedidos */
+.lista-pedidos {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Item de pedido */
+.pedido-item {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Header del pedido */
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pedido-header:hover {
+  background: #f8f9fa;
+}
+
+.pedido-info {
+  flex: 1;
+}
+
+.mesa-numero {
+  color: #2d3436;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.pedido-hora {
+  color: #636e72;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.pedido-estado {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.estado-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.estado-pendiente {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.estado-en-preparacion {
+  background: #cce7ff;
+  color: #004085;
+}
+
+.estado-listo {
+  background: #d4edda;
+  color: #155724;
+}
+
+.pedido-flecha {
+  color: #636e72;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+/* Contenido del pedido */
+.pedido-contenido {
+  padding: 0 20px 20px 20px;
+  border-top: 1px solid #f0f0f0;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Secciones de items */
+.seccion-items {
+  margin-bottom: 20px;
+}
+
+.seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2d3436;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.seccion-titulo ion-icon {
+  color: #e17055;
+}
+
+.item-cocina {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.item-cocina:last-child {
+  border-bottom: none;
+}
+
+.item-cantidad {
+  background: #e17055;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  min-width: 24px;
+  text-align: center;
+}
+
+.item-nombre {
+  color: #2d3436;
+  font-weight: 500;
+  flex: 1;
+}
+
+.item-observaciones {
+  color: #636e72;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Observaciones generales */
+.observaciones-generales {
+  background: #fff8e1;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #ffd32a;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #2d3436;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.observaciones-generales ion-icon {
+  color: #ffa502;
+  font-size: 1.1rem;
+  margin-top: 2px;
+}
+
+/* Botón marcar como listo */
+.btn-listo {
+  background: linear-gradient(135deg, #00b894, #00a085);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 184, 148, 0.3);
+}
+
+.btn-listo:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(0, 184, 148, 0.3);
+}
+
+/* Badge completado */
+.completado-badge {
+  background: #d4edda;
+  color: #155724;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.completado-badge ion-icon {
+  font-size: 1.2rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .pedido-header {
+    padding: 16px;
+  }
+  
+  .pedido-contenido {
+    padding: 0 16px 16px 16px;
+  }
+  
+  .mesa-numero {
+    font-size: 1.2rem;
+  }
+}

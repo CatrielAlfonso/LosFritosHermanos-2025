@@ -1,0 +1,93 @@
+<ion-header class="header">
+  <ion-toolbar>
+    <ion-title class="titulo-cocina">Cocina - Pedidos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="container-cocina">
+  <!-- Estado vacío -->
+  <div *ngIf="pedidosCocina().length === 0" class="estado-vacio">
+    <ion-icon name="restaurant-outline" class="icono-vacio"></ion-icon>
+    <h2>No hay pedidos para cocina</h2>
+    <p>Los pedidos nuevos aparecerán aquí</p>
+  </div>
+
+  <!-- Lista de pedidos -->
+  <div *ngIf="pedidosCocina().length > 0" class="lista-pedidos">
+    <div *ngFor="let pedido of pedidosCocina()" class="pedido-item">
+      
+      <!-- Header del pedido -->
+      <div class="pedido-header" (click)="togglePedido(pedido.id)">
+        <div class="pedido-info">
+          <h2 class="mesa-numero">Mesa {{pedido.mesa}}</h2>
+          <p class="pedido-hora">{{pedido.fecha_pedido | date:'HH:mm'}}</p>
+        </div>
+        
+        <div class="pedido-estado">
+          <div class="estado-badge" [class]="'estado-' + pedido.estado_comida">
+            {{getEstadoTexto(pedido.estado_comida)}}
+          </div>
+          <ion-icon 
+            [name]="pedidoAbierto(pedido.id) ? 'chevron-up-outline' : 'chevron-down-outline'"
+            class="pedido-flecha">
+          </ion-icon>
+        </div>
+      </div>
+
+      <!-- Contenido expandido -->
+      <div *ngIf="pedidoAbierto(pedido.id)" class="pedido-contenido">
+        
+        <!-- Comidas -->
+        <div *ngIf="pedido.comidas.length > 0" class="seccion-items">
+          <h3 class="seccion-titulo">
+            <ion-icon name="fast-food-outline"></ion-icon>
+            Comidas
+          </h3>
+          <div *ngFor="let comida of pedido.comidas" class="item-cocina">
+            <span class="item-cantidad">{{comida.cantidad}}x</span>
+            <span class="item-nombre">{{comida.nombre}}</span>
+            <span *ngIf="comida.observaciones" class="item-observaciones">
+              ({{comida.observaciones}})
+            </span>
+          </div>
+        </div>
+
+        <!-- Postres -->
+        <div *ngIf="pedido.postres.length > 0" class="seccion-items">
+          <h3 class="seccion-titulo">
+            <ion-icon name="ice-cream-outline"></ion-icon>
+            Postres
+          </h3>
+          <div *ngFor="let postre of pedido.postres" class="item-cocina">
+            <span class="item-cantidad">{{postre.cantidad}}x</span>
+            <span class="item-nombre">{{postre.nombre}}</span>
+            <span *ngIf="postre.observaciones" class="item-observaciones">
+              ({{postre.observaciones}})
+            </span>
+          </div>
+        </div>
+
+        <!-- Observaciones generales -->
+        <div *ngIf="pedido.observaciones_generales" class="observaciones-generales">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <span>{{pedido.observaciones_generales}}</span>
+        </div>
+
+        <!-- Botón marcar como listo -->
+        <button 
+          *ngIf="pedido.estado_comida !== 'listo'"
+          class="btn-listo" 
+          (click)="marcarComoListo(pedido)">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Marcar como Listo
+        </button>
+
+        <!-- Estado completado -->
+        <div *ngIf="pedido.estado_comida === 'listo'" class="completado-badge">
+          <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+          <span>Listo para entregar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

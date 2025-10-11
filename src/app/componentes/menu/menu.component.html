@@ -24,10 +24,10 @@
         {{plato.descripcion}}
       </ion-card-content>
       <ion-card-content class="descripcion" style="color: red;">
-        Tiempo de elaboracion: {{plato.tiempo_elaboracion}} minutos
+        Tiempo de elaboracion: <span style="font-weight: bold;">{{plato.tiempo_elaboracion}} minutos</span> 
       </ion-card-content>
 
-      <!-- NUEVO: Control de cantidad tipo PedidosYa -->
+      <!-- NUEVO: Control de cantidad -->
       <div class="control-cantidad-container">
         <!-- Estado inicial: Botón Agregar -->
         <ion-button 
@@ -63,19 +63,9 @@
   @for(bebida of bebidas; track bebida){
     <ion-card class="container-plato">
       <swiper-container pagination="true" class="bebida-swiper">
-        @if(bebida.foto1){
+        @for(imagen of bebida.imagenes; track imagen){
           <swiper-slide>
-            <img [src]="bebida.foto1" [alt]="bebida.nombre + ' foto 1'" class="bebida-image" />
-          </swiper-slide>
-        }
-        @if(bebida.foto2){
-          <swiper-slide>
-            <img [src]="bebida.foto2" [alt]="bebida.nombre + ' foto 2'" class="bebida-image" />
-          </swiper-slide>
-        }
-        @if(bebida.foto3){
-          <swiper-slide>
-            <img [src]="bebida.foto3" [alt]="bebida.nombre + ' foto 3'" class="bebida-image" />
+            <img [src]="imagen" [alt]="bebida.nombre + ' foto 1'" class="bebida-image" />
           </swiper-slide>
         }
       </swiper-container>
@@ -89,7 +79,7 @@
         {{bebida.descripcion}}
       </ion-card-content>
       <ion-card-content class="descripcion" style="color: red;">
-        Tiempo de elaboracion: {{bebida.tiempo_elaboracion}} minutos
+        Tiempo de elaboracion: <span style="font-weight: bold;">{{bebida.tiempo_elaboracion}} minutos</span> 
       </ion-card-content>
 
       <!-- NUEVO: Control de cantidad tipo PedidosYa -->
@@ -124,7 +114,7 @@
 
     </ion-card> 
   }
-
+  <div class="barra-spacer"></div>
   <!-- Barra flotante del carrito -->
   <div class="barra-carrito-flotante" *ngIf="totalItems() > 0">
     <div class="barra-contenido">

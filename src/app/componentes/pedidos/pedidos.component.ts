@@ -3,6 +3,7 @@ import { Component, computed, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { AuthService } from 'src/app/servicios/auth.service';
+import { CarritoService } from 'src/app/servicios/carrito.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 
 @Component({
@@ -15,10 +16,7 @@ export class PedidosComponent  implements OnInit {
 
   pedidos : any = null
   user = this.authService.userActual
-  // misPedidos = computed(() => {
-  //   return this.supabase.todosLosPedidos() 
-  //     .filter(p => p.cliente_id === this.user?.id);
-  // });
+
   misPedidos = computed(() => {
     const user = this.user();
     const todosPedidos = this.supabase.todosLosPedidos();
@@ -33,16 +31,12 @@ export class PedidosComponent  implements OnInit {
     private router : Router,
     private authService : AuthService,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private carritoService : CarritoService
   ) { }
 
   ngOnInit() {
     this.supabase.cargarPedidos();
-    setTimeout(() => {
-      console.log('user iddddd:', this.user()?.id);
-      console.log('pedidos:', this.misPedidos());
-      console.log('todos los pedidos:', this.supabase.todosLosPedidos());
-    }, 5000);
   }
 
   getEstadoTexto(estado: string): string {
@@ -65,10 +59,9 @@ export class PedidosComponent  implements OnInit {
   }
 
   modificarPedido(pedido: any) {
-    // Lógica para cargar el pedido en el carrito y redirigir
-    console.log('Modificar pedido:', pedido);
-    // this.carritoService.cargarPedidoAlCarrito(pedido);
-    // this.router.navigate(['/carrito']);
+    this.carritoService.cargarPedidoAlCarrito(pedido);
+    this.supabase.eliminarPedido(pedido.id)
+    this.router.navigate(['/carrito']);
   }
 
   async eliminarPedido(pedido: any) {
@@ -94,6 +87,12 @@ export class PedidosComponent  implements OnInit {
       ]
     });
     await alert.present();
+  }
+
+  async pedirCuenta(pedido : any){
+    await this.supabase.actualizarPedido(pedido.id, {
+      solicita_cuenta: true
+    });
   }
 
 

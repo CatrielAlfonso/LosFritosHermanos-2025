@@ -4,131 +4,296 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="container-pedidos">
-  <!-- Estado vacío -->
-  <div *ngIf="pedidosPendientes().length === 0" class="estado-vacio">
-    <ion-icon name="restaurant-outline" class="icono-vacio"></ion-icon>
-    <h2>No hay pedidos pendientes</h2>
-    <p>Los pedidos nuevos aparecerán aquí</p>
-  </div>
 
-  <!-- Lista de pedidos -->
-  <div *ngIf="pedidosPendientes().length > 0" class="lista-pedidos">
-    <div *ngFor="let pedido of pedidosPendientes()" class="pedido-item">
-      <div class="pedido-header">
-        <div class="pedido-info">
-          <h2 class="mesa-numero">Mesa {{pedido.mesa}}</h2>
-          <p class="pedido-hora">{{pedido.fecha_pedido | date:'HH:mm'}}</p>
-        </div>
-        <div class="pedido-total">
-          <span class="total-pedido">{{pedido.total | currency}}</span>
-        </div>
-      </div>
+<ion-segment [value]="segmentoActivo" (ionChange)="cambiarSegmento($event)">
+  <ion-segment-button value="activos">
+    <ion-label>Pedidos Activos</ion-label>
+  </ion-segment-button>
+  <ion-segment-button value="historial">
+    <ion-label>Historial</ion-label>
+  </ion-segment-button>
+</ion-segment>
 
-      <!-- Observaciones generales -->
-      <div *ngIf="pedido.observaciones_generales" class="observaciones-generales">
-        <ion-icon name="document-text-outline"></ion-icon>
-        <span>{{pedido.observaciones_generales}}</span>
-      </div>
 
-      <!-- Acordeón de categorías -->
-      <div class="categorias-container">
-        <!-- Comidas -->
-        <div *ngIf="pedido.comidas && pedido.comidas.length > 0" class="categoria-item">
-          <div class="categoria-header" (click)="toggleCategoria(pedido.id, 'comidas')">
-            <div class="categoria-titulo">
-              <ion-icon name="fast-food-outline"></ion-icon>
-              <span>Comidas ({{pedido.comidas.length}})</span>
-            </div>
-            <ion-icon 
-              [name]="categoriaAbierta(pedido.id, 'comidas') ? 'chevron-up-outline' : 'chevron-down-outline'"
-              class="categoria-flecha">
-            </ion-icon>
+@if(segmentoActivo === 'activos'){
+
+  <ion-content class="container-pedidos">
+    <!-- Estado vacío -->
+    <div *ngIf="pedidosPendientes().length === 0" class="estado-vacio">
+      <ion-icon name="restaurant-outline" class="icono-vacio"></ion-icon>
+      <h2>No hay pedidos pendientes</h2>
+      <p>Los pedidos nuevos aparecerán aquí</p>
+    </div>
+  
+  
+    <!-- Lista de pedidos -->
+    <div *ngIf="pedidosPendientes().length > 0" class="lista-pedidos">
+      <div *ngFor="let pedido of pedidosPendientes()" class="pedido-item">
+        <div class="pedido-header">
+          <div class="pedido-info">
+            <h2 class="mesa-numero">Mesa {{pedido.mesa}}</h2>
+            <p class="pedido-hora">{{pedido.fecha_pedido | date:'HH:mm'}}</p>
           </div>
-          <div *ngIf="categoriaAbierta(pedido.id, 'comidas')" class="categoria-contenido">
-            <div *ngFor="let comida of pedido.comidas" class="producto-item">
-              <div class="producto-info">
-                <h3 class="producto-nombre">{{comida.nombre}}</h3>
-                <p class="producto-cantidad">Cantidad: {{comida.cantidad}}</p>
-                <p *ngIf="comida.observaciones" class="producto-observaciones">
-                  {{comida.observaciones}}
-                </p>
-              </div>
-              <div class="producto-precio">
-                {{comida.precioTotal | currency}}
-              </div>
-            </div>
+          <div class="pedido-total">
+            <span class="total-pedido">{{pedido.cuenta | currency}}</span>
           </div>
         </div>
-
-        <!-- Bebidas -->
-        <div *ngIf="pedido.bebidas && pedido.bebidas.length > 0" class="categoria-item">
-          <div class="categoria-header" (click)="toggleCategoria(pedido.id, 'bebidas')">
-            <div class="categoria-titulo">
-              <ion-icon name="wine-outline"></ion-icon>
-              <span>Bebidas ({{pedido.bebidas.length}})</span>
-            </div>
-            <ion-icon 
-              [name]="categoriaAbierta(pedido.id, 'bebidas') ? 'chevron-up-outline' : 'chevron-down-outline'"
-              class="categoria-flecha">
-            </ion-icon>
+  
+        <!-- Estados de preparación -->
+        <div class="estados-preparacion">
+          <div *ngIf="pedido.comidas.length > 0" class="estado-item" 
+               [class.estado-listo]="pedido.estado_comida === 'listo'">
+            <ion-icon [name]="pedido.estado_comida === 'listo' ? 'checkmark-circle' : 'time'"></ion-icon>
+            <span>Cocina: {{getEstadoTexto(pedido.estado_comida)}}</span>
           </div>
-          <div *ngIf="categoriaAbierta(pedido.id, 'bebidas')" class="categoria-contenido">
-            <div *ngFor="let bebida of pedido.bebidas" class="producto-item">
-              <div class="producto-info">
-                <h3 class="producto-nombre">{{bebida.nombre}}</h3>
-                <p class="producto-cantidad">Cantidad: {{bebida.cantidad}}</p>
-                <p *ngIf="bebida.observaciones" class="producto-observaciones">
-                  {{bebida.observaciones}}
-                </p>
+          <div *ngIf="pedido.bebidas.length > 0" class="estado-item"
+               [class.estado-listo]="pedido.estado_bebida === 'listo'">
+            <ion-icon [name]="pedido.estado_bebida === 'listo' ? 'checkmark-circle' : 'time'"></ion-icon>
+            <span>Bar: {{getEstadoTexto(pedido.estado_bebida)}}</span>
+          </div>
+        </div>
+  
+  
+        <!-- Observaciones generales -->
+        <div *ngIf="pedido.observaciones_generales" class="observaciones-generales">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <span>{{pedido.observaciones_generales}}</span>
+        </div>
+  
+        <!-- Acordeón de categorías -->
+        <div class="categorias-container">
+          <!-- Comidas -->
+          <div *ngIf="pedido.comidas && pedido.comidas.length > 0" class="categoria-item">
+            <div class="categoria-header" (click)="toggleCategoria(pedido.id, 'comidas')">
+              <div class="categoria-titulo">
+                <ion-icon name="fast-food-outline"></ion-icon>
+                <span>Comidas ({{pedido.comidas.length}})</span>
               </div>
-              <div class="producto-precio">
-                {{bebida.precioTotal | currency}}
+              <ion-icon 
+                [name]="categoriaAbierta(pedido.id, 'comidas') ? 'chevron-up-outline' : 'chevron-down-outline'"
+                class="categoria-flecha">
+              </ion-icon>
+            </div>
+            <div *ngIf="categoriaAbierta(pedido.id, 'comidas')" class="categoria-contenido">
+              <div *ngFor="let comida of pedido.comidas" class="producto-item">
+                <div class="producto-info">
+                  <h3 class="producto-nombre">{{comida.nombre}}</h3>
+                  <p class="producto-cantidad">Cantidad: {{comida.cantidad}}</p>
+                  <p *ngIf="comida.observaciones" class="producto-observaciones">
+                    {{comida.observaciones}}
+                  </p>
+                </div>
+                <div class="producto-precio">
+                  {{comida.precioTotal | currency}}
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Bebidas -->
+          <div *ngIf="pedido.bebidas && pedido.bebidas.length > 0" class="categoria-item">
+            <div class="categoria-header" (click)="toggleCategoria(pedido.id, 'bebidas')">
+              <div class="categoria-titulo">
+                <ion-icon name="wine-outline"></ion-icon>
+                <span>Bebidas ({{pedido.bebidas.length}})</span>
+              </div>
+              <ion-icon 
+                [name]="categoriaAbierta(pedido.id, 'bebidas') ? 'chevron-up-outline' : 'chevron-down-outline'"
+                class="categoria-flecha">
+              </ion-icon>
+            </div>
+            <div *ngIf="categoriaAbierta(pedido.id, 'bebidas')" class="categoria-contenido">
+              <div *ngFor="let bebida of pedido.bebidas" class="producto-item">
+                <div class="producto-info">
+                  <h3 class="producto-nombre">{{bebida.nombre}}</h3>
+                  <p class="producto-cantidad">Cantidad: {{bebida.cantidad}}</p>
+                  <p *ngIf="bebida.observaciones" class="producto-observaciones">
+                    {{bebida.observaciones}}
+                  </p>
+                </div>
+                <div class="producto-precio">
+                  {{bebida.precioTotal | currency}}
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Postres -->
+          <div *ngIf="pedido.postres && pedido.postres.length > 0" class="categoria-item">
+            <div class="categoria-header" (click)="toggleCategoria(pedido.id, 'postres')">
+              <div class="categoria-titulo">
+                <ion-icon name="ice-cream-outline"></ion-icon>
+                <span>Postres ({{pedido.postres.length}})</span>
+              </div>
+              <ion-icon 
+                [name]="categoriaAbierta(pedido.id, 'postres') ? 'chevron-up-outline' : 'chevron-down-outline'"
+                class="categoria-flecha">
+              </ion-icon>
+            </div>
+            <div *ngIf="categoriaAbierta(pedido.id, 'postres')" class="categoria-contenido">
+              <div *ngFor="let postre of pedido.postres" class="producto-item">
+                <div class="producto-info">
+                  <h3 class="producto-nombre">{{postre.nombre}}</h3>
+                  <p class="producto-cantidad">Cantidad: {{postre.cantidad}}</p>
+                  <p *ngIf="postre.observaciones" class="producto-observaciones">
+                    {{postre.observaciones}}
+                  </p>
+                </div>
+                <div class="producto-precio">
+                  {{postre.precioTotal | currency}}
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Postres -->
-        <div *ngIf="pedido.postres && pedido.postres.length > 0" class="categoria-item">
-          <div class="categoria-header" (click)="toggleCategoria(pedido.id, 'postres')">
-            <div class="categoria-titulo">
-              <ion-icon name="ice-cream-outline"></ion-icon>
-              <span>Postres ({{pedido.postres.length}})</span>
-            </div>
-            <ion-icon 
-              [name]="categoriaAbierta(pedido.id, 'postres') ? 'chevron-up-outline' : 'chevron-down-outline'"
-              class="categoria-flecha">
-            </ion-icon>
+  
+        <!-- Botones de acción -->
+        <div class="pedido-actions">
+  
+          <!-- Para pedidos pendientes -->
+          <div *ngIf="pedido.estado === 'pendiente'" class="acciones-pendientes">
+            <button class="btn-rechazar" (click)="rechazarPedido(pedido)">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              Rechazar
+            </button>
+            <button class="btn-aceptar" (click)="aceptarPedido(pedido)">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              Aceptar
+            </button>
           </div>
-          <div *ngIf="categoriaAbierta(pedido.id, 'postres')" class="categoria-contenido">
-            <div *ngFor="let postre of pedido.postres" class="producto-item">
-              <div class="producto-info">
-                <h3 class="producto-nombre">{{postre.nombre}}</h3>
-                <p class="producto-cantidad">Cantidad: {{postre.cantidad}}</p>
-                <p *ngIf="postre.observaciones" class="producto-observaciones">
-                  {{postre.observaciones}}
-                </p>
-              </div>
-              <div class="producto-precio">
-                {{postre.precioTotal | currency}}
-              </div>
+  
+          <!-- Para pedidos listos para entregar -->
+          <div *ngIf="pedido.estado === 'en preparacion' && estaListoParaEntregar(pedido)" 
+               class="acciones-listo">
+            <button class="btn-entregar" (click)="entregarPedido(pedido)">
+              <ion-icon name="checkmark-done-outline"></ion-icon>
+              Entregar Pedido
+            </button>
+          </div>
+  
+          <!-- Para pedidos en preparación (aún no listos) -->
+          <div *ngIf="pedido.estado === 'en preparacion' && !estaListoParaEntregar(pedido)" 
+               class="acciones-preparacion">
+            <div class="esperando-preparacion">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>Esperando preparación...</span>
             </div>
           </div>
+  
+          
         </div>
-      </div>
-
-      <!-- Botones de acción -->
-      <div class="pedido-actions">
-        <button class="btn-rechazar" (click)="rechazarPedido(pedido)">
-          <ion-icon name="close-circle-outline"></ion-icon>
-          Rechazar
-        </button>
-        <button class="btn-aceptar">
-          <ion-icon name="checkmark-circle-outline"></ion-icon>
-          Aceptar
-        </button>
       </div>
     </div>
-  </div>
-</ion-content>
+  </ion-content>
+}
+@if(segmentoActivo === 'historial'){
+  <ion-content class="container-pedidos">
+    <!-- Estado vacío historial -->
+    <div *ngIf="pedidosHistorial().length === 0" class="estado-vacio">
+      <ion-icon name="archive-outline" class="icono-vacio"></ion-icon>
+      <h2>No hay historial de pedidos</h2>
+      <p>Los pedidos entregados o cancelados aparecerán aquí</p>
+    </div>
+
+    <!-- Lista de historial -->
+    <div *ngIf="pedidosHistorial().length > 0" class="lista-pedidos">
+      <div *ngFor="let pedido of pedidosHistorial()" class="pedido-item" 
+           [class.pedido-entregado]="pedido.estado === 'entregado'"
+           [class.pedido-cancelado]="pedido.estado === 'cancelado'">
+        
+        <div class="pedido-header">
+          <div class="pedido-info">
+            <h2 class="mesa-numero">Mesa {{pedido.mesa}}</h2>
+            <p class="pedido-hora">{{pedido.fecha_pedido | date:'dd/MM HH:mm'}}</p>
+          </div>
+          <div class="pedido-total">
+            <span class="total-pedido">{{pedido.cuenta | currency}}</span>
+            <div class="estado-badge" [class]="'estado-' + pedido.estado">
+              {{getEstadoTexto(pedido.estado)}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Boton para hbilitar la cuenta -->
+        <div *ngIf="pedido.solicita_cuenta" class="solicitud-cuenta">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>Cliente solicita cuenta</span>
+          <button class="btn-habilitar-cuenta" (click)="habilitarCuenta(pedido)">
+            Habilitar Cuenta
+          </button>
+        </div>
+
+        <!-- Resumen del pedido -->
+        <div class="resumen-pedido">
+          <div class="resumen-item" *ngIf="pedido.comidas.length > 0">
+            <ion-icon name="fast-food-outline"></ion-icon>
+            <span>{{pedido.comidas.length}} comida(s)</span>
+          </div>
+          <div class="resumen-item" *ngIf="pedido.bebidas.length > 0">
+            <ion-icon name="wine-outline"></ion-icon>
+            <span>{{pedido.bebidas.length}} bebida(s)</span>
+          </div>
+          <div class="resumen-item" *ngIf="pedido.postres.length > 0">
+            <ion-icon name="ice-cream-outline"></ion-icon>
+            <span>{{pedido.postres.length}} postre(s)</span>
+          </div>
+        </div>
+
+        <!-- Motivo de cancelación -->
+        <div *ngIf="pedido.estado === 'cancelado' && pedido.motivo_rechazo" 
+             class="motivo-cancelacion">
+          <ion-icon name="warning-outline"></ion-icon>
+          <div class="motivo-content">
+            <strong>Motivo:</strong>
+            <p>{{pedido.motivo_rechazo}}</p>
+          </div>
+        </div>
+
+        <!-- Botón ver detalles -->
+        <div class="pedido-actions">
+          <button class="btn-detalles" (click)="toggleCategoria(pedido.id, 'detalles')">
+            <ion-icon name="chevron-down-outline"></ion-icon>
+            Ver Detalles
+          </button>
+        </div>
+
+        <!-- Detalles expandidos -->
+        <div *ngIf="categoriaAbierta(pedido.id, 'detalles')" class="detalles-contenido">
+          <!-- Acordeón de categorías (mismo que en activos) -->
+          <div class="categorias-container">
+            <!-- Comidas -->
+            <div *ngIf="pedido.comidas && pedido.comidas.length > 0" class="categoria-item">
+              <div class="categoria-header" (click)="toggleCategoria(pedido.id, 'comidas')">
+                <div class="categoria-titulo">
+                  <ion-icon name="fast-food-outline"></ion-icon>
+                  <span>Comidas ({{pedido.comidas.length}})</span>
+                </div>
+                <ion-icon 
+                  [name]="categoriaAbierta(pedido.id, 'comidas') ? 'chevron-up-outline' : 'chevron-down-outline'"
+                  class="categoria-flecha">
+                </ion-icon>
+              </div>
+              <div *ngIf="categoriaAbierta(pedido.id, 'comidas')" class="categoria-contenido">
+                <div *ngFor="let comida of pedido.comidas" class="producto-item">
+                  <div class="producto-info">
+                    <h3 class="producto-nombre">{{comida.nombre}}</h3>
+                    <p class="producto-cantidad">Cantidad: {{comida.cantidad}}</p>
+                    <p *ngIf="comida.observaciones" class="producto-observaciones">
+                      {{comida.observaciones}}
+                    </p>
+                  </div>
+                  <div class="producto-precio">
+                    {{comida.precioTotal | currency}}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bebidas y Postres (misma estructura que comidas) -->
+            <!-- ... -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-content>
+}

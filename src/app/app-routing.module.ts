@@ -115,9 +115,23 @@ const routes: Routes = [
   {
     path: 'atrapa-el-pollo',
     loadComponent: () => import('./games/atrapa-el-pollo/atrapa-el-pollo.component').then(m => m.AtrapaElPolloComponent)
-  }
-
-  
+  },
+  {
+    path: 'cocina',
+    loadComponent: () => import('./componentes/cocina/cocina.component').then(m => m.CocinaComponent)
+  },
+  {
+    path: 'bar',
+    loadComponent: () => import('./componentes/bar/bar.component').then(m => m.BarComponent)
+  },
+ {
+    path: 'encuestas',
+    loadComponent: () => import('./componentes/encuestas/encuestas.component').then(m => m.EncuestasComponent)
+  },
+  {
+    path: 'mayor-menor',
+    loadComponent: () => import('./games/mayor-menor/mayor-menor.component').then(m => m.MayorMenorComponent)
+  }, 
  
 ];
 

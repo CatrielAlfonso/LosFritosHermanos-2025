@@ -23,15 +23,17 @@ export interface Pedido {
   confirmado : boolean
   mesa : string
   estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'cancelado' | 'rechazado'
-  estado_comida : 'listo' | 'en preparacion' | 'cancelado'
-  estado_bebida : 'listo' | 'en preparacion' | 'cancelado'
-  estado_postre : 'listo' | 'en preparacion' | 'cancelado'
+  estado_comida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
+  estado_bebida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
+  estado_postre : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
   recepcion : boolean
   pagado : number
   cuenta: number               
   fecha_pedido: any
   motivo_rechazo : string
   observaciones_generales?: string; 
+  solicita_cuenta?: boolean
+  cuenta_habilitada?: boolean
 }
 
 
@@ -191,15 +193,15 @@ export class CarritoService {
       cliente_id: clienteId,
       comidas: comidas,
       bebidas: bebidas,
-      postres: postres, // Por ahora vacío
+      postres: postres, 
       precio: total,
       tiempo_estimado: tiempoElaboracion,
       confirmado: false,
       mesa: mesa,
       estado: 'pendiente',
-      estado_comida: comidas.length > 0 ? 'en preparacion' : 'listo',
-      estado_bebida: bebidas.length > 0 ? 'en preparacion' : 'listo',
-      estado_postre: 'listo', // Por defecto
+      estado_comida: 'pendiente',
+      estado_bebida: 'pendiente',
+      estado_postre: 'pendiente', 
       recepcion: false,
       pagado: 0,
       cuenta: total,
@@ -218,7 +220,59 @@ export class CarritoService {
     return Math.max(...tiempos);
   }
 
+  cargarPedidoAlCarrito(pedido: Pedido) {
+    this.limpiarCarrito();
+    
+    pedido.comidas.forEach(comida => {
+      const cartItem: CartItem = {
+        id: this.generarIdUnico(),
+        productoId: comida.id,
+        nombre: comida.nombre,
+        tipo: 'comida' as const,
+        tiempoElaboracion: comida.tiempoElaboracion,
+        precioUnitario: comida.precioUnitario,
+        cantidad: comida.cantidad,
+        observaciones: comida.observaciones,
+        imagen: comida.imagen, 
+        precioTotal: comida.precioTotal
+      };
+      this.cartItems.update(items => [...items, cartItem]);
+    });
 
+    pedido.bebidas.forEach(bebida => {
+      const cartItem: CartItem = {
+        id: this.generarIdUnico(),
+        productoId: bebida.id,
+        nombre: bebida.nombre,
+        tipo: 'bebida' as const,
+        tiempoElaboracion: bebida.tiempoElaboracion,
+        precioUnitario: bebida.precioUnitario,
+        cantidad: bebida.cantidad,
+        observaciones: bebida.observaciones,
+        imagen: bebida.imagen,
+        precioTotal: bebida.precioTotal
+      };
+      this.cartItems.update(items => [...items, cartItem]);
+    });
+
+    pedido.postres.forEach(postre => {
+      const cartItem: CartItem = {
+        id: this.generarIdUnico(),
+        productoId: postre.id,
+        nombre: postre.nombre,
+        tipo: 'postre' as const,
+        tiempoElaboracion: postre.tiempoElaboracion,
+        precioUnitario: postre.precioUnitario,
+        cantidad: postre.cantidad,
+        observaciones: postre.observaciones,
+        imagen: postre.imagen,
+        precioTotal: postre.precioTotal
+      };
+      this.cartItems.update(items => [...items, cartItem]);
+    });
+
+    console.log('🔄 Pedido cargado al carrito:', this.cartItems().length, 'items');
+  }
 
 
 
