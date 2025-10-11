@@ -9,35 +9,23 @@ const app = express();
 const port = process.env.PORT || 3000;
 const { initializeApp, applicationDefault } = require('firebase-admin/app');
 
-// Configuración de CORS para permitir peticiones desde la app móvil
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Permitir peticiones sin origen (apps móviles, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    // Permitir todos los orígenes (puedes restringir esto después)
-    callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Length', 'X-Request-Id'],
-  maxAge: 86400 // 24 horas
-};
-
-app.use(cors(corsOptions));
-// Habilitar preflight request para todas las rutas
+// Configuración simplificada de CORS para permitir todas las peticiones
 app.use((req, res, next) => {
+  // Permitir cualquier origen
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  // Responder inmediatamente a las peticiones OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400');
-    return res.status(200).json({});
+    return res.status(200).end();
   }
+  
   next();
 });
+
 app.use(express.json());
 
 // Initialize Supabase
