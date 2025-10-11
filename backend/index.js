@@ -580,6 +580,212 @@ app.post("/enviar-correo-rechazo", async (req, res) => {
   }
 });
 
+app.post("/enviar-correo-aceptacion", async (req, res) => {
+  const { correo, nombre, apellido } = req.body;
+  
+  if (!correo || !nombre) {
+    return res.status(400).send({ error: "Correo y nombre son requeridos." });
+  }
+  
+  try {
+    const { sendEmail } = require('./services/email.service');
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset="utf-8">
+          <title>Registro Aceptado - Los Fritos Hermanos</title>
+          <style>
+              body {
+                  font-family: 'Arial', sans-serif;
+                  line-height: 1.6;
+                  color: #333;
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  background-color: #f4f4f4;
+              }
+              .container {
+                  background-color: #ffffff;
+                  border-radius: 10px;
+                  overflow: hidden;
+                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+              }
+              .header {
+                  text-align: center;
+                  padding: 30px 20px;
+                  background: linear-gradient(135deg, #228B22 0%, #006400 100%);
+              }
+              .logo {
+                  width: 180px;
+                  height: auto;
+                  margin-bottom: 15px;
+              }
+              .header-title {
+                  color: #FFD700;
+                  font-size: 28px;
+                  font-family: 'Georgia', serif;
+                  margin: 0;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+              }
+              .content {
+                  padding: 30px;
+              }
+              .greeting {
+                  font-size: 18px;
+                  color: #228B22;
+                  font-weight: bold;
+                  margin-bottom: 20px;
+              }
+              .message {
+                  font-size: 16px;
+                  color: #333;
+                  line-height: 1.8;
+                  margin-bottom: 15px;
+              }
+              .success-box {
+                  background-color: #f0fff0;
+                  border-left: 4px solid #228B22;
+                  padding: 15px;
+                  margin: 20px 0;
+                  border-radius: 5px;
+              }
+              .success-title {
+                  font-size: 17px;
+                  color: #228B22;
+                  font-weight: bold;
+                  margin-bottom: 10px;
+              }
+              .benefit-list {
+                  margin: 10px 0;
+                  padding-left: 20px;
+              }
+              .benefit-list li {
+                  margin: 8px 0;
+                  color: #555;
+              }
+              .access-button {
+                  display: inline-block;
+                  padding: 12px 30px;
+                  background: linear-gradient(135deg, #228B22 0%, #006400 100%);
+                  color: #ffffff !important;
+                  text-decoration: none;
+                  border-radius: 25px;
+                  margin-top: 20px;
+                  font-weight: bold;
+                  font-size: 16px;
+                  box-shadow: 0 4px 8px rgba(34, 139, 34, 0.3);
+                  transition: all 0.3s ease;
+              }
+              .access-button:hover {
+                  transform: translateY(-2px);
+                  box-shadow: 0 6px 12px rgba(34, 139, 34, 0.4);
+              }
+              .button-container {
+                  text-align: center;
+                  margin-top: 25px;
+              }
+              .footer {
+                  text-align: center;
+                  font-size: 14px;
+                  color: #666;
+                  margin-top: 30px;
+                  padding: 20px;
+                  background-color: #f9f9f9;
+                  border-top: 2px solid #228B22;
+              }
+              .footer-note {
+                  font-size: 13px;
+                  color: #999;
+                  margin-top: 10px;
+              }
+              .logo-footer {
+                  font-family: 'Georgia', serif;
+                  color: #B22222;
+                  font-weight: bold;
+                  font-size: 16px;
+              }
+              .celebration {
+                  font-size: 48px;
+                  text-align: center;
+                  margin: 20px 0;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="header">
+                  <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Los Fritos Hermanos Logo" class="logo">
+                  <h1 class="header-title">Los Fritos Hermanos</h1>
+              </div>
+              
+              <div class="content">
+                  <div class="celebration">🎉</div>
+                  <p class="greeting">¡Felicitaciones ${nombre} ${apellido || ''}!</p>
+                  
+                  <p class="message">
+                      Nos complace informarte que tu solicitud de registro en <strong>Los Fritos Hermanos</strong> 
+                      ha sido <strong>ACEPTADA</strong> exitosamente.
+                  </p>
+                  
+                  <div class="success-box">
+                      <p class="success-title">✅ Ahora puedes disfrutar de:</p>
+                      <ul class="benefit-list">
+                          <li>Acceso completo a nuestra aplicación</li>
+                          <li>Reservar mesas en cualquier momento</li>
+                          <li>Ver nuestro menú completo y hacer pedidos</li>
+                          <li>Recibir notificaciones sobre tus reservas</li>
+                          <li>Disfrutar de la mejor experiencia gastronómica</li>
+                      </ul>
+                  </div>
+                  
+                  <p class="message">
+                      Ya puedes iniciar sesión en la aplicación con tu correo electrónico y comenzar a disfrutar 
+                      de todos los servicios que <strong>Los Fritos Hermanos</strong> tiene para ofrecerte.
+                  </p>
+                  
+                  <p class="message">
+                      ¡Te esperamos pronto en nuestro restaurante! 🌮
+                  </p>
+                  
+                  <div class="button-container">
+                      <a href="#" class="access-button">
+                          🍽️ Iniciar Sesión Ahora
+                      </a>
+                  </div>
+              </div>
+              
+              <div class="footer">
+                  <p class="logo-footer">🌮 Los Fritos Hermanos 🌮</p>
+                  <p>© 2025 Los Fritos Hermanos. Todos los derechos reservados.</p>
+                  <p class="footer-note">Este es un correo automático, por favor no responder directamente.</p>
+              </div>
+          </div>
+      </body>
+      </html>
+    `;
+    
+    const result = await sendEmail({
+      to: correo,
+      subject: '✅ ¡Bienvenido a Los Fritos Hermanos! Registro Aceptado',
+      text: `¡Felicitaciones ${nombre} ${apellido || ''}! Tu solicitud de registro en Los Fritos Hermanos ha sido aceptada. Ya puedes iniciar sesión en la aplicación y disfrutar de todos nuestros servicios.`,
+      html: htmlContent
+    });
+    
+    res.status(200).send({ 
+      success: true, 
+      message: "Correo de aceptación enviado exitosamente",
+      result 
+    });
+  } catch (error) {
+    console.error("Error al enviar correo de aceptación:", error);
+    res.status(500).send({ 
+      error: `Error al enviar correo: ${error.message}` 
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
