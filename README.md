@@ -70,17 +70,17 @@ Permite gestionar mesas, pedidos, clientes registrados o anónimos, juegos con d
 | 7     | Tomas       | master/punto-7-rechazo-cliente   | ✅ Completado  | 24/09/2025 | -- |
 | 8     | Tomas       | master/punto-8-aceptacion-cliente| ✅ Completado| 24/09/2025 | -- |
 | 9     | Catriel     | master/punto-9-cliente-anonimo   | ✅ Completado | 19/09/2025 | ... |
-| 10    | Tomas       | master/punto-10-asignacion-mesa  | 🚧 En progreso| -- | -- |
-| 11    | Lucas       | master/punto-11-menu-consulta    | 🚧 En progreso   | -- | -- |
-| 12    | Lucas      | master/punto-12-pedido           | 🚧 En progreso | -- | -- |
-| 13    | Tomas       | master/punto-13-rechazo-pedido   | 🚧 En progreso | -- | -- |
-| 14    | Lucas       | master/punto-14-confirmar-pedido | 🚧 En progreso | -- | -- |
-| 15    | Catriel     | master/punto-15-bar              | 🚧 En progreso | -- | -- |
-| 16    | Tomas       | master/punto-16-cocina           | ⏳ Pendiente | -- | -- |
-| 17    | Lucas       | master/punto-17-juegos           | 🚧 En progreso | 12/09/2025 | ... |
+| 10    | Catriel       | master/punto-10-asignacion-mesa  | 🚧 En progreso| -- | -- |
+| 11    | Lucas       | master/punto-11-menu-consulta    | ✅ Completado    | -- | -- |
+| 12    | Lucas      | master/punto-12-pedido           | ✅ Completado   | -- | -- |
+| 13    | Tomas       | master/punto-13-rechazo-pedido   | ✅ Completado   | -- | -- |
+| 14    | Lucas       | master/punto-14-confirmar-pedido | ✅ Completado  | -- | -- |
+| 15    | Lucas     | master/punto-15-bar              | 🚧 En progreso | -- | -- |
+| 16    | Lucas       | master/punto-16-cocina           | ✅ Completado  | -- | -- |
+| 17    | Lucas-Catriel       | master/punto-17-juegos           | 🚧 En progreso | 12/09/2025 | ... |
 | 18    | Catriel     | master/punto-18-confirmar-sectores| ⏳ Pendiente | -- | -- |
 | 19    | Tomas       | master/punto-19-entrega-pedido   | ⏳ Pendiente | -- | -- |
-| 20    | Lucas       | master/punto-20-encuesta         | ⏳ Pendiente | -- | -- |
+| 20    | Catriel       | master/punto-20-encuesta         | ✅ Completado  | 10/10/2025 | 10/10/2025 |
 | 21    | Catriel     | master/punto-21-cuenta-pago      | ⏳ Pendiente | -- | -- |
 | 22    | Catriel     | master/punto-22-confirmar-pago   | ⏳ Pendiente | -- | -- |
 

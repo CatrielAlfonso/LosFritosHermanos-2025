@@ -72,18 +72,48 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.85); /* Oscuro para resaltar el menú */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding: 20px;
   z-index: 20;
   
   h1, p, ion-button {
     color: white;
     text-align: center;
-    margin: 10px;
+    margin: 10px 0;
   }
+}
+
+.resultado-final {
+    text-align: center;
+    .score-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .data-score {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #ff9800; /* Naranja Frito */
+    }
+    .data-desc {
+        font-size: 3em;
+        font-weight: 900;
+        color: #4caf50; /* Verde éxito */
+    }
+    .mensaje-desc {
+        margin-bottom: 30px;
+        p {
+            font-size: 1.1em;
+        }
+    }
 }
 
 .score-display {
@@ -93,9 +123,10 @@
     padding: 10px;
     background: rgba(255, 255, 255, 0.8);
     border-radius: 5px;
+    font-weight: bold;
+    color: #333;
     z-index: 15;
 }
-
 // .pollo {
 //   // Mantener los estilos de posición, pero ajustar el tamaño de la imagen
 //   left: 10%; 
@@ -131,4 +162,11 @@
   width: 100%;
   background: #28a745; /* Color verde tubería/hueso */
   border: 4px solid #1e7e34;
+}
+
+.fritos-subtitle
+{
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    color: #fff;
 }
