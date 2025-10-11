@@ -34,6 +34,17 @@ export class PedidosMozoComponent  implements OnInit {
   );
 });
 
+pedidosHistorial = computed(() => {
+  const todosPedidos = this.sb.todosLosPedidos();
+  
+  return todosPedidos.filter(pedido => 
+    pedido.estado === 'entregado' || 
+    pedido.estado === 'cancelado'
+  ).sort((a, b) => new Date(b.fecha_pedido).getTime() - new Date(a.fecha_pedido).getTime());
+});
+
+segmentoActivo = 'activos';
+
   constructor(private sb : SupabaseService,
     private toastController: ToastController,
     private alertController: AlertController
@@ -46,6 +57,35 @@ export class PedidosMozoComponent  implements OnInit {
     console.log('Pedidos iniciales:', this.pedidosPendientes());
     this.sb.getPedidos();
     
+  }
+
+  cambiarSegmento(event: any) {
+    this.segmentoActivo = event.detail.value;
+  }
+
+  async habilitarCuenta(pedido : any){
+    try{
+      const {data, error} = await this.sb.actualizarPedido(pedido.id, {
+        solicita_cuenta: false, 
+        cuenta_habilitada: true,
+      });
+      if(error) throw error
+
+      await this.sb.actualizarMesa(parseInt(pedido.mesa), {
+        pedido_id: pedido.id
+      });
+
+
+      const toast = await this.toastController.create({
+        message: `Cuenta habilitada para mesa ${pedido.mesa}`,
+        duration: 3000,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+    }catch(error){
+      console.log('error al habilitar la cuenta', error)
+    }
   }
 
   async aceptarPedido(pedido: any) {
