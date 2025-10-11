@@ -210,7 +210,10 @@ export class PushNotificationService {
       const response = await fetch(`${this.backendUrl}/notify-supervisors-new-client`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          "Access-Control-Allow-Headers" : "Content-Type",
+          "Access-Control-Allow-Origin": "*",
+        'Content-Type': 'application/json',
+         "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PATCH",
         },
         body: JSON.stringify({
           clienteNombre,
@@ -282,10 +285,12 @@ export class PushNotificationService {
       const emailResponse = await fetch(emailUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': window.location.origin
+          "Access-Control-Allow-Headers" : "Content-Type",
+          "Access-Control-Allow-Origin": "*",
+        'Content-Type': 'application/json',
+         "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PATCH"
         },
+        credentials: 'omit',
         body: JSON.stringify(emailBody),
       });
 
