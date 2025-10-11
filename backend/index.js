@@ -356,6 +356,201 @@ app.post("/clear-fcm-token", async (req, res) => {
   }
 });
 
+app.post("/enviar-correo-rechazo", async (req, res) => {
+  const { correo, nombre, apellido } = req.body;
+  
+  if (!correo || !nombre) {
+    return res.status(400).send({ error: "Correo y nombre son requeridos." });
+  }
+  
+  try {
+    const { sendEmail } = require('./services/email.service');
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset="utf-8">
+          <title>Registro Rechazado - Los Fritos Hermanos</title>
+          <style>
+              body {
+                  font-family: 'Arial', sans-serif;
+                  line-height: 1.6;
+                  color: #333;
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  background-color: #f4f4f4;
+              }
+              .container {
+                  background-color: #ffffff;
+                  border-radius: 10px;
+                  overflow: hidden;
+                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+              }
+              .header {
+                  text-align: center;
+                  padding: 30px 20px;
+                  background: linear-gradient(135deg, #B22222 0%, #8B0000 100%);
+              }
+              .logo {
+                  width: 180px;
+                  height: auto;
+                  margin-bottom: 15px;
+              }
+              .header-title {
+                  color: #FFD700;
+                  font-size: 28px;
+                  font-family: 'Georgia', serif;
+                  margin: 0;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+              }
+              .content {
+                  padding: 30px;
+              }
+              .greeting {
+                  font-size: 18px;
+                  color: #B22222;
+                  font-weight: bold;
+                  margin-bottom: 20px;
+              }
+              .message {
+                  font-size: 16px;
+                  color: #333;
+                  line-height: 1.8;
+                  margin-bottom: 15px;
+              }
+              .reason-box {
+                  background-color: #fff8dc;
+                  border-left: 4px solid #B22222;
+                  padding: 15px;
+                  margin: 20px 0;
+                  border-radius: 5px;
+              }
+              .reason-title {
+                  font-size: 17px;
+                  color: #B22222;
+                  font-weight: bold;
+                  margin-bottom: 10px;
+              }
+              .reason-list {
+                  margin: 10px 0;
+                  padding-left: 20px;
+              }
+              .reason-list li {
+                  margin: 8px 0;
+                  color: #555;
+              }
+              .contact-button {
+                  display: inline-block;
+                  padding: 12px 30px;
+                  background: linear-gradient(135deg, #B22222 0%, #8B0000 100%);
+                  color: #ffffff !important;
+                  text-decoration: none;
+                  border-radius: 25px;
+                  margin-top: 20px;
+                  font-weight: bold;
+                  font-size: 16px;
+                  box-shadow: 0 4px 8px rgba(178, 34, 34, 0.3);
+                  transition: all 0.3s ease;
+              }
+              .contact-button:hover {
+                  transform: translateY(-2px);
+                  box-shadow: 0 6px 12px rgba(178, 34, 34, 0.4);
+              }
+              .button-container {
+                  text-align: center;
+                  margin-top: 25px;
+              }
+              .footer {
+                  text-align: center;
+                  font-size: 14px;
+                  color: #666;
+                  margin-top: 30px;
+                  padding: 20px;
+                  background-color: #f9f9f9;
+                  border-top: 2px solid #B22222;
+              }
+              .footer-note {
+                  font-size: 13px;
+                  color: #999;
+                  margin-top: 10px;
+              }
+              .logo-footer {
+                  font-family: 'Georgia', serif;
+                  color: #B22222;
+                  font-weight: bold;
+                  font-size: 16px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="header">
+                  <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Los Fritos Hermanos Logo" class="logo">
+                  <h1 class="header-title">Los Fritos Hermanos</h1>
+              </div>
+              
+              <div class="content">
+                  <p class="greeting">Estimado/a ${nombre} ${apellido || ''},</p>
+                  
+                  <p class="message">
+                      Gracias por tu interés en registrarte en <strong>Los Fritos Hermanos</strong>. 
+                      Lamentamos informarte que tu solicitud de registro ha sido <strong>rechazada</strong> en este momento.
+                  </p>
+                  
+                  <div class="reason-box">
+                      <p class="reason-title">📋 Motivos comunes de rechazo:</p>
+                      <ul class="reason-list">
+                          <li>Información incompleta o incorrecta en el formulario</li>
+                          <li>Problemas con la documentación o fotografía proporcionada</li>
+                          <li>Duplicidad de registro con una cuenta existente</li>
+                          <li>No cumplimiento de los requisitos establecidos</li>
+                      </ul>
+                  </div>
+                  
+                  <p class="message">
+                      Si deseas obtener más información sobre esta decisión o intentar registrarte nuevamente 
+                      con la información correcta, no dudes en contactarnos a través de nuestros canales de atención al cliente.
+                  </p>
+                  
+                  <div class="button-container">
+                      <a href="mailto:soporte@fritoshermanos.com" class="contact-button">
+                          📧 Contactar Soporte
+                      </a>
+                  </div>
+              </div>
+              
+              <div class="footer">
+                  <p class="logo-footer">🌮 Los Fritos Hermanos 🌮</p>
+                  <p>© 2025 Los Fritos Hermanos. Todos los derechos reservados.</p>
+                  <p class="footer-note">Este es un correo automático, por favor no responder directamente.</p>
+              </div>
+          </div>
+      </body>
+      </html>
+    `;
+    
+    const result = await sendEmail({
+      to: correo,
+      subject: '❌ Estado de tu Registro - Los Fritos Hermanos',
+      text: `Estimado/a ${nombre} ${apellido || ''}, lamentamos informarte que tu solicitud de registro ha sido rechazada. Para más información, contacta con soporte@fritoshermanos.com`,
+      html: htmlContent
+    });
+    
+    res.status(200).send({ 
+      success: true, 
+      message: "Correo de rechazo enviado exitosamente",
+      result 
+    });
+  } catch (error) {
+    console.error("Error al enviar correo de rechazo:", error);
+    res.status(500).send({ 
+      error: `Error al enviar correo: ${error.message}` 
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
