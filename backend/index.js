@@ -9,7 +9,34 @@ const app = express();
 const port = process.env.PORT || 3000;
 const { initializeApp, applicationDefault } = require('firebase-admin/app');
 
-app.use(cors());
+// Middleware de logging para ver todas las peticiones
+app.use((req, res, next) => {
+  console.log('=== INCOMING REQUEST ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Origin:', req.headers.origin);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  next();
+});
+
+// CORS configurado manualmente con logs
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  console.log('Setting CORS headers for origin:', origin);
+  
+  res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight request');
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 app.use(express.json());
 

@@ -257,43 +257,84 @@ export class PushNotificationService {
 
   async notificarEstadoCliente(clienteEmail: string, nombre: string, apellido: string, estado: 'aceptado' | 'rechazado') {
     try {
-      const pushResponse = await fetch(`${this.backendUrl}/notify-client-status`, {
+      console.log('=== NOTIFICANDO ESTADO CLIENTE ===');
+      console.log('Backend URL:', this.backendUrl);
+      console.log('Cliente Email:', clienteEmail);
+      console.log('Nombre:', nombre);
+      console.log('Estado:', estado);
+
+      const pushUrl = `${this.backendUrl}/notify-client-status`;
+      console.log('Push URL completa:', pushUrl);
+
+      const pushBody = {
+        clienteEmail,
+        nombre,
+        estado
+      };
+      console.log('Push Body:', JSON.stringify(pushBody, null, 2));
+
+      console.log('Enviando petición push...');
+      const pushResponse = await fetch(pushUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          clienteEmail,
-          nombre,
-          estado
-        }),
+        body: JSON.stringify(pushBody),
       });
 
+      console.log('Push Response Status:', pushResponse.status);
+      console.log('Push Response OK:', pushResponse.ok);
+      console.log('Push Response StatusText:', pushResponse.statusText);
+
       if (!pushResponse.ok) {
-        console.error('Error al enviar notificación push:', await pushResponse.text());
+        const errorText = await pushResponse.text();
+        console.error('Error al enviar notificación push:', errorText);
+      } else {
+        const result = await pushResponse.json();
+        console.log('Push Response Success:', result);
       }
 
       if (estado === 'rechazado') {
-        const emailResponse = await fetch(`${this.backendUrl}/enviar-correo-rechazo`, {
+        console.log('=== ENVIANDO CORREO DE RECHAZO ===');
+        const emailUrl = `${this.backendUrl}/enviar-correo-rechazo`;
+        console.log('Email URL completa:', emailUrl);
+
+        const emailBody = {
+          correo: clienteEmail,
+          nombre,
+          apellido
+        };
+        console.log('Email Body:', JSON.stringify(emailBody, null, 2));
+
+        console.log('Enviando petición email...');
+        const emailResponse = await fetch(emailUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            correo: clienteEmail,
-            nombre,
-            apellido
-          }),
+          body: JSON.stringify(emailBody),
         });
 
+        console.log('Email Response Status:', emailResponse.status);
+        console.log('Email Response OK:', emailResponse.ok);
+        console.log('Email Response StatusText:', emailResponse.statusText);
+
         if (!emailResponse.ok) {
-          console.error('Error al enviar correo:', await emailResponse.text());
+          const errorText = await emailResponse.text();
+          console.error('Error al enviar correo:', errorText);
+        } else {
+          const result = await emailResponse.json();
+          console.log('Email Response Success:', result);
         }
       }
 
+      console.log('=== NOTIFICACIÓN COMPLETADA ===');
       return { success: true };
     } catch (error) {
-      console.error('Error al notificar estado del cliente:', error);
+      console.error('=== ERROR EN NOTIFICACIÓN ===');
+      console.error('Error completo:', error);
+      console.error('Error message:', (error as Error).message);
+      console.error('Error stack:', (error as Error).stack);
       throw error;
     }
   }
