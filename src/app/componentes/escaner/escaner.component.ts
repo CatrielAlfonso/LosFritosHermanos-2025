@@ -4,7 +4,7 @@ import { IonContent } from '@ionic/angular/standalone';
 import { ClienteService } from '../../servicios/cliente.service'; 
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
-import { SupabaseService } from 'backend/supabase.service';
+import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { Router } from '@angular/router';
 

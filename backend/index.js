@@ -8,7 +8,25 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3000;
 const { initializeApp, applicationDefault } = require('firebase-admin/app');
-app.use(cors({ origin: true }));
+
+// Configuración de CORS para permitir peticiones desde la app móvil
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir peticiones sin origen (apps móviles, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Permitir todos los orígenes (puedes restringir esto después)
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'X-Request-Id'],
+  maxAge: 86400 // 24 horas
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Habilitar preflight para todas las rutas
 app.use(express.json());
 
 // Initialize Supabase
