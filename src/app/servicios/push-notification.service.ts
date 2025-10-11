@@ -275,6 +275,7 @@ export class PushNotificationService {
 
       if (estado === 'rechazado') {
         const emailResponse = await fetch(`${this.backendUrl}/enviar-correo-rechazo`, {
+          mode: 'no-cors',
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
