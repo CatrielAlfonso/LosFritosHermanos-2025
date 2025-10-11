@@ -9,22 +9,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const { initializeApp, applicationDefault } = require('firebase-admin/app');
 
-// Configuración simplificada de CORS para permitir todas las peticiones
-app.use((req, res, next) => {
-  // Permitir cualquier origen
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Max-Age', '86400');
-  
-  // Responder inmediatamente a las peticiones OPTIONS (preflight)
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
+app.use(cors());
 
 app.use(express.json());
 
