@@ -283,6 +283,8 @@ export class PushNotificationService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin
         },
         body: JSON.stringify(emailBody),
       });
