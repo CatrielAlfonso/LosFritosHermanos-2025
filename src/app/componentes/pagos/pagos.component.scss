@@ -1,0 +1,465 @@
+:host {
+  font-family: sans-serif;
+}
+
+/* Header */
+.header ion-toolbar {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);  
+  --color: var(--ion-color-fritos-blue);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.396);
+}
+
+.titulo-pagos {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Contenido principal */
+.container-pagos {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+/* Estados comunes */
+.estado-contenedor {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 40px 32px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  margin: 20px;
+}
+
+/* Iconos */
+.icono-container {
+  margin-bottom: 24px;
+}
+
+.icono-espera {
+  font-size: 5rem;
+  color: var(--ion-color-warning);
+  opacity: 0.8;
+}
+
+.icono-error {
+  font-size: 5rem;
+  color: var(--ion-color-danger);
+  opacity: 0.8;
+}
+
+.icono-cargando {
+  width: 5rem;
+  height: 5rem;
+  color: var(--ion-color-primary);
+}
+
+/* Textos */
+.mensaje-titulo {
+  color: var(--ion-color-fritos-blue);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  line-height: 1.3;
+}
+
+.mensaje-descripcion {
+  color: var(--ion-color-fritos-blue);
+  opacity: 0.8;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+/* Info mesa */
+.info-mesa {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8f9fa;
+  padding: 12px 20px;
+  border-radius: 20px;
+  color: var(--ion-color-fritos-blue);
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+
+.info-mesa ion-icon {
+  color: var(--ion-color-primary);
+}
+
+/* Acciones */
+.acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.btn-solicitar-mozo {
+  background: linear-gradient(135deg, var(--ion-color-primary), #c13584);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 18px 24px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.3);
+}
+
+.btn-reintentar {
+  background: linear-gradient(135deg, var(--ion-color-warning), #e67e22);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 18px 24px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(var(--ion-color-warning-rgb), 0.3);
+}
+
+.btn-volver {
+  background: #f8f9fa;
+  color: var(--ion-color-fritos-blue);
+  border: 2px solid #e9ecef;
+  border-radius: 16px;
+  padding: 16px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-solicitar-mozo:active,
+.btn-reintentar:active,
+.btn-volver:active {
+  transform: scale(0.98);
+}
+
+.btn-solicitar-mozo:active {
+  box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.3);
+}
+
+.btn-reintentar:active {
+  box-shadow: 0 2px 8px rgba(var(--ion-color-warning-rgb), 0.3);
+}
+
+.btn-volver:active {
+  background: #e9ecef;
+}
+
+/* Info ayuda */
+.info-ayuda {
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--ion-color-fritos-blue);
+}
+
+.info-ayuda p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.info-ayuda strong {
+  color: var(--ion-color-primary);
+}
+
+/* CUENTA DISPONIBLE */
+.cuenta-disponible {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  margin: 20px;
+  max-width: 500px;
+  width: 90%;
+  overflow: hidden;
+}
+
+/* Header cuenta */
+.cuenta-header {
+  background: linear-gradient(135deg, var(--ion-color-primary), #c13584);
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.cuenta-titulo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+}
+
+.info-mesa-cuenta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Secciones */
+.seccion-items,
+.resumen-pagos {
+  padding: 24px;
+}
+
+.seccion-titulo {
+  color: var(--ion-color-fritos-blue);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+
+/* Categorías de items */
+.categoria-items {
+  margin-bottom: 20px;
+}
+
+.categoria-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ion-color-fritos-blue);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.categoria-titulo ion-icon {
+  color: var(--ion-color-primary);
+}
+
+/* Items individuales */
+.item-cuenta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.item-cuenta:last-child {
+  border-bottom: none;
+}
+
+.item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-nombre {
+  color: var(--ion-color-fritos-blue);
+  font-weight: 500;
+}
+
+.item-cantidad {
+  background: var(--ion-color-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 30px;
+  text-align: center;
+}
+
+.item-precio {
+  color: var(--ion-color-fritos-blue);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Resumen de pagos */
+.resumen-pagos {
+  background: #f8f9fa;
+  border-top: 2px solid #e9ecef;
+}
+
+.linea-resumen {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  color: var(--ion-color-fritos-blue);
+}
+
+.linea-resumen.descuento {
+  color: var(--ion-color-success);
+  font-weight: 600;
+}
+
+/* Selector de propina */
+.selector-propina {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.propina-label {
+  color: var(--ion-color-fritos-blue);
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.opciones-propina {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+.btn-propina {
+  background: #e9ecef;
+  color: var(--ion-color-fritos-blue);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 50px;
+}
+
+.btn-propina.seleccionada {
+  background: var(--ion-color-primary);
+  color: white;
+  border-color: var(--ion-color-primary);
+}
+
+.propina-monto {
+  color: var(--ion-color-fritos-blue);
+  font-weight: 600;
+  min-width: 80px;
+  text-align: right;
+}
+
+/* Total */
+.linea-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0 0 0;
+  border-top: 2px solid #e9ecef;
+  margin-top: 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ion-color-fritos-blue);
+}
+
+.total-monto {
+  color: var(--ion-color-primary);
+  font-size: 1.4rem;
+}
+
+/* Botón de pago */
+.acciones-pago {
+  padding: 0 24px 24px 24px;
+}
+
+.btn-pagar {
+  background: linear-gradient(135deg, var(--ion-color-success), #00a085);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 20px 24px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  box-shadow: 0 4px 16px rgba(var(--ion-color-success-rgb), 0.3);
+}
+
+.btn-pagar:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(var(--ion-color-success-rgb), 0.3);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .estado-contenedor,
+  .cuenta-disponible {
+    padding: 24px 20px;
+    margin: 16px;
+  }
+  
+  .icono-espera,
+  .icono-error {
+    font-size: 4rem;
+  }
+  
+  .icono-cargando {
+    width: 4rem;
+    height: 4rem;
+  }
+  
+  .mensaje-titulo {
+    font-size: 1.3rem;
+  }
+  
+  .cuenta-header {
+    padding: 20px;
+  }
+  
+  .cuenta-titulo {
+    font-size: 1.5rem;
+  }
+  
+  .seccion-items,
+  .resumen-pagos {
+    padding: 10px;
+  }
+  
+  .opciones-propina {
+    flex-wrap: wrap;
+  }
+  
+  .btn-propina {
+    flex: 1;
+    min-width: 60px;
+  }
+  
+  .selector-propina {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .propina-label,
+  .propina-monto {
+    text-align: center;
+  }
+}

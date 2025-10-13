@@ -22,7 +22,7 @@ export interface Pedido {
   tiempo_estimado : number
   confirmado : boolean
   mesa : string
-  estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'cancelado' | 'rechazado'
+  estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'cancelado' | 'rechazado' | 'finalizado'
   estado_comida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
   estado_bebida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
   estado_postre : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'

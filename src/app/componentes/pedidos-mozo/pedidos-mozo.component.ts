@@ -39,7 +39,8 @@ pedidosHistorial = computed(() => {
   
   return todosPedidos.filter(pedido => 
     pedido.estado === 'entregado' || 
-    pedido.estado === 'cancelado'
+    pedido.estado === 'cancelado' ||
+    pedido.estado === 'finalizado'
   ).sort((a, b) => new Date(b.fecha_pedido).getTime() - new Date(a.fecha_pedido).getTime());
 });
 
@@ -272,9 +273,34 @@ segmentoActivo = 'activos';
     const estados: {[key: string]: string} = {
       'pendiente': 'Pendiente',
       'en preparacion': 'En Preparación', 
-      'listo': 'Listo'
+      'listo': 'Listo',
+      'finalizado' : 'Finalizado'
     };
     return estados[estado] || estado;
+  }
+
+  async confirmarPagoPedido(pedido : any){
+    try{
+      //const {data : dataPedido, error: errorPedido} = await this.sb.actualizarPedido(pedido.id, {estado : 'finalizado'})
+      //if (errorPedido) throw errorPedido;
+
+      const {data: dataMesa, error: errorMesa} = await this.sb.actualizarMesa(parseInt(pedido.mesa), {
+        ocupada: false,
+        clienteAsignadoId : null,
+        pedido_id: null
+      })
+      if (errorMesa) {
+        console.log('error en modificar mesa: ', errorMesa)
+        throw errorMesa;
+      }
+      return {
+        //pedido: dataPedido?.[0] || null,
+        mesa: dataMesa?.[0] || null
+      };
+    }catch(error){
+      console.log('error en la confirmacion del pago por parte del mozo', error)
+      throw error
+    }
   }
 
   

@@ -132,6 +132,10 @@ const routes: Routes = [
     path: 'mayor-menor',
     loadComponent: () => import('./games/mayor-menor/mayor-menor.component').then(m => m.MayorMenorComponent)
   }, 
+  {
+    path: 'pagos/:mesa',
+    loadComponent: () => import('./componentes/pagos/pagos.component').then(m => m.PagosComponent)
+  }, 
  
 ];
 

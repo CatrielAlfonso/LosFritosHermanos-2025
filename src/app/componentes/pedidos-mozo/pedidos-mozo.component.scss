@@ -408,6 +408,10 @@ ion-segment-button {
   border-left: 4px solid var(--ion-color-danger);
 }
 
+.pedido-finalizado {
+  border-left: 4px solid var(--ion-color-fritos-blue);
+}
+
 .estado-badge {
   padding: 4px 8px;
   border-radius: 12px;
@@ -420,6 +424,10 @@ ion-segment-button {
 .estado-entregado {
   background: #d4edda;
   color: #155724;
+}
+.estado-finalizado {
+  background: var(--ion-color-fritos-blue);
+  color: #ffffff;
 }
 
 .estado-cancelado {

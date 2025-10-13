@@ -199,7 +199,8 @@
     <div *ngIf="pedidosHistorial().length > 0" class="lista-pedidos">
       <div *ngFor="let pedido of pedidosHistorial()" class="pedido-item" 
            [class.pedido-entregado]="pedido.estado === 'entregado'"
-           [class.pedido-cancelado]="pedido.estado === 'cancelado'">
+           [class.pedido-cancelado]="pedido.estado === 'cancelado'"
+           [class.pedido-finalizado]="pedido.estado === 'finalizado'">
         
         <div class="pedido-header">
           <div class="pedido-info">
@@ -220,6 +221,14 @@
           <span>Cliente solicita cuenta</span>
           <button class="btn-habilitar-cuenta" (click)="habilitarCuenta(pedido)">
             Habilitar Cuenta
+          </button>
+        </div>
+
+        <div *ngIf="pedido.cuenta <= pedido.pagado && pedido.estado !== 'finalizado'" class="solicitud-cuenta">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>Cliente pagó el pedido</span>
+          <button class="btn-habilitar-cuenta" (click)="confirmarPagoPedido(pedido)">
+            Confirmar pago
           </button>
         </div>
 

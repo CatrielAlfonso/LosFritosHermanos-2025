@@ -167,6 +167,41 @@ export class SupabaseService {
     }
   }
 
+  async getPedido(pedidoId: string) {
+    try {
+      const { data, error } = await this.supabase
+        .from('pedidos')
+        .select('*')
+        .eq('id', pedidoId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error obteniendo pedido:', error);
+      throw error;
+    }
+  }
+
+  async getMesa(numeroMesa: number) {
+    try {
+      const { data, error } = await this.supabase
+        .from('mesas')
+        .select('*')
+        .eq('numero', numeroMesa)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      return data || null;
+    } catch (error) {
+      console.error('Error obteniendo mesa:', error);
+      throw error;
+    }
+  }
+
   async getPedidosCliente(idCliente : string){
     try{
       const { data, error } = await this.supabase

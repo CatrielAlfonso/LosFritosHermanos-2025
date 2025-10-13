@@ -1,3 +1,186 @@
-<p>
-  pagos works!
-</p>
+<ion-header class="header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="volverAHome()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="titulo-pagos">Pagar Cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="container-pagos">
+  <!-- Loading -->
+  <div *ngIf="loading()" class="estado-contenedor">
+    <div class="icono-container">
+      <ion-spinner name="crescent" class="icono-cargando"></ion-spinner>
+    </div>
+    <h2 class="mensaje-titulo">Cargando cuenta</h2>
+    <p class="mensaje-descripcion">Estamos preparando la información de tu mesa...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!loading() && error()" class="estado-contenedor">
+    <div class="icono-container">
+      <ion-icon name="warning-outline" class="icono-error"></ion-icon>
+    </div>
+    
+    <h2 class="mensaje-titulo">{{error()}}</h2>
+    
+    <div class="info-mesa">
+      <ion-icon name="location-outline"></ion-icon>
+      <span>Mesa {{numeroMesa}}</span>
+    </div>
+
+    <div class="acciones">
+      <button class="btn-reintentar" (click)="reintentar()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+      <button class="btn-volver" (click)="volverAHome()">
+        <ion-icon name="home-outline"></ion-icon>
+        Volver al Inicio
+      </button>
+    </div>
+  </div>
+
+  <!-- Cuenta no disponible -->
+  <div *ngIf="!loading() && !error() && !pedido()" class="estado-contenedor">
+    <div class="icono-container">
+      <ion-icon name="time-outline" class="icono-espera"></ion-icon>
+    </div>
+    
+    <h2 class="mensaje-titulo">Cuenta no disponible</h2>
+    
+    <p class="mensaje-descripcion">
+      Para pagar tu cuenta, primero solicitá al mozo que active el pago para tu mesa.
+    </p>
+
+    <div class="info-mesa">
+      <ion-icon name="location-outline"></ion-icon>
+      <span>Mesa {{numeroMesa}}</span>
+    </div>
+
+    <div class="acciones">
+      <button class="btn-solicitar-mozo" (click)="solicitarCuentaAlMozo()">
+        <ion-icon name="notifications-outline"></ion-icon>
+        Solicitar Cuenta al Mozo
+      </button>
+      
+      <button class="btn-volver" (click)="volverAHome()">
+        <ion-icon name="home-outline"></ion-icon>
+        Volver al Inicio
+      </button>
+    </div>
+
+    <div class="info-ayuda">
+      <p>💡 <strong>Tip:</strong> El mozo habilitará el pago y podrás escanear el QR de tu mesa</p>
+    </div>
+  </div>
+
+  <!-- Cuenta disponible -->
+  <div *ngIf="!loading() && !error() && pedido()" class="cuenta-disponible">
+    <!-- Header de la cuenta -->
+    <div class="cuenta-header">
+      <h2 class="cuenta-titulo">Tu Cuenta</h2>
+      <div class="info-mesa-cuenta">
+        <ion-icon name="location-outline"></ion-icon>
+        <span>Mesa {{numeroMesa}}</span>
+      </div>
+    </div>
+
+    <!-- Items del pedido -->
+    <div class="seccion-items">
+      <h3 class="seccion-titulo">Detalle del Consumo</h3>
+      
+      <!-- Comidas -->
+      <div *ngIf="pedido()?.comidas?.length > 0" class="categoria-items">
+        <h4 class="categoria-titulo">
+          <ion-icon name="fast-food-outline"></ion-icon>
+          Comidas
+        </h4>
+        <div *ngFor="let comida of pedido()?.comidas" class="item-cuenta">
+          <div class="item-info">
+            <span class="item-nombre">{{comida.nombre}}</span>
+            <span class="item-cantidad">x{{comida.cantidad}}</span>
+          </div>
+          <span class="item-precio">{{comida.precioTotal | currency}}</span>
+        </div>
+      </div>
+
+      <!-- Bebidas -->
+      <div *ngIf="pedido()?.bebidas?.length > 0" class="categoria-items">
+        <h4 class="categoria-titulo">
+          <ion-icon name="wine-outline"></ion-icon>
+          Bebidas
+        </h4>
+        <div *ngFor="let bebida of pedido()?.bebidas" class="item-cuenta">
+          <div class="item-info">
+            <span class="item-nombre">{{bebida.nombre}}</span>
+            <span class="item-cantidad">x{{bebida.cantidad}}</span>
+          </div>
+          <span class="item-precio">{{bebida.precioTotal | currency}}</span>
+        </div>
+      </div>
+
+      <!-- Postres -->
+      <div *ngIf="pedido()?.postres?.length > 0" class="categoria-items">
+        <h4 class="categoria-titulo">
+          <ion-icon name="ice-cream-outline"></ion-icon>
+          Postres
+        </h4>
+        <div *ngFor="let postre of pedido()?.postres" class="item-cuenta">
+          <div class="item-info">
+            <span class="item-nombre">{{postre.nombre}}</span>
+            <span class="item-cantidad">x{{postre.cantidad}}</span>
+          </div>
+          <span class="item-precio">{{postre.precioTotal | currency}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de pagos -->
+    <div class="resumen-pagos">
+      <h3 class="seccion-titulo">Resumen de Pago</h3>
+      
+      <div class="linea-resumen">
+        <span>Subtotal</span>
+        <span>{{calcularSubtotal() | currency}}</span>
+      </div>
+
+      <!-- Descuento -->
+      <div *ngIf="pedido()?.descuento > 0" class="linea-resumen descuento">
+        <span>Descuento ({{pedido()?.descuento}}%)</span>
+        <span>-{{calcularDescuento() | currency}}</span>
+      </div>
+
+      <!-- Selector de propina -->
+      <div class="selector-propina">
+        <span class="propina-label">Propina</span>
+        <div class="opciones-propina">
+          <button *ngFor="let opcion of opcionesPropina" 
+                  [class.seleccionada]="propinaSeleccionada === opcion"
+                  (click)="seleccionarPropina(opcion)"
+                  class="btn-propina">
+            {{opcion}}%
+          </button>
+        </div>
+        <span class="propina-monto">{{calcularPropina() | currency}}</span>
+      </div>
+
+      <!-- Total -->
+      <div class="linea-total">
+        <span>Total a Pagar</span>
+        <span class="total-monto">{{calcularTotal() | currency}}</span>
+      </div>
+    </div>
+
+    <!-- Botón de pago -->
+    <div class="acciones-pago">
+      <button class="btn-pagar" (click)="procesarPago()">
+        <ion-icon name="card-outline"></ion-icon>
+        Pagar {{calcularTotal() | currency}}
+      </button>
+    </div>
+  </div>
+</ion-content>
