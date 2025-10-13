@@ -34,33 +34,86 @@
   
   <div class="game-area" (click)="onAction($event)">
     
-    <div class="game-overlay" *ngIf="!juegoActivo">
-      </div>
-
-    <div class="pollo" [style.transform]="polloStyle">
-      <img src="../../../assets/imgs/crispy2.png" alt="Crispy el Pollo" class="crispy-img">
+     <!-- PANTALLA DE INICIO (gameState === 'inicio') -->
+    <div class="game-overlay" *ngIf="gameState === 'inicio'">
+      <h1 class="fritos-logo">🍗 ¡Crispy el Atrapa-Pollo!</h1>
+      <p class="fritos-subtitle">Tu única oportunidad de ganar hasta un 15% de descuento.</p>
+      <p>Instrucciones: Haz clic para saltar y esquivar los obstáculos.</p>
+      
+      <ion-button expand="block" color="fritos-red" (click)="iniciarJuego()">
+        <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+        Comenzar Primer Intento
+      </ion-button>
     </div>
 
-    @for (obs of obstaculos; track obs.id) {
-      <div class="obstaculo-columna" [style.left]="obs.x + 'px'">
+    <!-- PANTALLA DE RESULTADO (gameState === 'terminado') -->
+    <div class="game-overlay resultado-final" *ngIf="gameState === 'terminado'">
+        <h1 class="fritos-logo">
+            {{ resultadoFinal.exito ? '🎉 ¡GANASTE!' : '💔 Game Over' }}
+        </h1>
         
-        <div 
-          class="obstaculo-parte" 
-          [style.height]="(obs.huecoY - obs.huecoAltura/2) + 'vh'"
-          [style.top]="'0'"
-        ></div>
+        <div class="score-card">
+            <h2 class="fritos-subtitle">Puntuación Final:</h2>
+            <p class="data-score">{{ resultadoFinal.distancia | number:'1.0-0' }} Puntos</p>
+            
+            <h2 class="fritos-subtitle">Descuento Obtenido:</h2>
+            <p class="data-desc">
+                {{ resultadoFinal.porcentaje }}%
+            </p>
+        </div>
         
-        <div 
-          class="obstaculo-parte" 
-          [style.height]="(100 - (obs.huecoY + obs.huecoAltura/2)) + 'vh'"
-          [style.bottom]="'0'"
-        ></div>
-      </div>
-    }
+        <div class="mensaje-desc">
+            <p *ngIf="resultadoFinal.exito">
+                ¡El descuento ha sido registrado en tu cuenta!
+            </p>
+            <p *ngIf="!resultadoFinal.exito">
+                No ganaste descuento esta vez. ¡Gracias por jugar!
+            </p>
+        </div>
 
-    <div class="score-display">
-      Distancia Recorrida: {{ distanciaRecorrida | number:'1.0-0' }}
+        <!-- Botón para regresar al home o lista de juegos -->
+        <ion-button expand="block" color="fritos-blue" (click)="volverAlHome()">
+            <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+            Volver al Menú de Juegos
+        </ion-button>
+
     </div>
+
+    <!-- <div class="game-overlay" *ngIf="!juegoActivo">
+      </div> -->
+
+    <!-- Contenedor del juego (Visible en 'jugando') -->
+    <ng-container *ngIf="gameState === 'jugando'">
+        <!-- Crispy (El Pollo) -->
+        <div class="pollo" [style.transform]="polloStyle">
+            <img src="../../../assets/imgs/crispy2.png" alt="Crispy el Pollo" class="crispy-img">
+        </div>
+
+        <!-- Obstáculos (Columnas) -->
+        @for (obs of obstaculos; track obs.id) {
+          <div class="obstaculo-columna" [style.left]="obs.x + 'px'">
+            
+            <!-- Columna Superior -->
+            <div 
+              class="obstaculo-parte" 
+              [style.height]="(obs.huecoY - obs.huecoAltura/2) + 'vh'"
+              [style.top]="'0'"
+            ></div>
+            
+            <!-- Columna Inferior -->
+            <div 
+              class="obstaculo-parte" 
+              [style.height]="(100 - (obs.huecoY + obs.huecoAltura/2)) + 'vh'"
+              [style.bottom]="'0'"
+            ></div>
+          </div>
+        }
+
+        <!-- Indicador de Puntuación/Distancia (Opcional) -->
+        <div class="score-display">
+          Distancia: {{ distanciaRecorrida | number:'1.0-0' }}
+        </div>
+    </ng-container>
 
   </div>
 

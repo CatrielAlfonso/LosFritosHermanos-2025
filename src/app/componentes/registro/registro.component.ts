@@ -462,7 +462,7 @@ export class RegistroComponent implements OnInit {
       const { error } = await this.sb.supabase.from('clientes').insert([{ nombre, apellido, correo, dni, imagenPerfil, validado: null, aceptado: null, uid: usuario.id }]);
       if (error) throw new Error(error.message);
       try {
-        //await this.pushNotificationService.notificarSupervisoresNuevoCliente(nombre, apellido);
+        await this.pushNotificationService.notificarSupervisoresNuevoCliente(nombre, apellido);
       } catch (error) {
         console.error('Error al enviar notificación:', error);
       }

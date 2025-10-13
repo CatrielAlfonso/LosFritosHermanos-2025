@@ -1,13 +1,18 @@
 import { Component, OnInit, Output, EventEmitter, HostListener, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule,DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonButton, IonIcon} from '@ionic/angular/standalone';
 import { AlertController } from '@ionic/angular';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+
+// Enum para los estados del juego
+type GameState = 'inicio' | 'jugando' | 'terminado';
 
 export interface ResultadoJuego {
   exito: boolean;
   porcentaje: number; // 0, 5, 10 o 15
+   distancia: number; 
 }
 
 interface Obstaculo {
@@ -22,18 +27,24 @@ interface Obstaculo {
   selector: 'app-atrapa-el-pollo',
   templateUrl: './atrapa-el-pollo.component.html',
   styleUrls: ['./atrapa-el-pollo.component.scss'],
-  imports: [CommonModule, FormsModule, IonContent]
+  imports: [CommonModule, FormsModule, IonContent,DecimalPipe, IonButton, IonIcon]
 })
 export class AtrapaElPolloComponent  implements OnInit, OnDestroy {
 
 // Evento que se emitirá cuando el juego termine (gana o pierde)
 @Output() juegoTerminado = new EventEmitter<ResultadoJuego>();
+@Output() volverHome = new EventEmitter<void>(); // Evento para volver al Home (padre)
+
 private alertCtrl = inject(AlertController); 
+
+  // Variables de Estado
+  gameState: GameState = 'inicio';
 
   // Variables del Pollo
   polloY = 50; // Posición vertical inicial (en porcentaje)
   polloAltura = 10; // Altura del pollo (en porcentaje de la pantalla)
   velocidadVertical = 0; // Velocidad de subida/bajada
+
 
   // Variables del Juego
   obstaculos: Obstaculo[] = [];
@@ -53,19 +64,23 @@ private alertCtrl = inject(AlertController);
   metaAncho = 50; // Ancho del objetivo
 
   // --- Lógica de HostListener para capturar clics/toques ---
+  // Variables de Resultado (para mostrar en la pantalla 'terminado')
+  resultadoFinal: ResultadoJuego = { exito: false, porcentaje: 0, distancia: 0 };
 
   // Escucha el evento 'click' o 'keydown.space' en la ventana/documento
   @HostListener('document:click', ['$event'])
   @HostListener('document:keydown.space', ['$event'])
+
+
   onAction(event: Event) {
-    if (this.juegoActivo) {
+    if (this.gameState === 'jugando') {
       this.saltar();
-    } else if (event.type === 'click') {
+    } else if (this.gameState === 'inicio' && event.type === 'click') {
       this.iniciarJuego();
     }
   }
 
-  constructor() { }
+  constructor(private router:Router) { }
 
   ngOnInit() {
     // Es buena práctica inicializar la posición y el estado
@@ -76,12 +91,14 @@ private alertCtrl = inject(AlertController);
   }
 
   iniciarJuego() {
-    if (this.juegoActivo) return;
+    if (this.gameState === 'jugando') return;
 
-    this.juegoActivo = true;
+    this.gameState = 'jugando';
     this.polloY = 50;
     this.velocidadVertical = 0;
     this.distanciaRecorrida = 0;
+    this.obstaculos = []; // Limpiar obstáculos
+    this.ultimoObstaculoX = 0;
 
     // Lógica principal de actualización (simulando un "game loop")
     this.juegoInterval = setInterval(() => {
@@ -94,7 +111,7 @@ private alertCtrl = inject(AlertController);
       clearInterval(this.juegoInterval);
       this.juegoInterval = null;
     }
-    this.juegoActivo = false;
+    //this.juegoActivo = false;
   }
 
   saltar() {
@@ -108,7 +125,7 @@ private alertCtrl = inject(AlertController);
 
     // 2. Comprobar Colisión con Techo/Suelo (pérdida)
     if (this.polloY < 0 || this.polloY > 100 - this.polloAltura) {
-      this.terminarJuego(this.calcularDescuento(this.distanciaRecorrida)); // Pérdida (0% o % parcial)
+      this.terminarJuego(); // Pérdida (0% o % parcial)
       return;
     }
 
@@ -120,7 +137,7 @@ private alertCtrl = inject(AlertController);
     // 4. Comprobar Condición de Ganar
      for (let obstaculo of this.obstaculos) {
       if (this.checkCollision(obstaculo)) {
-        this.terminarJuego(this.calcularDescuento(this.distanciaRecorrida)); // Colisión, juego termina.
+        this.terminarJuego(); // Colisión, juego termina.
         return;
       }
     }
@@ -138,15 +155,19 @@ private alertCtrl = inject(AlertController);
   //   return 15; 
   // }
 
-  terminarJuego(porcentaje: number) {
+  terminarJuego() {
     this.detenerJuego();
-    
-    const resultado: ResultadoJuego = {
+    this.gameState = 'terminado'; 
+
+    const porcentaje = this.calcularDescuento(this.distanciaRecorrida);
+
+    this.resultadoFinal = {
       exito: porcentaje > 0,
-      porcentaje: porcentaje
+      porcentaje: porcentaje,
+      distancia: this.distanciaRecorrida
     };
 
-    this.juegoTerminado.emit(resultado);
+    this.juegoTerminado.emit(this.resultadoFinal);
   }
 
   // Helper para el template
@@ -236,6 +257,12 @@ checkCollision(obstaculo: Obstaculo): boolean {
   }
 
   return false;
+  }
+
+
+  volverAlHome()
+  {
+    this.router.navigate(['/home']);
   }
 
 }

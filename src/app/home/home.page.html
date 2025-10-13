@@ -123,10 +123,55 @@
         Ver Menú
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/escaner']">
-        <ion-icon name="qr-code-outline" slot="start"></ion-icon>
-        Escanear QR Mesa
-      </ion-button>
+      @if (tipoUsuario === 'cliente' && mostrarBotonEscanearMesa && !clienteSentado)
+      {
+        <ion-button
+        expand="block" color="fritos-orange" class="fritos-button" (click)="escanearMesaAsignada()">
+          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+          Escanear QR Mesa
+        </ion-button>
+      }
+      
+      <ion-button 
+      *ngIf="perfilUsuario === 'cliente' && mostrarBotonHacerPedido" 
+      expand="block" 
+      class="btn-pedidos btn-solicitar-mesa"
+      (click)="escanearQRParaMenu()">
+      <div class="boton-contenido-columna">
+        <ion-icon name="qr-code-outline"></ion-icon>
+        <span class="boton-texto">HACER PEDIDO</span>
+      </div>
+    </ion-button>
+
+      @if (perfilUsuario === 'cliente' && pedidoActualCliente?.recepcion && pedidoActualCliente?.cuenta === 'pedida' && !clienteInfo?.encuesta)
+      {
+        <ion-button expand="block" color="fritos-red" class="fritos-button" (click)="irAEncuestas()">
+          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+          Encuestas
+        </ion-button>
+  
+        <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
+          <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+          Juegos
+        </ion-button>
+      }
+
+      @if(perfilUsuario === 'cliente' && !yaEnListaEspera && !clienteSentado)
+      {
+        <ion-button 
+          *ngIf="perfilUsuario === 'cliente' && !yaEnListaEspera && !clienteSentado" 
+          expand="block" 
+          class="btn-pedidos btn-solicitar-mesa"
+          (click)="escanearQR()">
+          <div class="boton-contenido-columna">
+            <ion-icon name="qr-code-outline"></ion-icon>
+            <span class="boton-texto">SOLICITAR MESA</span>
+          </div>
+        </ion-button>
+
+
+      }
+
     </div>
   </div>
 </ion-content>

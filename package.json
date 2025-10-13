@@ -37,9 +37,11 @@
     "@ionic/angular": "^8.7.3",
     "@supabase/supabase-js": "^2.57.2",
     "chart.js": "^4.5.0",
+    "cors": "^2.8.5",
     "ionicons": "^7.4.0",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
+    "sweetalert2": "^11.26.1",
     "swiper": "^12.0.2",
     "tslib": "^2.3.0",
     "zone.js": "^0.15.1"

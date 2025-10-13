@@ -1,6 +1,9 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
+  "include": [
+    "src/**/*"
+  ],
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
@@ -34,5 +37,12 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  "exclude": [
+    "backend",
+    "backend/**/*",
+    "node_modules",
+    "dist",
+    "www"
+  ]
 }

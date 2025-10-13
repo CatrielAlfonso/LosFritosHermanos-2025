@@ -37,12 +37,8 @@ interface Encuesta {
     IonContent,
     IonButton,
     IonIcon,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonItem,
     IonLabel,
-    IonInput,
     IonRange,
     IonRadioGroup,
     IonRadio,
@@ -59,10 +55,7 @@ interface Encuesta {
     IonRow,
     IonCol,
     IonImg,
-    IonAlert,
-    IonBackButton,
-    IonButtons,
-    IonSpinner
+
   ]
 })
 export class EncuestasComponent  implements OnInit {

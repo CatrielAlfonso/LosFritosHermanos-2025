@@ -7,6 +7,8 @@ import { NativeAudio } from '@capacitor-community/native-audio';
 })
 export class AudioService {
   
+
+  private isLoaded = false;
   // async preload() {
   //   await NativeAudio.preload({
   //     assetId: 'inicio',
@@ -19,6 +21,9 @@ export class AudioService {
   // }
 
   async preload() {
+
+    if (this.isLoaded) return;
+
     try {
       await NativeAudio.preload({
       assetId: 'inicio',
@@ -29,9 +34,12 @@ export class AudioService {
         assetPath: '../../assets/sounds/SalirFrito.mp3',
       });
       console.log('✅ Sonidos precargados');
+      this.isLoaded = true;
     } catch (err) {
       console.error('❌ Error al precargar sonidos', err);
     }
+    
+    
   }
 
   async playInicio() {
