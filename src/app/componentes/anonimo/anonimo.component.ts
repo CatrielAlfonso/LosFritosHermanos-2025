@@ -12,6 +12,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
+import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 
 @Component({
   selector: 'app-anonimo',
@@ -41,7 +42,8 @@ export class AnonimoComponent  {
     private feedback: FeedbackService,
     private router: Router,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController // Agregamos ToastController
+    private toastCtrl: ToastController,
+    private pushNotificationService: PushNotificationService
   ) {}
 
   async ngOnInit() {
@@ -136,6 +138,18 @@ export class AnonimoComponent  {
       ]);
 
       await loading.dismiss();
+
+      // Notificar al maître
+      try {
+        await this.pushNotificationService.notificarMaitreNuevoCliente(
+          cliente.nombre,
+          '' // Sin apellido para anónimos
+        );
+      } catch (error) {
+        console.error('Error al notificar al maître:', error);
+        // No lanzamos el error para no interrumpir el flujo del usuario
+      }
+
       this.feedback.showToast('exito', '🙌 Ya estás en la lista de espera, capo!');
       this.anonimoForm.reset();
       this.imagenURL = null;
@@ -237,6 +251,18 @@ export class AnonimoComponent  {
       ]);
       
       await loading.dismiss();
+
+      // Notificar al maître
+      try {
+        await this.pushNotificationService.notificarMaitreNuevoCliente(
+          nombreAnonimo,
+          '' // Sin apellido para anónimos
+        );
+      } catch (error) {
+        console.error('Error al notificar al maître:', error);
+        // No lanzamos el error para no interrumpir el flujo del usuario
+      }
+
       this.feedback.showToast('exito', `¡Listo ${nombreAnonimo}! Registrado por QR. El maître te asignará una mesa pronto.`);
       this.scanResult = null;
 

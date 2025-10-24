@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class PushNotificationService {
-  private backendUrl = 'https://backend-los-fritos-hermanos-2025.onrender.com';
+  private backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
 
   constructor() { }
 
