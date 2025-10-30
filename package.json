@@ -39,6 +39,8 @@
     "chart.js": "^4.5.0",
     "cors": "^2.8.5",
     "ionicons": "^7.4.0",
+    "moment-timezone": "^0.6.0",
+    "onesignal-cordova-plugin": "^5.2.15",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
     "sweetalert2": "^11.26.1",

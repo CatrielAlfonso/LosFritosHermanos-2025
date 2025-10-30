@@ -95,8 +95,8 @@
         Registrar Producto
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button" >
-        <ion-icon name="list-outline" slot="start"></ion-icon>
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irAVerPedidosCocina()">
+        <ion-icon name="list-outline" slot="start" ></ion-icon>
         Ver Pedidos
       </ion-button>
     </div>
@@ -114,6 +114,22 @@
         Ver Pedidos
       </ion-button>
     </div>
+
+
+    <div *ngIf="tipoUsuario === 'mozo'" class="mozo-options">
+      <h3 class="fritos-subtitle">Panel de Bartender</h3>
+      
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/pagos', mesaSeleccionada]" routerLinkActive="router-link-active" >
+        <ion-icon name="wine-outline" slot="start"></ion-icon>
+        Pagos
+      </ion-button>
+
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/pedidos-mozo']" >
+        <ion-icon name="list-outline" slot="start"></ion-icon>
+        Ver Pedidos Pendientes
+      </ion-button>
+    </div>
+
 
     <div *ngIf="tipoUsuario === 'cliente'" class="cliente-options">
       <h3 class="fritos-subtitle">Panel de Cliente</h3>
@@ -141,7 +157,7 @@
         <ion-icon name="qr-code-outline"></ion-icon>
         <span class="boton-texto">HACER PEDIDO</span>
       </div>
-    </ion-button>
+      </ion-button>
 
       @if (perfilUsuario === 'cliente' && pedidoActualCliente?.recepcion && pedidoActualCliente?.cuenta === 'pedida' && !clienteInfo?.encuesta)
       {
@@ -171,6 +187,52 @@
 
 
       }
+
+
+
+
+      <ion-modal [isOpen]="mostrarModalConsultasMozo" (didDismiss)="cerrarModalConsultasMozo()">
+    <ng-template>
+      <ion-content>
+        <div class="modal-title-container">
+          <ion-button fill="clear" class="close-button" (click)="cerrarModalConsultasMozo()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+          <h2 class="modal-title">Consultas de clientes</h2>
+        </div>
+        <div class="clientes-container">
+          <div *ngIf="cargandoConsultasMozo" class="loading-container"><p>Cargando consultas...</p></div>
+          <div *ngIf="!cargandoConsultasMozo && consultasMozo.length === 0" class="modal-empty">No hay consultas.</div>
+          <div *ngFor="let consulta of consultasMozo" class="cliente-item">
+            <div class="cliente-info">
+              <div class="cliente-nombre" style="display: flex; justify-content: center; width: 100%;">Mesa N° {{ consulta.mesa }}</div>
+              <div class="cliente-meta">{{ formatearHoraConsulta(consulta.hora) }}</div>
+              <div class="cliente-correo">{{ consulta.consulta }}</div>
+            </div>
+            <div class="mesa-actions">
+              <ng-container *ngIf="!consulta.respuesta">
+                <ion-button *ngIf="mostrarRespuestaId !== consulta.id" fill="outline" color="success" size="small" (click)="mostrarRespuestaId = consulta.id">
+                  <ion-icon name="chatbox-ellipses" slot="start"></ion-icon>
+                  Responder
+                </ion-button>
+                <div *ngIf="mostrarRespuestaId === consulta.id" class="respuesta-form">
+                  <textarea [(ngModel)]="respuestaMozoPorId[consulta.id]" placeholder="Escribe tu respuesta..." rows="2"></textarea>
+                  <div *ngIf="errorRespuestaMozoPorId[consulta.id]" class="error-consulta-mozo">{{ errorRespuestaMozoPorId[consulta.id] }}</div>
+                  <ion-button class="btn-accion btn-confirmar" color="success" (click)="enviarRespuestaMozo(consulta)" [disabled]="!respuestaMozoPorId[consulta.id] || !respuestaMozoPorId[consulta.id].trim()">Enviar</ion-button>
+                  <ion-button fill="clear" color="danger" size="small" (click)="mostrarRespuestaId = null">Cancelar</ion-button>
+                </div>
+              </ng-container>
+              <div *ngIf="consulta.respuesta" class="respuesta-mozo">
+                <div class="respuesta-label">Respuesta del mozo:</div>
+                <div class="respuesta-texto">{{ consulta.respuesta }}</div>
+                <div class="respuesta-meta">Por: {{ consulta.mozo }} | {{ formatearHoraConsulta(consulta.hora_respuesta) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
     </div>
   </div>
