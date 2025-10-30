@@ -20,7 +20,7 @@
       <div class="pedido-header" (click)="togglePedido(pedido.id)">
         <div class="pedido-info">
           <h2 class="mesa-numero">Mesa {{pedido.mesa}}</h2>
-          <p class="pedido-hora">{{pedido.fecha_pedido | date:'HH:mm'}}</p>
+          <p class="pedido-hora">{{pedido.fecha_pedido | date:'HH:mm:ss'}}</p>
         </div>
         
         <div class="pedido-estado">

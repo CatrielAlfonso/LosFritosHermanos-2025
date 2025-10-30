@@ -258,6 +258,64 @@ export class PushNotificationService {
     }
   }
 
+  // Notificar a mozos cuando hay una nueva consulta
+  async notificarMozoNuevaConsulta(mozoEmail: string, clienteNombre: string, mesa: number) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-mozo-new-query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mozoEmail,
+          clienteNombre,
+          mesa
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Notificación enviada al mozo:', mozoEmail);
+      return result;
+      
+    } catch (error) {
+      console.error('Error al notificar mozo:', error);
+      throw error;
+    }
+  }
+
+  // Notificar al cliente cuando el mozo responde
+  async notificarClienteRespuestaMozo(clienteEmail: string, mozoNombre: string, mesa: number) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-client-mozo-response`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clienteEmail,
+          mozoNombre,
+          mesa
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Notificación enviada al cliente:', clienteEmail);
+      return result;
+      
+    } catch (error) {
+      console.error('Error al notificar cliente:', error);
+      throw error;
+    }
+  }
+
   async notificarEstadoCliente(clienteEmail: string, nombre: string, apellido: string, estado: 'aceptado' | 'rechazado') {
     try {
       console.log('=== NOTIFICANDO ESTADO CLIENTE ===');

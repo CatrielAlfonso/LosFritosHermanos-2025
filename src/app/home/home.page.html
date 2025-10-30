@@ -49,11 +49,6 @@
         Registrar Mesa
       </ion-button>
 
-      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irARegistro('/registro')">
-        <ion-icon name="people-outline" slot="start"></ion-icon>
-        Gestionar Clientes
-      </ion-button>
-
       <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irAAprobacionClientes()">
         <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
         Aprobar Clientes
@@ -112,6 +107,20 @@
       <ion-button expand="block" color="fritos-orange" class="fritos-button">
         <ion-icon name="list-outline" slot="start"></ion-icon>
         Ver Pedidos
+      </ion-button>
+    </div>
+
+    <div *ngIf="tipoUsuario === 'mozo'" class="mozo-options">
+      <h3 class="fritos-subtitle">Panel de Mozo</h3>
+      
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irAPedidosMozo()">
+        <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+        Ver Pedidos Pendientes
+      </ion-button>
+
+      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAConsultasMozo()">
+        <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+        Ver Consultas de Clientes
       </ion-button>
     </div>
 

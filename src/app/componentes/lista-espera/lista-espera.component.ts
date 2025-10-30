@@ -232,14 +232,32 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const { error: errorMesa } = await this.supabase.supabase
-        .from('mesas')
-        .update({ ocupada: true })
-        .eq('numero', this.mesaSeleccionada.numero);
+      // Contar cuántos clientes están asignados a esta mesa
+      const { data: clientesEnMesa, error: errorConteo } = await this.supabase.supabase
+        .from('lista_espera')
+        .select('id')
+        .eq('mesa_asignada', this.mesaSeleccionada.numero);
 
-      if (errorMesa) {
-        this.mensajeErrorAsignacion = 'Error al marcar mesa como ocupada';
-        return;
+      if (errorConteo) {
+        console.error('Error al contar clientes:', errorConteo);
+      }
+
+      const cantidadClientesAsignados = clientesEnMesa?.length || 0;
+      const capacidadMesa = this.mesaSeleccionada.comensales;
+
+      // Solo marcar como ocupada si alcanzó o superó la capacidad
+      const debeMarcarComoOcupada = cantidadClientesAsignados >= capacidadMesa;
+
+      if (debeMarcarComoOcupada) {
+        const { error: errorMesa } = await this.supabase.supabase
+          .from('mesas')
+          .update({ ocupada: true })
+          .eq('numero', this.mesaSeleccionada.numero);
+
+        if (errorMesa) {
+          this.mensajeErrorAsignacion = 'Error al marcar mesa como ocupada';
+          return;
+        }
       }
 
       try {
@@ -257,7 +275,12 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
       this.cerrarModalMesasDisponibles();
       this.cargarListaEspera();
       
-      this.mostrarMensajeExito('Cliente asignado correctamente a la mesa.');
+      // Mensaje más informativo
+      const mensaje = debeMarcarComoOcupada 
+        ? `Mesa ${this.mesaSeleccionada.numero} completa (${cantidadClientesAsignados}/${capacidadMesa}). ¡Mesa llena!`
+        : `Cliente asignado a mesa ${this.mesaSeleccionada.numero} (${cantidadClientesAsignados}/${capacidadMesa}).`;
+      
+      this.mostrarMensajeExito(mensaje);
       
     } catch (error) {
       this.mensajeErrorAsignacion = 'Error inesperado al asignar mesa';

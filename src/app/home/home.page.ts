@@ -117,24 +117,33 @@ export class HomePage implements OnInit {
   }
 
    async cargarUsuario() {
+    console.log('🔄 [cargarUsuario] Cargando usuario actual');
     try {
       const { data, error } = await this.authService.getCurrentUser();
+      console.log('🔄 [cargarUsuario] Data:', data);
+      console.log('🔄 [cargarUsuario] Error:', error);
       
       if (error) {
+        console.log('❌ [cargarUsuario] Error al obtener usuario, saliendo');
         return;
       }
       
       this.usuario = data?.user;
+      console.log('👤 [cargarUsuario] Usuario asignado:', this.usuario);
 
       if (!this.usuario) {
+        console.log('⚠️ [cargarUsuario] No hay usuario, redirigiendo a login');
         this.router.navigateByUrl('/login');
       } else {
+        console.log('✅ [cargarUsuario] Usuario existe, perfil:', this.perfilUsuario);
         if (this.perfilUsuario === 'cliente') {
+          console.log('👥 [cargarUsuario] Es cliente, verificando mesa y cargando info');
           await this.verificarMesaAsignada();
           await this.cargarClienteInfo();
         }
       }
     } catch (error) {
+      console.log('💥 [cargarUsuario] Error inesperado:', error);
       this.router.navigateByUrl('/login');
     }
   }
@@ -278,14 +287,23 @@ export class HomePage implements OnInit {
   }
 
   async verificarUsuario() {
+    console.log('🔍 [verificarUsuario] Iniciando verificación de usuario');
     try {
       const { data: user } = await this.authService.getCurrentUser();
+      console.log('🔍 [verificarUsuario] User obtenido:', user);
+      
       if (!user?.user?.email) {
+        console.log('❌ [verificarUsuario] No hay email, redirigiendo a login');
         this.router.navigate(['/login']);
         return;
       }
 
       const email = user.user.email;
+      console.log('📧 [verificarUsuario] Email del usuario:', email);
+      
+      // IMPORTANTE: Asignar this.usuario aquí
+      this.usuario = user.user;
+      console.log('👤 [verificarUsuario] this.usuario asignado:', this.usuario);
       
       // Verificar si es supervisor
       const { data: supervisor } = await this.supabase.supabase
@@ -295,6 +313,7 @@ export class HomePage implements OnInit {
         .single();
 
       if (supervisor) {
+        console.log('👔 [verificarUsuario] Es SUPERVISOR');
         this.esAdmin = true;
         this.nombreUsuario = `${supervisor.nombre} ${supervisor.apellido}`;
         this.authService.setPerfil('supervisor');
@@ -309,6 +328,7 @@ export class HomePage implements OnInit {
         .single();
 
       if (empleado) {
+        console.log('👨‍💼 [verificarUsuario] Es EMPLEADO, perfil:', empleado.perfil);
         this.nombreUsuario = `${empleado.nombre} ${empleado.apellido}`;
         if (empleado.perfil === 'maitre') {
           this.esMaitre = true;
@@ -331,22 +351,27 @@ export class HomePage implements OnInit {
         .eq('correo', email)
         .single();
 
+      console.log('👥 [verificarUsuario] Datos del cliente:', cliente);
+
       if (cliente) {
         if (cliente.validado === null || cliente.validado === false) {
+          console.log('⚠️ [verificarUsuario] Cliente no validado, cerrando sesión');
           await this.authService.signOut();
           this.router.navigate(['/login']);
           return;
         }
+        console.log('✅ [verificarUsuario] Es CLIENTE validado');
         this.nombreUsuario = `${cliente.nombre} ${cliente.apellido}`;
         this.authService.setPerfil('cliente');
         return;
       }
 
       // Si no se encontró ningún perfil
+      console.log('❌ [verificarUsuario] No se encontró perfil, cerrando sesión');
       await this.authService.signOut();
       this.router.navigate(['/login']);
     } catch (error) {
-      console.error('Error al verificar usuario:', error);
+      console.error('💥 [verificarUsuario] Error al verificar usuario:', error);
       this.router.navigate(['/login']);
     }
   }
@@ -397,24 +422,32 @@ export class HomePage implements OnInit {
   }
 
    async escanearQR() {
+    console.log('📷 [escanearQR] INICIANDO escaneo QR');
     this.qrEnProceso = true;
     this.customLoader.show();
     try {
       const { barcodes } = await BarcodeScanner.scan();
+      console.log('📷 [escanearQR] Barcodes escaneados:', barcodes);
+      console.log('📷 [escanearQR] Cantidad de barcodes:', barcodes.length);
+      
       if (barcodes.length > 0) {
-        const codigoEscaneado = barcodes[0].displayValue;
+        const codigoEscaneado = barcodes[0].rawValue;
+        console.log('📷 [escanearQR] Código escaneado (rawValue):', codigoEscaneado);
+        console.log('📷 [escanearQR] displayValue:', barcodes[0].displayValue);
+        console.log('📷 [escanearQR] Llamando a procesarCodigoEscaneado...');
         await this.procesarCodigoEscaneado(codigoEscaneado);
       } else {
-        //await this.mostrarNotificacion('No se detectó ningún código QR.', 'info');
+        console.log('⚠️ [escanearQR] No se detectó ningún código QR');
         await this.swal.showTemporaryAlert('Info', 'No se detectó ningún código QR.', 'info');
       }
     } catch (error) {
-      //await this.mostrarNotificacion('Error al escanear el código QR.', 'error');
+      console.log('❌ [escanearQR] Error al escanear:', error);
       await this.swal.showTemporaryAlert('Error', 'Error al escanear el código QR.', 'error');
     } finally {
         // this.loadingService.hide();
         this.customLoader.hide();
       this.qrEnProceso = false;
+      console.log('✅ [escanearQR] Proceso de escaneo finalizado');
     }
   }
 
@@ -445,50 +478,68 @@ export class HomePage implements OnInit {
   }
 
   async procesarCodigoEscaneado(codigo: string) {
+    console.log('🔐 [procesarCodigoEscaneado] Código recibido:', codigo);
     const codigoEsperado = 'b71c9d3a4e1f5a62c3340b87df0e8a129cab6e3d';
     
-    if (codigo === codigoEsperado) {
+    console.log('🔐 [procesarCodigoEscaneado] ¿Es código esperado?:', codigo === codigoEsperado);
+    console.log('🔐 [procesarCodigoEscaneado] ¿Empieza con ENTRADA:?:', codigo.startsWith('ENTRADA:'));
+    
+    // Aceptar tanto el código legacy como el nuevo formato ENTRADA:
+    if (codigo === codigoEsperado || codigo.startsWith('ENTRADA:')) {
+      console.log('✅ [procesarCodigoEscaneado] Código válido, llamando a agregarAListaEspera');
       await this.agregarAListaEspera();
     } else {
-      //await this.mostrarNotificacion('Código inválido', 'error');
+      console.log('❌ [procesarCodigoEscaneado] Código inválido');
       await this.swal.showTemporaryAlert('Error', 'Código inválido', 'error');
     }
   }
 
 
   async agregarAListaEspera() {
+    console.log('🔍 [agregarAListaEspera] INICIANDO método');
     try {
+      console.log('👤 [agregarAListaEspera] Usuario actual:', this.usuario);
+      
       if (!this.usuario) {
-        //await this.mostrarNotificacion('No se pudo obtener la información del usuario.', 'error');
+        console.log('❌ [agregarAListaEspera] No hay usuario autenticado');
         await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del usuario.', 'error');
         return;
       }
 
+      console.log('📧 [agregarAListaEspera] Buscando cliente en lista con email:', this.usuario.email);
       const { data: clienteEnLista } = await this.supabase.supabase
         .from('lista_espera')
         .select('*')
         .eq('correo', this.usuario.email)
         .single();
 
+      console.log('📋 [agregarAListaEspera] Cliente ya en lista?:', clienteEnLista);
+      
       if (clienteEnLista) {
-        //await this.mostrarNotificacion('Ya en Lista', 'exito');
+        console.log('⚠️ [agregarAListaEspera] Cliente ya está en la lista de espera');
         await this.swal.showTemporaryAlert('Info', 'Ya te encuentras en la lista de espera.', 'info');
         return;
       }
 
+      console.log('🔎 [agregarAListaEspera] Obteniendo datos del cliente desde tabla clientes');
       const { data: cliente, error: errorCliente } = await this.supabase.supabase
         .from('clientes')
         .select('nombre, apellido, correo')
         .eq('correo', this.usuario.email)
         .single();
 
+      console.log('👥 [agregarAListaEspera] Datos del cliente:', cliente);
+      console.log('❓ [agregarAListaEspera] Error al obtener cliente?:', errorCliente);
+
       if (errorCliente || !cliente) {
-        //await this.mostrarNotificacion('No se pudo obtener la información del cliente.', 'error');
+        console.log('❌ [agregarAListaEspera] No se pudo obtener información del cliente');
         await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del cliente.', 'error');
         return;
       }
 
       const ahora = new Date();
+      console.log('⏰ [agregarAListaEspera] Fecha/hora actual:', ahora);
+      
       const fechaFormateada = ahora.toLocaleString('es-AR', {
         year: 'numeric',
         month: '2-digit',
@@ -502,36 +553,48 @@ export class HomePage implements OnInit {
       const [fecha, hora] = fechaFormateada.replace(',', '').split(' ');
       const [dia, mes, anio] = fecha.split('/');
       const fechaFinal = `${anio}-${mes}-${dia} ${hora}:00`;
+      
+      console.log('📅 [agregarAListaEspera] Fecha formateada final:', fechaFinal);
+
+      const datosAInsertar = {
+        nombre: cliente.nombre,
+        apellido: cliente.apellido,
+        correo: cliente.correo,
+        fecha_ingreso: fechaFinal
+      };
+      
+      console.log('💾 [agregarAListaEspera] Intentando insertar en lista_espera:', datosAInsertar);
 
       const { error: errorInsert } = await this.supabase.supabase
         .from('lista_espera')
-        .insert([{
-          nombre: cliente.nombre,
-          apellido: cliente.apellido,
-          correo: cliente.correo,
-          fecha_ingreso: fechaFinal
-        }]);
+        .insert([datosAInsertar]);
+
+      console.log('❓ [agregarAListaEspera] Error al insertar?:', errorInsert);
 
       if (errorInsert) {
-        //await this.mostrarNotificacion('No se pudo agregar a la lista de espera: ' + errorInsert.message, 'error');
+        console.log('❌ [agregarAListaEspera] Error al insertar:', errorInsert.message);
         await this.swal.showTemporaryAlert('Error', 'No se pudo agregar a la lista de espera: ' + errorInsert.message, 'error');
         return;
       }
 
+      console.log('✅ [agregarAListaEspera] Cliente agregado exitosamente a la lista de espera');
+
       try {
+        console.log('🔔 [agregarAListaEspera] Enviando notificación al maître');
         await this.pushNotificationService.notificarMaitreNuevoCliente(
           cliente.nombre,
           cliente.apellido
         );
+        console.log('✅ [agregarAListaEspera] Notificación enviada');
       } catch (error) {
+        console.log('⚠️ [agregarAListaEspera] Error al enviar notificación:', error);
       }
 
-      //await this.mostrarNotificacion('Has sido agregado exitosamente a la lista de espera.', 'exito');
       await this.swal.showTemporaryAlert('¡Éxito!', 'Has sido agregado exitosamente a la lista de espera.', 'success');
+      console.log('🎉 [agregarAListaEspera] Proceso completado exitosamente');
       
     } catch (error) {
-
-      //await this.mostrarNotificacion('Error inesperado al agregar a la lista de espera.', 'error');
+      console.log('💥 [agregarAListaEspera] Error inesperado:', error);
       await this.swal.showTemporaryAlert('Error', 'Error inesperado al agregar a la lista de espera.', 'error');
     }
   }
@@ -641,6 +704,17 @@ export class HomePage implements OnInit {
   {
     this.router.navigate(['/encuestas']);
   }
+
+  irAPedidosMozo()
+  {
+    this.router.navigate(['/pedidos-mozo']);
+  }
+
+  irAConsultasMozo()
+  {
+    this.router.navigate(['/consultas-lista']);
+  }
+
   //**JUEGOS */
 
   manejarResultadoDescuento(resultado: ResultadoJuego) {

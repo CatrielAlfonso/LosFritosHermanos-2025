@@ -1,0 +1,174 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  
+  ion-spinner {
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: #666;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  
+  .empty-icon {
+    font-size: 80px;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+  
+  h3 {
+    color: #333;
+    margin: 0 0 8px 0;
+  }
+  
+  p {
+    color: #666;
+    margin: 0;
+  }
+}
+
+.consultas-list {
+  ion-item {
+    --background: #fff;
+    --padding-start: 16px;
+    --inner-padding-end: 16px;
+    margin-bottom: 1px;
+    
+    &.respondida {
+      --background: #f8f8f8;
+    }
+  }
+}
+
+.consulta-item {
+  cursor: pointer;
+  
+  &:hover {
+    --background: #f5f5f5;
+  }
+}
+
+.consulta-avatar {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  margin-right: 12px;
+  
+  ion-icon {
+    font-size: 32px;
+    color: #fff;
+  }
+}
+
+.consulta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  
+  .cliente-nombre {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+  
+  .consulta-fecha {
+    font-size: 0.75rem;
+    color: #999;
+    margin: 0;
+    white-space: nowrap;
+  }
+}
+
+.consulta-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  
+  .mesa-numero {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0;
+    
+    ion-icon {
+      font-size: 16px;
+      color: #007bff;
+    }
+  }
+  
+  .mozo-nombre {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #28a745;
+    margin: 0;
+    
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+  
+  ion-badge {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    text-transform: capitalize;
+  }
+}
+
+.chevron-icon {
+  color: #ccc;
+  font-size: 20px;
+}
+
+// Segment personalizado
+ion-segment {
+  --background: #f0f0f0;
+  
+  ion-segment-button {
+    --indicator-color: var(--ion-color-primary);
+    --color-checked: var(--ion-color-primary);
+    text-transform: none;
+    font-weight: 500;
+    
+    ion-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      
+      ion-badge {
+        margin-left: 4px;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (min-width: 768px) {
+  .consultas-list {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
+

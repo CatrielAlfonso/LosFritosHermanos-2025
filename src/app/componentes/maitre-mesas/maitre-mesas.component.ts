@@ -143,37 +143,73 @@ export class MaitreMesasComponent  implements OnInit {
     const loading = await this.feedback.showLoading('Asignando mesa...');
     
     try {
+      console.log('🔵 [ejecutarAsignacion] Iniciando asignación');
+      console.log('👤 Cliente:', cliente);
+      console.log('🪑 Mesa:', mesa);
 
-      let clienteDefinitivoId: number;
-      // 1. Actualizar la tabla 'mesas' (establecer ocupada y cliente asignado)
+      // 1. Primero, actualizar lista_espera con mesa asignada
+      const { error: errorEspera } = await this.sb.supabase
+        .from('lista_espera')
+        .update({ mesa_asignada: mesa.numero })
+        .eq('id', cliente.id);
+        
+      if (errorEspera) throw errorEspera;
+      console.log('✅ Cliente agregado a lista_espera con mesa_asignada:', mesa.numero);
+
+      // 2. Contar cuántos clientes están asignados a esta mesa DESPUÉS de la asignación
+      const { data: clientesEnMesa, error: errorConteo } = await this.sb.supabase
+        .from('lista_espera')
+        .select('id')
+        .eq('mesa_asignada', mesa.numero);
+
+      if (errorConteo) {
+        console.error('❌ Error al contar clientes:', errorConteo);
+      }
+
+      const cantidadClientesAsignados = clientesEnMesa?.length || 0;
+      const capacidadMesa = mesa.comensales;
+
+      console.log('📊 Cantidad de clientes asignados:', cantidadClientesAsignados);
+      console.log('📊 Capacidad de la mesa:', capacidadMesa);
+
+      // 3. Solo marcar como ocupada si alcanzó o superó la capacidad
+      const debeMarcarComoOcupada = cantidadClientesAsignados >= capacidadMesa;
+      console.log('🔍 ¿Debe marcar como ocupada?:', debeMarcarComoOcupada);
+
+      // Actualizar la tabla 'mesas' - NO sobrescribir clienteAsignadoId
+      const updateData: any = {};
+      if (debeMarcarComoOcupada) {
+        updateData.ocupada = true;
+        console.log('🔴 Marcando mesa como OCUPADA');
+      } else {
+        console.log('🟢 Mesa sigue DISPONIBLE para más comensales');
+      }
+
       const { error: errorMesa } = await this.sb.supabase
         .from('mesas')
-        .update({ ocupada: true, clienteAsignadoId: cliente.id })
+        .update(updateData)
         .eq('numero', mesa.numero);
 
       if (errorMesa) throw errorMesa;
 
-      // 2. Actualizar la tabla 'lista_espera' (remover cliente o marcar con mesa)
-      // Usaremos la eliminación de lista de espera (o moverlo a clientes sentados)
-      const { error: errorEspera } = await this.sb.supabase
-        .from('lista_espera')
-        .delete()
-        .eq('id', cliente.id);
-        
-      if (errorEspera) throw errorEspera;
+      // NO marcar cliente como sentado aquí - eso debe hacerlo el cliente al escanear el QR de la mesa
+      // const {error: errorCliente }= await this.sb.supabase.from('clientes').update(
+      //   {
+      //     sentado: true,
+      //   }).eq('id', cliente.id,);
 
-      // cliente sentado
-      const {error: errorCliente }= await this.sb.supabase.from('clientes').update(
-        {
-          sentado: true,
-        }).eq('id', cliente.id,);
-
-      if (errorCliente) throw errorCliente;
+      // if (errorCliente) throw errorCliente;
 
       // 3. ENVIAR PUSH NOTIFICATION al cliente (A IMPLEMENTAR)
       // Lógica simulada: notificar al dispositivo del cliente (celular 3)
       // Ejemplo: this.notificationService.sendPush(cliente.correo, `Tu mesa asignada es la N° ${mesa.numero}`);
-      this.feedback.showToast('exito', `✅ Mesa ${mesa.numero} asignada a ${cliente.nombre}. ¡Notificación enviada!`);
+      
+      const mensajeCapacidad = debeMarcarComoOcupada 
+        ? `Mesa ${mesa.numero} completa (${cantidadClientesAsignados}/${capacidadMesa}). ¡Mesa llena!`
+        : `Mesa ${mesa.numero} asignada a ${cliente.nombre} (${cantidadClientesAsignados}/${capacidadMesa}).`;
+      
+      this.feedback.showToast('exito', `✅ ${mensajeCapacidad}`);
+      console.log('🎉 Asignación completada exitosamente');
 
       // Limpiar selección y recargar datos
       this.clienteSeleccionado = null;
@@ -181,6 +217,7 @@ export class MaitreMesasComponent  implements OnInit {
       await this.cargarDatos();
 
     } catch (e: any) {
+      console.error('💥 Error en ejecutarAsignacion:', e);
       this.feedback.showToast('error', 'Error al asignar: ' + e.message);
     } finally {
       await loading.dismiss();
@@ -194,7 +231,7 @@ export class MaitreMesasComponent  implements OnInit {
 
     const alert = await this.alertCtrl.create({
       header: 'Confirmar Liberación',
-      message: `¿Desea liberar la Mesa N° ${mesa.numero}? Esto finalizará el servicio del cliente.`,
+      message: `¿Desea liberar la Mesa N° ${mesa.numero}? Esto finalizará el servicio de todos los clientes en esta mesa.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
@@ -202,15 +239,33 @@ export class MaitreMesasComponent  implements OnInit {
           handler: async () => {
             const loading = await this.feedback.showLoading('Liberando mesa...');
             try {
+              console.log('🔓 [liberarMesa] Liberando mesa:', mesa.numero);
+
+              // 1. Remover clientes de la lista de espera (o marcar mesa_asignada como null)
+              const { error: errorLista } = await this.sb.supabase
+                .from('lista_espera')
+                .delete()
+                .eq('mesa_asignada', mesa.numero);
+
+              if (errorLista) {
+                console.error('⚠️ Error al limpiar lista_espera:', errorLista);
+              } else {
+                console.log('✅ Clientes removidos de lista_espera');
+              }
+
+              // 2. Marcar la mesa como libre
               const { error } = await this.sb.supabase
                 .from('mesas')
                 .update({ ocupada: false, clienteAsignadoId: null })
                 .eq('numero', mesa.numero);
 
               if (error) throw error;
+              
+              console.log('✅ Mesa liberada exitosamente');
               this.feedback.showToast('exito', `Mesa ${mesa.numero} liberada con éxito.`);
               await this.cargarMesas();
             } catch (e: any) {
+              console.error('💥 Error al liberar mesa:', e);
               this.feedback.showToast('error', 'Error al liberar: ' + e.message);
             } finally {
               await loading.dismiss();

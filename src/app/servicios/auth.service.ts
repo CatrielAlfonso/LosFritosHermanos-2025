@@ -243,7 +243,9 @@ export class AuthService implements OnInit {
       console.error('Error al obtener usuario para borrar token:', error);
     }
     
-    await this.audio.playSalida();
+    // Reproducir audio sin bloquear el cierre de sesión
+    this.audio.playSalida().catch(err => console.error('Error al reproducir audio de salida:', err));
+    
     await this.sb.supabase.auth.signOut();
     this.usuarioActual = null;
     this.esAdmin = false;
