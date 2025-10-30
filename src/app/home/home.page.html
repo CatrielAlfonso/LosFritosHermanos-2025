@@ -49,11 +49,6 @@
         Registrar Mesa
       </ion-button>
 
-      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irARegistro('/registro')">
-        <ion-icon name="people-outline" slot="start"></ion-icon>
-        Gestionar Clientes
-      </ion-button>
-
       <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="irAAprobacionClientes()">
         <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
         Aprobar Clientes
@@ -115,21 +110,19 @@
       </ion-button>
     </div>
 
-
     <div *ngIf="tipoUsuario === 'mozo'" class="mozo-options">
-      <h3 class="fritos-subtitle">Panel de Bartender</h3>
+      <h3 class="fritos-subtitle">Panel de Mozo</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/pagos', mesaSeleccionada]" routerLinkActive="router-link-active" >
-        <ion-icon name="wine-outline" slot="start"></ion-icon>
-        Pagos
-      </ion-button>
-
-      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/pedidos-mozo']" >
-        <ion-icon name="list-outline" slot="start"></ion-icon>
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irAPedidosMozo()">
+        <ion-icon name="clipboard-outline" slot="start"></ion-icon>
         Ver Pedidos Pendientes
       </ion-button>
-    </div>
 
+      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAConsultasMozo()">
+        <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+        Ver Consultas de Clientes
+      </ion-button>
+    </div>
 
     <div *ngIf="tipoUsuario === 'cliente'" class="cliente-options">
       <h3 class="fritos-subtitle">Panel de Cliente</h3>

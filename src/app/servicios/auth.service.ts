@@ -312,15 +312,10 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
       console.error('Error al obtener usuario para borrar token:', error);
     }
     
-
-    try {
-      await this.sb.supabase.auth.signOut();
-      console.log('✅ Sesión cerrada en Supabase.');
-    }
-    catch (error) {
-         console.error('❌ ERROR CRÍTICO al cerrar sesión en Supabase:', error);
-    }
-    //await this.audio.playSalida();
+    // Reproducir audio sin bloquear el cierre de sesión
+    this.audio.playSalida().catch(err => console.error('Error al reproducir audio de salida:', err));
+    
+    await this.sb.supabase.auth.signOut();
     this.usuarioActual = null;
     this.esAdmin = false;
     this.esMaitre = false;

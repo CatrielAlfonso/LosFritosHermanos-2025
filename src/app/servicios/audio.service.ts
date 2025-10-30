@@ -43,11 +43,19 @@ export class AudioService {
   }
 
   async playInicio() {
-    await NativeAudio.play({ assetId: 'inicio' });
+    try {
+      await NativeAudio.play({ assetId: 'inicio' });
+    } catch (error) {
+      console.error('Error al reproducir audio de inicio:', error);
+    }
   }
 
   async playSalida() {
-    await NativeAudio.play({ assetId: 'salida' });
+    try {
+      await NativeAudio.play({ assetId: 'salida' });
+    } catch (error) {
+      console.error('Error al reproducir audio de salida:', error);
+    }
   }
 
 
