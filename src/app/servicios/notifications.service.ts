@@ -28,7 +28,7 @@ export class NotificationsService {
           // PushNotifications.register();
           OneSignal.initialize(environment.oneSignalId);
 
-          OneSignal.Notifications.addEventListener('click', async(e)=>{
+          OneSignal.Notifications.addEventListener('click', async(e : any)=>{
             const notification:any = e.notification;
             const destino = notification.additionalData['url'];
 
