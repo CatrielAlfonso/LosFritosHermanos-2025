@@ -135,6 +135,14 @@ const routes: Routes = [
   {
     path: 'pagos/:mesa',
     loadComponent: () => import('./componentes/pagos/pagos.component').then(m => m.PagosComponent)
+  },
+  {
+    path: 'consulta-mozo',
+    loadComponent: () => import('./componentes/consulta-mozo/consulta-mozo.component').then(m => m.ConsultaMozoComponent)
+  },
+  {
+    path: 'consultas-lista',
+    loadComponent: () => import('./componentes/consultas-lista/consultas-lista.component').then(m => m.ConsultasListaComponent)
   }, 
  
 ];

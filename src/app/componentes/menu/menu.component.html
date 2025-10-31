@@ -1,6 +1,12 @@
 <ion-header class="header">
   <ion-toolbar>
     <ion-title class="titulo-menu" id="titulo-menu">Platos principales</ion-title>
+    <ion-buttons slot="end" *ngIf="tieneMesaAsignada">
+      <ion-button (click)="irAConsultaMozo()" color="primary" fill="solid">
+        <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+        Consultar Mozo
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

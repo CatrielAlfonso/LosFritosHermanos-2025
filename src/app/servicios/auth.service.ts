@@ -16,12 +16,16 @@ export class AuthService implements OnInit {
   esAdmin: boolean = false;
   esMaitre: boolean = false;
   perfilUsuario: string = '';
+  esCocinero: boolean = false;
+esBartender: boolean = false;
+esMozo: boolean = false;
 
   async ngOnInit(): Promise<void> {
     //t//his.setupAuthListener();
     await this.audio.preload();
   }
-
+  private perfilUsuarioSubject = new BehaviorSubject<string | null>(null);
+perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
   public userActual: WritableSignal<User | null> = signal<User | null>(null);
 
   constructor(
@@ -92,6 +96,17 @@ export class AuthService implements OnInit {
 
     return this.usuarioActual;
   }
+
+  async cargarPerfilUsuario() {
+  const { data } = await this.sb.supabase.auth.getUser();
+  const email = data?.user?.email;
+  if (email) {
+    await this.asignarPerfilDesdeBD(email);
+  } else {
+    console.warn('No se pudo obtener el email del usuario autenticado');
+  }
+}
+
 
   async obtenerIdUsuarioActual(): Promise<string | null> {
     try {
@@ -189,13 +204,65 @@ export class AuthService implements OnInit {
     return this.usuarioActual;
   }
 
-  private perfilUsuarioSubject = new BehaviorSubject<string | null>(null);
-  perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
+ 
 
-  setPerfil(perfil: string) {
-    this.perfilUsuarioSubject.next(perfil);
+  // setPerfil(perfil: string) {
+  //   this.perfilUsuarioSubject.next(perfil);
+  // }
+
+  async asignarPerfilDesdeBD(email: string) {
+  try {
+    // Buscar en supervisores
+    const { data: supervisor } = await this.sb.supabase
+      .from('supervisores')
+      .select('perfil')
+      .eq('correo', email)
+      .single();
+
+    if (supervisor?.perfil) {
+      this.setPerfil(supervisor.perfil);
+      return;
+    }
+
+    // Buscar en empleados
+    const { data: empleado } = await this.sb.supabase
+      .from('empleados')
+      .select('perfil')
+      .eq('correo', email)
+      .single();
+
+    if (empleado?.perfil) {
+      this.setPerfil(empleado.perfil);
+      return;
+    }
+
+    // Buscar en clientes
+    const { data: cliente } = await this.sb.supabase
+      .from('clientes')
+      .select('perfil')
+      .eq('correo', email)
+      .single();
+
+    if (cliente?.perfil) {
+      this.setPerfil(cliente.perfil);
+      return;
+    }
+
+    // Si no se encontró en ninguna tabla
+    this.setPerfil('');
+    console.warn('Usuario no encontrado en ninguna tabla.');
+
+  } catch (error) {
+    console.error('Error asignando perfil desde BD:', error);
+    this.setPerfil('');
   }
+}
 
+ setPerfil(perfil: string) {
+  this.perfilUsuario = perfil;
+  this.perfilUsuarioSubject.next(perfil);
+  console.log('Perfil asignado:', perfil);
+}
 
   esUsuarioAdmin() {
     return this.esAdmin;
@@ -225,7 +292,8 @@ export class AuthService implements OnInit {
     return this.usuarioActual !== null;
   }
 
-  async signOut() {
+  async signOut() 
+  {
     try {
       const { data: user } = await this.sb.supabase.auth.getUser();
       const email = user?.user?.email;
@@ -237,13 +305,16 @@ export class AuthService implements OnInit {
           //await pushService.borrarFcmToken(email);
         } catch (error) {
           console.error('Error al borrar FCM token:', error);
+          
         }
       }
     } catch (error) {
       console.error('Error al obtener usuario para borrar token:', error);
     }
     
-    await this.audio.playSalida();
+    // Reproducir audio sin bloquear el cierre de sesión
+    this.audio.playSalida().catch(err => console.error('Error al reproducir audio de salida:', err));
+    
     await this.sb.supabase.auth.signOut();
     this.usuarioActual = null;
     this.esAdmin = false;

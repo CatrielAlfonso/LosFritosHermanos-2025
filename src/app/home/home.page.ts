@@ -13,6 +13,7 @@ import { isPlatform } from '@ionic/angular/standalone';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { SweetAlertService } from '../servicios/sweet-alert.service';
 import { PushNotificationService } from '../servicios/push-notification.service';
+import { NotificationsService } from '../servicios/notifications.service';
 
 
 @Component({
@@ -44,6 +45,24 @@ export class HomePage implements OnInit {
   pedidoActualCliente: any = null;
   qrEnProceso: boolean = false;
 
+  mesaSeleccionada='12';
+
+    mostrarModalConsultaMozo: boolean = false;
+  consultaMozo: string = '';
+  mostrarErrorConsultaMozo: boolean = false;
+  animandoSalidaModalConsultaMozo: boolean = false;
+  mostrarModalConsultasMozo: boolean = false;
+  consultasMozo: any[] = [];
+  cargandoConsultasMozo: boolean = false;
+  respuestaMozoPorId: { [id: string]: string } = {};
+  errorRespuestaMozoPorId: { [id: string]: string } = {};
+  mostrarRespuestaId: number | null = null;
+  mostrarModalConsultasCliente: boolean = false;
+  consultasCliente: any[] = [];
+  cargandoConsultasCliente: boolean = false;
+  consultaClienteTexto: string = '';
+  errorConsultaCliente: string = '';
+  intervaloConsultasMozo: any = null;
 
 
   pedidoHecho: boolean = true;
@@ -68,39 +87,55 @@ export class HomePage implements OnInit {
     private feedback: FeedbackService,
     private swal:SweetAlertService,
     private customLoader: CustomLoader,
-    private pushNotificationService: PushNotificationService
+    private pushNotificationService: PushNotificationService,
+    private notificationsService: NotificationsService,
+    //private cdr: ChangeDetectorRef
   ) {
       
   }
 
-  ngOnInit() {
-    this.verificarUsuario();
+  async ngOnInit() 
+  {
 
-    const user = this.authService.usuarioActual;
-    if (user) {
-     // o traer el nombre desde DB
+      this.authService.perfilUsuario$.subscribe(perfil => {
+      console.log('Perfil usuario en HomePage:', perfil);
+      this.perfilUsuario = perfil ?? '';
+      this.esAdmin = perfil === 'supervisor';
+      this.esMaitre = perfil === 'maitre';
+      this.esCocinero = perfil === 'cocinero';
+      this.esBartender = perfil === 'bartender';  
+      this.esMozo = perfil === 'mozo';
+    });
 
-    // Levanto los flags desde el servicio
-    this.perfilUsuario = this.authService.perfilUsuario;
-    this.esAdmin = this.authService.esAdmin;
-    this.esMaitre = this.authService.esMaitre;
-    this.esCocinero = this.authService.perfilUsuario === 'cocinero';
-    this.esBartender = this.authService.perfilUsuario === 'bartender';
-    this.esMozo = this.authService.perfilUsuario === 'mozo';
-  }
-  this.authService.perfilUsuario$.subscribe(perfil => {
-    this.perfilUsuario = perfil ?? '';
-    this.esAdmin = perfil === 'supervisor';
-    this.esMaitre = perfil === 'maitre';
-    this.esCocinero = perfil === 'cocinero';
-    this.esBartender = perfil === 'bartender';  
-    this.esMozo = perfil === 'mozo';
-  });
-  console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+    this.loadUserData(); // lo podés dejar después
 
-    this.loadUserData();
-    console.log('se ejecuta el on init')
-  }
+    console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+
+    //   const user = this.authService.usuarioActual;
+    //   if (user) {
+    //    // o traer el nombre desde DB
+
+    //   // Levanto los flags desde el servicio
+    //   this.perfilUsuario = this.authService.perfilUsuario;
+    //   this.esAdmin = this.authService.esAdmin;
+    //   this.esMaitre = this.authService.esMaitre;
+    //   this.esCocinero = this.authService.perfilUsuario === 'cocinero';
+    //   this.esBartender = this.authService.perfilUsuario === 'bartender';
+    //   this.esMozo = this.authService.perfilUsuario === 'mozo';
+    // }
+    // this.authService.perfilUsuario$.subscribe(perfil => {
+    //   this.perfilUsuario = perfil ?? '';
+    //   this.esAdmin = perfil === 'supervisor';
+    //   this.esMaitre = perfil === 'maitre';
+    //   this.esCocinero = perfil === 'cocinero';
+    //   this.esBartender = perfil === 'bartender';  
+    //   this.esMozo = perfil === 'mozo';
+    // });
+    // console.log('Perfil usuario en HomePage:', this.perfilUsuario);
+
+    //   this.loadUserData();
+    //   console.log('se ejecuta el on init')
+    }
 
 
    async loadUserData() {
@@ -117,28 +152,46 @@ export class HomePage implements OnInit {
   }
 
    async cargarUsuario() {
+    console.log('🔄 [cargarUsuario] Cargando usuario actual');
     try {
       const { data, error } = await this.authService.getCurrentUser();
+      console.log('🔄 [cargarUsuario] Data:', data);
+      console.log('🔄 [cargarUsuario] Error:', error);
       
       if (error) {
+        console.log('❌ [cargarUsuario] Error al obtener usuario, saliendo');
         return;
       }
       
       this.usuario = data?.user;
+      console.log('👤 [cargarUsuario] Usuario asignado:', this.usuario);
 
       if (!this.usuario) {
+        console.log('⚠️ [cargarUsuario] No hay usuario, redirigiendo a login');
         this.router.navigateByUrl('/login');
       } else {
+        console.log('✅ [cargarUsuario] Usuario existe, perfil:', this.perfilUsuario);
         if (this.perfilUsuario === 'cliente') {
+          console.log('👥 [cargarUsuario] Es cliente, verificando mesa y cargando info');
           await this.verificarMesaAsignada();
           await this.cargarClienteInfo();
         }
       }
     } catch (error) {
+      console.log('💥 [cargarUsuario] Error inesperado:', error);
       this.router.navigateByUrl('/login');
     }
   }
 
+
+  private aplicarPerfil() {
+  this.perfilUsuario = this.authService.perfilUsuario;
+  this.esAdmin = this.perfilUsuario === 'supervisor';
+  this.esMaitre = this.perfilUsuario === 'maitre';
+  this.esCocinero = this.perfilUsuario === 'cocinero';
+  this.esBartender = this.perfilUsuario === 'bartender';
+  this.esMozo = this.perfilUsuario === 'mozo';
+}
 
    async cargarClienteInfo() {
     if (!this.usuario || this.perfilUsuario !== 'cliente') return;
@@ -278,14 +331,23 @@ export class HomePage implements OnInit {
   }
 
   async verificarUsuario() {
+    console.log('🔍 [verificarUsuario] Iniciando verificación de usuario');
     try {
       const { data: user } = await this.authService.getCurrentUser();
+      console.log('🔍 [verificarUsuario] User obtenido:', user);
+      
       if (!user?.user?.email) {
+        console.log('❌ [verificarUsuario] No hay email, redirigiendo a login');
         this.router.navigate(['/login']);
         return;
       }
 
       const email = user.user.email;
+      console.log('📧 [verificarUsuario] Email del usuario:', email);
+      
+      // IMPORTANTE: Asignar this.usuario aquí
+      this.usuario = user.user;
+      console.log('👤 [verificarUsuario] this.usuario asignado:', this.usuario);
       
       // Verificar si es supervisor
       const { data: supervisor } = await this.supabase.supabase
@@ -295,6 +357,7 @@ export class HomePage implements OnInit {
         .single();
 
       if (supervisor) {
+        console.log('👔 [verificarUsuario] Es SUPERVISOR');
         this.esAdmin = true;
         this.nombreUsuario = `${supervisor.nombre} ${supervisor.apellido}`;
         this.authService.setPerfil('supervisor');
@@ -309,6 +372,7 @@ export class HomePage implements OnInit {
         .single();
 
       if (empleado) {
+        console.log('👨‍💼 [verificarUsuario] Es EMPLEADO, perfil:', empleado.perfil);
         this.nombreUsuario = `${empleado.nombre} ${empleado.apellido}`;
         if (empleado.perfil === 'maitre') {
           this.esMaitre = true;
@@ -331,27 +395,33 @@ export class HomePage implements OnInit {
         .eq('correo', email)
         .single();
 
+      console.log('👥 [verificarUsuario] Datos del cliente:', cliente);
+
       if (cliente) {
         if (cliente.validado === null || cliente.validado === false) {
+          console.log('⚠️ [verificarUsuario] Cliente no validado, cerrando sesión');
           await this.authService.signOut();
           this.router.navigate(['/login']);
           return;
         }
+        console.log('✅ [verificarUsuario] Es CLIENTE validado');
         this.nombreUsuario = `${cliente.nombre} ${cliente.apellido}`;
         this.authService.setPerfil('cliente');
         return;
       }
 
       // Si no se encontró ningún perfil
+      console.log('❌ [verificarUsuario] No se encontró perfil, cerrando sesión');
       await this.authService.signOut();
       this.router.navigate(['/login']);
     } catch (error) {
-      console.error('Error al verificar usuario:', error);
+      console.error('💥 [verificarUsuario] Error al verificar usuario:', error);
       this.router.navigate(['/login']);
     }
   }
 
-  async obtenerNombreUsuario(email: string) {
+  async obtenerNombreUsuario(email: string) 
+  {
     try {
       if (this.esAdmin) {
         const { data: supervisor } = await this.authService['sb'].supabase
@@ -379,6 +449,13 @@ export class HomePage implements OnInit {
     }
   }
 
+
+  // cerrarSesion()
+  // {
+  //   this.authService.signOut();
+  //   this.router.navigate(['/login']);
+  // }
+
   irARegistro(ruta?: string) {
     this.router.navigate([ruta]);
   }
@@ -392,29 +469,44 @@ export class HomePage implements OnInit {
   }
 
   async cerrarSesion() {
+    this.customLoader.show();
     await this.authService.signOut();
-    this.router.navigate(['/bienvenida']);
+    //this.swal.showTemporaryAlert('Éxito', 'Has cerrado sesión correctamente.', 'success');
+    this.customLoader.hide();
+    this.nombreUsuario = '';
+    this.usuario = null;
+    this.router.navigate(['/login']);
+    //this.swal.showTemporaryAlert('Éxito', 'Has cerrado sesión correctamente.', 'success');
+    this.feedback.showToast('exito', 'Has cerrado sesión correctamente.');
   }
 
    async escanearQR() {
+    console.log('📷 [escanearQR] INICIANDO escaneo QR');
     this.qrEnProceso = true;
     this.customLoader.show();
     try {
       const { barcodes } = await BarcodeScanner.scan();
+      console.log('📷 [escanearQR] Barcodes escaneados:', barcodes);
+      console.log('📷 [escanearQR] Cantidad de barcodes:', barcodes.length);
+      
       if (barcodes.length > 0) {
-        const codigoEscaneado = barcodes[0].displayValue;
+        const codigoEscaneado = barcodes[0].rawValue;
+        console.log('📷 [escanearQR] Código escaneado (rawValue):', codigoEscaneado);
+        console.log('📷 [escanearQR] displayValue:', barcodes[0].displayValue);
+        console.log('📷 [escanearQR] Llamando a procesarCodigoEscaneado...');
         await this.procesarCodigoEscaneado(codigoEscaneado);
       } else {
-        //await this.mostrarNotificacion('No se detectó ningún código QR.', 'info');
+        console.log('⚠️ [escanearQR] No se detectó ningún código QR');
         await this.swal.showTemporaryAlert('Info', 'No se detectó ningún código QR.', 'info');
       }
     } catch (error) {
-      //await this.mostrarNotificacion('Error al escanear el código QR.', 'error');
+      console.log('❌ [escanearQR] Error al escanear:', error);
       await this.swal.showTemporaryAlert('Error', 'Error al escanear el código QR.', 'error');
     } finally {
         // this.loadingService.hide();
         this.customLoader.hide();
       this.qrEnProceso = false;
+      console.log('✅ [escanearQR] Proceso de escaneo finalizado');
     }
   }
 
@@ -445,50 +537,327 @@ export class HomePage implements OnInit {
   }
 
   async procesarCodigoEscaneado(codigo: string) {
+    console.log('🔐 [procesarCodigoEscaneado] Código recibido:', codigo);
     const codigoEsperado = 'b71c9d3a4e1f5a62c3340b87df0e8a129cab6e3d';
     
-    if (codigo === codigoEsperado) {
+    console.log('🔐 [procesarCodigoEscaneado] ¿Es código esperado?:', codigo === codigoEsperado);
+    console.log('🔐 [procesarCodigoEscaneado] ¿Empieza con ENTRADA:?:', codigo.startsWith('ENTRADA:'));
+    
+    // Aceptar tanto el código legacy como el nuevo formato ENTRADA:
+    if (codigo === codigoEsperado || codigo.startsWith('ENTRADA:')) {
+      console.log('✅ [procesarCodigoEscaneado] Código válido, llamando a agregarAListaEspera');
       await this.agregarAListaEspera();
     } else {
-      //await this.mostrarNotificacion('Código inválido', 'error');
+      console.log('❌ [procesarCodigoEscaneado] Código inválido');
       await this.swal.showTemporaryAlert('Error', 'Código inválido', 'error');
     }
   }
 
+   abrirConsultaMozo() {
+    this.mostrarModalConsultaMozo = true;
+    this.consultaMozo = '';
+    this.mostrarErrorConsultaMozo = false;
+  }
+
+  cerrarConsultaMozo(animar: boolean = false) {
+    if (animar) {
+      this.animandoSalidaModalConsultaMozo = true;
+      setTimeout(() => {
+        this.mostrarModalConsultaMozo = false;
+        this.animandoSalidaModalConsultaMozo = false;
+        this.consultaMozo = '';
+        this.mostrarErrorConsultaMozo = false;
+      }, 250);
+    } else {
+      this.mostrarModalConsultaMozo = false;
+      this.animandoSalidaModalConsultaMozo = false;
+      this.consultaMozo = '';
+      this.mostrarErrorConsultaMozo = false;
+    }
+  }
+
+  async confirmarConsultaMozo() {
+    if (!this.consultaMozo.trim() || this.consultaMozo.trim().length < 10) {
+      this.mostrarErrorConsultaMozo = true;
+      return;
+    }
+    this.mostrarErrorConsultaMozo = false;
+    try {
+      const ahora = new Date();
+      const fechaFormateada = ahora.toLocaleString('es-AR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: 'America/Argentina/Buenos_Aires'
+      });
+      const [fecha, hora] = fechaFormateada.replace(',', '').split(' ');
+      const [dia, mes, anio] = fecha.split('/');
+      const horaFinal = `${anio}-${mes}-${dia} ${hora}`;
+      const mesa = this.mesaAsignada ? String(this.mesaAsignada) : '';
+      const { error } = await this.supabase.supabase
+        .from('consultas_a_mozo')
+        .insert([
+          {
+            consulta: this.consultaMozo.trim(),
+            hora: horaFinal,
+            mesa: mesa
+          }
+        ]);
+      if (error) {
+        //this.mostrarNotificacion('No se pudo enviar la consulta.', 'error');
+        //await this.swal.showTemporaryAlert('Error', 'No se pudo enviar la consulta.', 'error');
+        this.feedback.showToast('error', 'No se pudo enviar la consulta.');
+      } else {
+        this.feedback.showToast('exito', 'Su consulta fue enviada al mozo.');
+        //this.mostrarNotificacion('Su consulta fue enviada al mozo.', 'exito');
+        this.cerrarConsultaMozo(true);
+      }
+    } catch (e) {
+      //this.mostrarNotificacion('No se pudo enviar la consulta.', 'error');
+      this.feedback.showToast('error', 'No se pudo enviar la consulta.');
+    }
+  }
+
+  abrirModalConsultasMozo() {
+    this.mostrarModalConsultasMozo = true;
+    this.cargarConsultasMozo();
+    if (this.intervaloConsultasMozo) {
+      clearInterval(this.intervaloConsultasMozo);
+    }
+    this.intervaloConsultasMozo = setInterval(() => this.cargarConsultasMozo(true), 5000);
+  }
+
+  cerrarModalConsultasMozo() {
+    this.mostrarModalConsultasMozo = false;
+    this.respuestaMozoPorId = {};
+    this.errorRespuestaMozoPorId = {};
+    if (this.intervaloConsultasMozo) {
+      clearInterval(this.intervaloConsultasMozo);
+      this.intervaloConsultasMozo = null;
+    }
+  }
+
+  async cargarConsultasMozo(polling: boolean = false) {
+    let mostrarLoading = !polling;
+    let prevIds = this.consultasMozo?.map(c => c.id).join(',') || '';
+    const { data, error } = await this.supabase.supabase
+      .from('consultas_a_mozo')
+      .select('*')
+      .order('hora', { ascending: false });
+    if (!error) {
+      const newIds = data?.map((c: any) => c.id).join(',') || '';
+      if (polling && (newIds !== prevIds || data.length !== this.consultasMozo.length)) {
+        mostrarLoading = true;
+      }
+      if (mostrarLoading) this.cargandoConsultasMozo = true;
+      this.consultasMozo = data;
+      if (mostrarLoading) setTimeout(() => { this.cargandoConsultasMozo = false; }, 600);
+    }
+    if (!mostrarLoading) this.cargandoConsultasMozo = false;
+  }
+
+  async enviarRespuestaMozo(consulta: any) {
+    const id = consulta.id;
+    const respuesta = this.respuestaMozoPorId[id]?.trim() || '';
+    if (!respuesta) {
+      this.errorRespuestaMozoPorId[id] = 'Debe ingresar una respuesta.';
+      return;
+    }
+    this.errorRespuestaMozoPorId[id] = '';
+    const ahora = new Date();
+    const fechaFormateada = ahora.toLocaleString('es-AR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'America/Argentina/Buenos_Aires'
+    });
+    const [fecha, hora] = fechaFormateada.replace(',', '').split(' ');
+    const [dia, mes, anio] = fecha.split('/');
+    const horaFinal = `${anio}-${mes}-${dia} ${hora}`;
+    const usuario = this.usuario;
+    let nombreMozo = '';
+    if (usuario && usuario.email) {
+      const { data: mozo } = await this.supabase.supabase
+        .from('empleados')
+        .select('nombre,apellido')
+        .eq('correo', usuario.email)
+        .single();
+      if (mozo) {
+        nombreMozo = mozo.nombre + ' ' + mozo.apellido;
+      }
+    }
+    const { error } = await this.supabase.supabase
+      .from('consultas_a_mozo')
+      .update({
+        respuesta: respuesta,
+        hora_respuesta: horaFinal,
+        mozo: nombreMozo
+      })
+      .eq('id', id);
+    if (!error) {
+      this.cargarConsultasMozo();
+      this.respuestaMozoPorId[id] = '';
+      this.errorRespuestaMozoPorId[id] = '';
+      this.mostrarRespuestaId = null;
+    } else {
+      this.errorRespuestaMozoPorId[id] = 'Error al enviar la respuesta.';
+    }
+  }
+
+  formatearHoraConsulta(fecha: string): string {
+    if (!fecha) return '';
+    try {
+      const d = new Date(fecha);
+      const dia = d.getDate().toString().padStart(2, '0');
+      const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+      const hora = d.getHours().toString().padStart(2, '0');
+      const minuto = d.getMinutes().toString().padStart(2, '0');
+      return `${dia}/${mes} ${hora}:${minuto}`;
+    } catch {
+      return fecha;
+    }
+  }
+
+  abrirModalConsultasCliente() {
+    this.mostrarModalConsultasCliente = true;
+    this.cargarConsultasCliente();
+    this.consultaClienteTexto = '';
+    this.errorConsultaCliente = '';
+  }
+
+  cerrarModalConsultasCliente() {
+    this.mostrarModalConsultasCliente = false;
+    this.consultaClienteTexto = '';
+    this.errorConsultaCliente = '';
+  }
+
+  async cargarConsultasCliente() {
+    this.cargandoConsultasCliente = true;
+    const correo = this.usuario?.email;
+    let consultas: any[] = [];
+    if (correo) {
+      const { data, error } = await this.supabase.supabase
+        .from('consultas_a_mozo')
+        .select('*')
+        .eq('correo', correo)
+        .order('hora', { ascending: false });
+      if (!error) {
+        consultas = data;
+      }
+    }
+    this.consultasCliente = consultas;
+    this.cargandoConsultasCliente = false;
+  }
+
+  async enviarConsultaCliente() {
+    if (!this.consultaClienteTexto.trim() || this.consultaClienteTexto.trim().length < 10) {
+      this.errorConsultaCliente = 'La consulta debe tener al menos 10 caracteres.';
+      return;
+    }
+    this.errorConsultaCliente = '';
+    const ahora = new Date();
+    const fechaFormateada = ahora.toLocaleString('es-AR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: 'America/Argentina/Buenos_Aires'
+    });
+    const [fecha, hora] = fechaFormateada.replace(',', '').split(' ');
+    const [dia, mes, anio] = fecha.split('/');
+    const horaFinal = `${anio}-${mes}-${dia} ${hora}`;
+    const mesa = this.mesaAsignada ? String(this.mesaAsignada) : '';
+    const correo = this.usuario?.email || '';
+    
+    const { error } = await this.supabase.supabase
+      .from('consultas_a_mozo')
+      .insert([
+        {
+          consulta: this.consultaClienteTexto.trim(),
+          hora: horaFinal,
+          mesa: mesa,
+          correo: correo
+        }
+      ]);
+    
+    if (error) {
+      this.errorConsultaCliente = 'No se pudo enviar la consulta.';
+    } else {
+      try {
+        const clienteNombre = this.clienteInfo?.nombre || this.usuario?.email?.split('@')[0] || 'Cliente';
+        const clienteApellido = this.clienteInfo?.apellido || '';
+        
+        await this.pushNotificationService.notificarMozosConsultaCliente(
+          clienteNombre,
+          clienteApellido,
+          mesa,
+          this.consultaClienteTexto.trim()
+        );
+      } catch (error) {
+      }
+      
+      this.consultaClienteTexto = '';
+      this.cargarConsultasCliente();
+    }
+  }
+
+
 
   async agregarAListaEspera() {
+    console.log('🔍 [agregarAListaEspera] INICIANDO método');
     try {
+      console.log('👤 [agregarAListaEspera] Usuario actual:', this.usuario);
+      
       if (!this.usuario) {
-        //await this.mostrarNotificacion('No se pudo obtener la información del usuario.', 'error');
+        console.log('❌ [agregarAListaEspera] No hay usuario autenticado');
         await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del usuario.', 'error');
         return;
       }
 
+      console.log('📧 [agregarAListaEspera] Buscando cliente en lista con email:', this.usuario.email);
       const { data: clienteEnLista } = await this.supabase.supabase
         .from('lista_espera')
         .select('*')
         .eq('correo', this.usuario.email)
         .single();
 
+      console.log('📋 [agregarAListaEspera] Cliente ya en lista?:', clienteEnLista);
+      
       if (clienteEnLista) {
-        //await this.mostrarNotificacion('Ya en Lista', 'exito');
+        console.log('⚠️ [agregarAListaEspera] Cliente ya está en la lista de espera');
         await this.swal.showTemporaryAlert('Info', 'Ya te encuentras en la lista de espera.', 'info');
         return;
       }
 
+      console.log('🔎 [agregarAListaEspera] Obteniendo datos del cliente desde tabla clientes');
       const { data: cliente, error: errorCliente } = await this.supabase.supabase
         .from('clientes')
         .select('nombre, apellido, correo')
         .eq('correo', this.usuario.email)
         .single();
 
+      console.log('👥 [agregarAListaEspera] Datos del cliente:', cliente);
+      console.log('❓ [agregarAListaEspera] Error al obtener cliente?:', errorCliente);
+
       if (errorCliente || !cliente) {
-        //await this.mostrarNotificacion('No se pudo obtener la información del cliente.', 'error');
+        console.log('❌ [agregarAListaEspera] No se pudo obtener información del cliente');
         await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del cliente.', 'error');
         return;
       }
 
       const ahora = new Date();
+      console.log('⏰ [agregarAListaEspera] Fecha/hora actual:', ahora);
+      
       const fechaFormateada = ahora.toLocaleString('es-AR', {
         year: 'numeric',
         month: '2-digit',
@@ -502,36 +871,48 @@ export class HomePage implements OnInit {
       const [fecha, hora] = fechaFormateada.replace(',', '').split(' ');
       const [dia, mes, anio] = fecha.split('/');
       const fechaFinal = `${anio}-${mes}-${dia} ${hora}:00`;
+      
+      console.log('📅 [agregarAListaEspera] Fecha formateada final:', fechaFinal);
+
+      const datosAInsertar = {
+        nombre: cliente.nombre,
+        apellido: cliente.apellido,
+        correo: cliente.correo,
+        fecha_ingreso: fechaFinal
+      };
+      
+      console.log('💾 [agregarAListaEspera] Intentando insertar en lista_espera:', datosAInsertar);
 
       const { error: errorInsert } = await this.supabase.supabase
         .from('lista_espera')
-        .insert([{
-          nombre: cliente.nombre,
-          apellido: cliente.apellido,
-          correo: cliente.correo,
-          fecha_ingreso: fechaFinal
-        }]);
+        .insert([datosAInsertar]);
+
+      console.log('❓ [agregarAListaEspera] Error al insertar?:', errorInsert);
 
       if (errorInsert) {
-        //await this.mostrarNotificacion('No se pudo agregar a la lista de espera: ' + errorInsert.message, 'error');
+        console.log('❌ [agregarAListaEspera] Error al insertar:', errorInsert.message);
         await this.swal.showTemporaryAlert('Error', 'No se pudo agregar a la lista de espera: ' + errorInsert.message, 'error');
         return;
       }
 
+      console.log('✅ [agregarAListaEspera] Cliente agregado exitosamente a la lista de espera');
+
       try {
+        console.log('🔔 [agregarAListaEspera] Enviando notificación al maître');
         await this.pushNotificationService.notificarMaitreNuevoCliente(
           cliente.nombre,
           cliente.apellido
         );
+        console.log('✅ [agregarAListaEspera] Notificación enviada');
       } catch (error) {
+        console.log('⚠️ [agregarAListaEspera] Error al enviar notificación:', error);
       }
 
-      //await this.mostrarNotificacion('Has sido agregado exitosamente a la lista de espera.', 'exito');
       await this.swal.showTemporaryAlert('¡Éxito!', 'Has sido agregado exitosamente a la lista de espera.', 'success');
+      console.log('🎉 [agregarAListaEspera] Proceso completado exitosamente');
       
     } catch (error) {
-
-      //await this.mostrarNotificacion('Error inesperado al agregar a la lista de espera.', 'error');
+      console.log('💥 [agregarAListaEspera] Error inesperado:', error);
       await this.swal.showTemporaryAlert('Error', 'Error inesperado al agregar a la lista de espera.', 'error');
     }
   }
@@ -627,6 +1008,10 @@ export class HomePage implements OnInit {
     this.router.navigate(['/maitre'])
   }
 
+  irAVerPedidosCocina(){
+    this.router.navigate(['/pedidos'])
+  }
+
   irAListaEspera()
   {
     this.router.navigate(['/lista-espera']);
@@ -641,6 +1026,17 @@ export class HomePage implements OnInit {
   {
     this.router.navigate(['/encuestas']);
   }
+
+  irAPedidosMozo()
+  {
+    this.router.navigate(['/pedidos-mozo']);
+  }
+
+  irAConsultasMozo()
+  {
+    this.router.navigate(['/consultas-lista']);
+  }
+
   //**JUEGOS */
 
   manejarResultadoDescuento(resultado: ResultadoJuego) {

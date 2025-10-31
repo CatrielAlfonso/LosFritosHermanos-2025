@@ -1,0 +1,79 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="header-info">
+        <span *ngIf="esCliente">Consulta al Mozo</span>
+        <span *ngIf="esMozo">Cliente - Mesa {{mesa}}</span>
+        <small *ngIf="consulta">{{ esCliente ? (consulta.mozo_nombre || 'Esperando respuesta...') : consulta.cliente_nombre }}</small>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="chat-content">
+  <div #chatContainer class="mensajes-container">
+    <!-- Mensaje de inicio -->
+    <div class="mensaje-sistema" *ngIf="mensajes.length === 0">
+      <p *ngIf="esCliente">💬 Escribe tu consulta al mozo. Te responderán pronto.</p>
+      <p *ngIf="esMozo">💬 Un cliente de la mesa {{mesa}} necesita ayuda.</p>
+    </div>
+
+    <!-- Lista de mensajes -->
+    <div *ngFor="let mensaje of mensajes" 
+         [ngClass]="{
+           'mensaje-contenedor': true,
+           'mensaje-propio': esMensajePropio(mensaje),
+           'mensaje-otro': !esMensajePropio(mensaje)
+         }">
+      
+      <div class="mensaje-burbuja">
+        <div class="mensaje-header" *ngIf="!esMensajePropio(mensaje)">
+          <strong>{{ mensaje.remitente_nombre }}</strong>
+          <span class="mensaje-tipo">({{ mensaje.remitente_tipo }})</span>
+        </div>
+        
+        <div class="mensaje-contenido">
+          {{ mensaje.contenido }}
+        </div>
+        
+        <div class="mensaje-footer">
+          <span class="mensaje-hora">{{ formatearFecha(mensaje.fecha) }}</span>
+          <ion-icon 
+            *ngIf="esMensajePropio(mensaje)" 
+            [name]="mensaje.leido ? 'checkmark-done-outline' : 'checkmark-outline'"
+            [ngClass]="mensaje.leido ? 'leido' : 'enviado'">
+          </ion-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="input-container">
+      <div class="mensaje-input-wrapper">
+        <ion-textarea
+          [(ngModel)]="nuevoMensaje"
+          placeholder="Escribe un mensaje..."
+          rows="1"
+          auto-grow="true"
+          (keypress.enter)="enviarMensaje(); $event.preventDefault()">
+        </ion-textarea>
+      </div>
+      
+      <ion-button 
+        (click)="enviarMensaje()" 
+        [disabled]="!nuevoMensaje.trim()"
+        color="primary"
+        class="btn-enviar">
+        <ion-icon name="send-outline"></ion-icon>
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,131 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Consultas de Clientes</ion-title>
+  </ion-toolbar>
+  
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="segmentoActual" (ionChange)="cambiarSegmento($event)">
+      <ion-segment-button value="pendientes">
+        <ion-label>
+          Pendientes 
+          <ion-badge color="warning" *ngIf="consultasPendientes.length > 0">
+            {{ consultasPendientes.length }}
+          </ion-badge>
+        </ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="respondidas">
+        <ion-label>Respondidas</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refrescar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando consultas...</p>
+  </div>
+
+  <!-- Consultas Pendientes -->
+  <div *ngIf="!isLoading && segmentoActual === 'pendientes'">
+    <div *ngIf="consultasPendientes.length === 0" class="empty-state">
+      <ion-icon name="chatbubbles-outline" class="empty-icon"></ion-icon>
+      <h3>No hay consultas pendientes</h3>
+      <p>Las nuevas consultas aparecerán aquí</p>
+    </div>
+
+    <ion-list *ngIf="consultasPendientes.length > 0" class="consultas-list">
+      <ion-item 
+        *ngFor="let consulta of consultasPendientes" 
+        (click)="abrirConsulta(consulta)"
+        button
+        detail="true"
+        class="consulta-item">
+        
+        <div class="consulta-avatar" slot="start">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </div>
+        
+        <ion-label>
+          <div class="consulta-header">
+            <h2 class="cliente-nombre">{{ consulta.cliente_nombre || 'Cliente' }}</h2>
+            <p class="consulta-fecha">{{ formatearFecha(consulta.fecha_creacion) }}</p>
+          </div>
+          
+          <div class="consulta-info">
+            <p class="mesa-numero">
+              <ion-icon name="restaurant-outline"></ion-icon>
+              Mesa {{ consulta.mesa }}
+            </p>
+            <ion-badge [color]="getEstadoBadgeColor(consulta.estado)">
+              {{ consulta.estado }}
+            </ion-badge>
+          </div>
+        </ion-label>
+        
+        <ion-icon 
+          name="chevron-forward-outline" 
+          slot="end" 
+          class="chevron-icon">
+        </ion-icon>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- Consultas Respondidas -->
+  <div *ngIf="!isLoading && segmentoActual === 'respondidas'">
+    <div *ngIf="consultasRespondidas.length === 0" class="empty-state">
+      <ion-icon name="checkmark-done-outline" class="empty-icon"></ion-icon>
+      <h3>No hay consultas respondidas</h3>
+      <p>Las consultas que respondas aparecerán aquí</p>
+    </div>
+
+    <ion-list *ngIf="consultasRespondidas.length > 0" class="consultas-list">
+      <ion-item 
+        *ngFor="let consulta of consultasRespondidas" 
+        (click)="abrirConsulta(consulta)"
+        button
+        detail="true"
+        class="consulta-item respondida">
+        
+        <div class="consulta-avatar" slot="start">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </div>
+        
+        <ion-label>
+          <div class="consulta-header">
+            <h2 class="cliente-nombre">{{ consulta.cliente_nombre || 'Cliente' }}</h2>
+            <p class="consulta-fecha">{{ formatearFecha(consulta.fecha_creacion) }}</p>
+          </div>
+          
+          <div class="consulta-info">
+            <p class="mesa-numero">
+              <ion-icon name="restaurant-outline"></ion-icon>
+              Mesa {{ consulta.mesa }}
+            </p>
+            <p class="mozo-nombre" *ngIf="consulta.mozo_nombre">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              {{ consulta.mozo_nombre }}
+            </p>
+          </div>
+        </ion-label>
+        
+        <ion-icon 
+          name="chevron-forward-outline" 
+          slot="end" 
+          class="chevron-icon">
+        </ion-icon>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>
