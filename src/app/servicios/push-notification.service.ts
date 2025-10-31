@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -314,6 +315,33 @@ export class PushNotificationService {
       console.error('Error completo:', error);
       console.error('Error message:', (error as Error).message);
       console.error('Error stack:', (error as Error).stack);
+      throw error;
+    }
+  }
+
+  async solicitarCuentaMozo(mesaNumero: string, clienteNombre: string, clienteApellido: string){
+    try{
+      const response = await fetch(`${this.backendUrl}/notify-mozo-request-bill`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mesaNumero,
+          clienteNombre,
+          clienteApellido
+        })
+      })
+      if (!response.ok) {
+        // Si el servidor responde con un error (ej: 404, 500), se lanza una excepción.
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log('Notificación de solicitud de cuenta enviada:', result);
+      return result;
+
+    }catch(error){
+      console.error('Falló al notificar la solicitud de cuenta:', error);
       throw error;
     }
   }

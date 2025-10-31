@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { CarritoService } from 'src/app/servicios/carrito.service';
+import { FeedbackService } from 'src/app/servicios/feedback-service.service';
+import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 
 @Component({
@@ -32,7 +34,9 @@ export class PedidosComponent  implements OnInit {
     private authService : AuthService,
     private toastController: ToastController,
     private alertController: AlertController,
-    private carritoService : CarritoService
+    private carritoService : CarritoService,
+    private notificationService : PushNotificationService,
+    private feedback : FeedbackService
   ) { }
 
   ngOnInit() {
@@ -90,6 +94,15 @@ export class PedidosComponent  implements OnInit {
   }
 
   async pedirCuenta(pedido : any){
+    this.notificationService.solicitarCuentaMozo(
+      pedido.mesa,
+      'Walter',
+      "White"
+    ).then(()=>{
+      this.feedback.showToast('exito', 'Se ha notificado al mozo')
+    }).catch(err => {
+      this.feedback.showToast('error', 'No se pudo notificar al mozo, intente de nuevo.')
+    })
     await this.supabase.actualizarPedido(pedido.id, {
       solicita_cuenta: true
     });

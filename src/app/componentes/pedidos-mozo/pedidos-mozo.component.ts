@@ -4,6 +4,7 @@ import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { IonHeader, IonIcon } from "@ionic/angular/standalone";
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-pedidos-mozo',
@@ -48,7 +49,8 @@ segmentoActivo = 'activos';
 
   constructor(private sb : SupabaseService,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private http: HttpClient
   ) { 
     
   }
@@ -301,6 +303,25 @@ segmentoActivo = 'activos';
       console.log('error en la confirmacion del pago por parte del mozo', error)
       throw error
     }
+  }
+
+  probarNotificacion(){
+    const cloudFunctionUrl = 'https://us-central1-taco--mex.cloudfunctions.net/api/notify-owner'
+
+    const notificacion = {
+      title: 'Mesa liberada',
+      body: 'El mozo ha confirmado el pago y liberado la mesa 3'
+    }
+    this.http.post(cloudFunctionUrl, notificacion).subscribe({
+      next: (response) => {
+        console.log('Notificación enviada con éxito!', response);
+        
+      },
+      error: (error) => {
+        console.error('Error al enviar la notificación:', error);
+        
+      }
+    });
   }
 
   
