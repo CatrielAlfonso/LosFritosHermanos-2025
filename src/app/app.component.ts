@@ -3,6 +3,7 @@ import { OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { AudioService } from './servicios/audio.service';
+import { PushNotificationService } from './servicios/push-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +12,7 @@ import { AudioService } from './servicios/audio.service';
   standalone: false,
 })
 export class AppComponent implements OnInit {
-  constructor(private platform: Platform, private audio:AudioService) {}
+  constructor(private platform: Platform, private audio:AudioService, private pushNotificationService: PushNotificationService) {}
 
   async ngOnInit() {
     // Asegurarse de que la plataforma esté lista
@@ -26,6 +27,7 @@ export class AppComponent implements OnInit {
     // y que los elementos debajo no la cubran (aunque Ionic lo maneja por defecto).
     try {
       await StatusBar.setStyle({ style: Style.Default });
+      await this.pushNotificationService.inicializarListeners();
       
       // Opcional: Si quieres que el fondo de la barra sea transparente, 
       // y que el contenido comience debajo de ella, descomenta estas líneas.

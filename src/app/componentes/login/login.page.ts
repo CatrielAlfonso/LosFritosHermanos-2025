@@ -173,6 +173,7 @@ export class LoginPage implements OnInit {
       // }
 
       this.loginForm.reset();
+      this.registrarPushToken(usuario.id)
       this.router.navigate(['/home']);
       setTimeout(async () => {
          this.customLoader.hide();

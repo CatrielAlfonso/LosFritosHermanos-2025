@@ -787,6 +787,72 @@ app.post("/enviar-correo-aceptacion", async (req, res) => {
   }
 });
 
+
+app.post("/notify-payment-success", async (req, res) => {
+  // Recibimos el número de mesa y el monto del body de la petición
+  const { mesaNumero, montoTotal } = req.body;
+
+  if (!mesaNumero || !montoTotal) {
+    return res.status(400).send({ error: "El número de mesa y el monto son requeridos." });
+  }
+
+  try {
+    const title = '💵 Pago Recibido';
+    const body = `Se registró un pago de $${montoTotal} para la Mesa #${mesaNumero}.`;
+
+    // 1. Obtener tokens de Supervisores y Dueños
+    const { data: staffSuperior, error: staffError } = await supabase
+      .from("supervisores")
+      .select("fcm_token")
+      .in("perfil", ["dueño", "supervisor"])
+      .not("fcm_token", "is", null);
+
+    // 2. Obtener tokens de Mozos
+    const { data: mozos, error: mozosError } = await supabase
+      .from("empleados")
+      .select("fcm_token")
+      .eq("perfil", "mozo")
+      .not("fcm_token", "is", null);
+
+    if (staffError || mozosError) {
+      console.error("Error al buscar tokens:", staffError || mozosError);
+      throw new Error("Error en la base de datos al buscar destinatarios.");
+    }
+    
+    // 3. Juntar todos los tokens en una sola lista, evitando duplicados
+    const tokensSuperiores = staffSuperior?.map(s => s.fcm_token) || [];
+    const tokensMozos = mozos?.map(m => m.fcm_token) || [];
+    const allTokens = [...new Set([...tokensSuperiores, ...tokensMozos])];
+
+    if (allTokens.length === 0) {
+      console.log("No se encontraron tokens válidos para notificar el pago.");
+      return res.status(200).send({ message: "No se encontraron usuarios para notificar." });
+    }
+
+    // 4. Preparar y enviar la notificación
+    const message = {
+      notification: { title, body },
+      tokens: allTokens,
+      data : {
+        link : `/pedidos-mozo`
+      }
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    console.log("Notificación de pago enviada con éxito:", response);
+
+    res.status(200).send({ message: "Notificación de pago enviada con éxito.", response });
+
+  } catch (error) {
+    console.error("Error en /notify-payment-success:", error);
+    res.status(500).send({ error: `Falló el envío de la notificación de pago: ${error.message}` });
+  }
+});
+
+
+
+
+
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });

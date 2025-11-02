@@ -1,13 +1,51 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { AuthService } from './auth.service';
+import { PushNotifications, PushNotificationSchema } from '@capacitor/push-notifications';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PushNotificationService {
   private backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
+  private authService = inject(AuthService)
+  private router = inject(Router)
 
   constructor() { }
+
+  inicializarListeners() {
+    // Listener para cuando la app está ABIERTA y recibe una notificación
+    PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
+      console.log('Notificación recibida en primer plano:', notification);
+      
+      // La mostramos visualmente porque por defecto no aparece
+      LocalNotifications.schedule({
+        notifications: [{
+          title: notification.title || '',
+          body: notification.body || '',
+          id: new Date().getTime(),
+          smallIcon: 'ic_stat_fritos_hermanos',
+          sound: 'default'
+        }]
+      });
+    });
+
+    // Listener para cuando el usuario TOCA la notificación (y la app estaba cerrada/segundo plano)
+    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      console.log('El usuario tocó la notificación:', action);
+      
+      const data = action.notification.data;
+      if (data && data.link) {
+        this.router.navigateByUrl(data.link);
+      }else {
+        this.router.navigateByUrl('/home');
+      }
+    });
+  }
+
+
 
   async notificarMaitreNuevoCliente(clienteNombre: string, clienteApellido: string = '') {
     try {
@@ -403,4 +441,34 @@ export class PushNotificationService {
       throw error;
     }
   }
+
+  async notificarPagoExitoso(mesaNumero: string, montoTotal: number) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-payment-success`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mesaNumero,
+          montoTotal
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Notificación de pago enviada:', result);
+      return result;
+
+    } catch (error) {
+      console.error('Falló al notificar el pago:', error);
+      throw error;
+    }
+  }
+
+
+
 }

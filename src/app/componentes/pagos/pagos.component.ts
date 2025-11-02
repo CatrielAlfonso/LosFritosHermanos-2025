@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
+import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 
 @Component({
@@ -24,7 +25,8 @@ export class PagosComponent  implements OnInit {
     private supabaseService : SupabaseService,
     private route : ActivatedRoute,
     private alertController : AlertController,
-    private toastController : ToastController
+    private toastController : ToastController,
+    private pushNotificationService : PushNotificationService
   ) { }
 
   async ngOnInit() {
@@ -153,7 +155,8 @@ export class PagosComponent  implements OnInit {
     try{
       const {data, error} = await this.supabaseService.actualizarPedido(this.pedido().id, {pagado: this.calcularTotal()})
       if(error) throw error
-      const toast = await this.toastController.create({ //falta notificacion al mozo, dueÑo y supervisor.
+      this.pushNotificationService.notificarPagoExitoso(this.numeroMesa, this.calcularTotal())
+      const toast = await this.toastController.create({ 
           message: `Pago exitoso`,
           duration: 3000,
           color: 'success',
