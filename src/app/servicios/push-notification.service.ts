@@ -26,7 +26,7 @@ export class PushNotificationService {
           title: notification.title || '',
           body: notification.body || '',
           id: new Date().getTime(),
-          smallIcon: 'ic_stat_fritos_hermanos',
+          smallIcon: 'default',
           sound: 'default'
         }]
       });

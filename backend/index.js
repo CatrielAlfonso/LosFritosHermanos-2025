@@ -343,6 +343,9 @@ app.post("/notify-mozo-request-bill", async (req, res) => {
     const message = {
       notification: { title, body },
       tokens: tokens,
+      data : {
+        link : `/pedidos-mozo`
+      }
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
