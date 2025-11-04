@@ -39,6 +39,7 @@
     "@supabase/supabase-js": "^2.57.2",
     "chart.js": "^4.5.0",
     "cors": "^2.8.5",
+    "html2pdf.js": "^0.12.1",
     "ionicons": "^7.4.0",
     "moment-timezone": "^0.6.0",
     "onesignal-cordova-plugin": "^5.2.15",

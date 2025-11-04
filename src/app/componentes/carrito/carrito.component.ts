@@ -2,7 +2,7 @@ import { Component, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController, AlertController, ToastController } from '@ionic/angular';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CarritoService, CartItem } from 'src/app/servicios/carrito.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { AuthService } from 'src/app/servicios/auth.service';
@@ -21,6 +21,7 @@ export class CarritoComponent {
   totalItems = computed(() => this.carritoService.totalItems());
   observaciones : string = '' 
   user : any = null
+  mesa = '3'
 
   constructor(
     private carritoService: CarritoService,
@@ -28,12 +29,14 @@ export class CarritoComponent {
     private router: Router,
     private alertController: AlertController,
     private toastController : ToastController,
-    private supabase : SupabaseService
+    private supabase : SupabaseService,
+    private route : ActivatedRoute
   ) {}
 
 
   ngOnInit(){
     this.user = this.authService.userActual
+    this.mesa = this.route.snapshot.paramMap.get('mesa') || ''
   }
 
   aumentarCantidad(item: CartItem) {
@@ -104,8 +107,8 @@ export class CarritoComponent {
       }
       const pedido = this.carritoService.generarPedidoParaConfirmacion(
         this.user().id,
-        '1',
-        '',
+        this.mesa,
+        this.observaciones,
       );
       const { data, error } = await this.supabase.supabase
       .from('pedidos')

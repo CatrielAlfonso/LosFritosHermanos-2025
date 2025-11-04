@@ -5,6 +5,8 @@ import { IonHeader, IonIcon } from "@ionic/angular/standalone";
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { HttpClient } from '@angular/common/http';
+import { PushNotificationService } from 'src/app/servicios/push-notification.service';
+import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 
 @Component({
   selector: 'app-pedidos-mozo',
@@ -50,7 +52,9 @@ segmentoActivo = 'activos';
   constructor(private sb : SupabaseService,
     private toastController: ToastController,
     private alertController: AlertController,
-    private http: HttpClient
+    private http: HttpClient,
+    private pushNotificationService: PushNotificationService,
+    private toastService : FeedbackService
   ) { 
     
   }
@@ -283,46 +287,26 @@ segmentoActivo = 'activos';
 
   async confirmarPagoPedido(pedido : any){
     try{
-      //const {data : dataPedido, error: errorPedido} = await this.sb.actualizarPedido(pedido.id, {estado : 'finalizado'})
-      //if (errorPedido) throw errorPedido;
+      const esClienteAnonimo = false
 
-      const {data: dataMesa, error: errorMesa} = await this.sb.actualizarMesa(parseInt(pedido.mesa), {
-        ocupada: false,
-        clienteAsignadoId : null,
-        pedido_id: null
-      })
-      if (errorMesa) {
-        console.log('error en modificar mesa: ', errorMesa)
-        throw errorMesa;
+      const resultado = await this.pushNotificationService.generarFacturaYConfirmarPago(pedido);
+
+      if (resultado.success) {
+        // ¡Éxito! Muestra un toast al mozo
+        console.log('Pago confirmado y factura generada:', resultado.pdfUrl);
+        // Aquí puedes actualizar tu UI, por ejemplo, quitando el pedido de la lista.
+      } else {
+        // El backend manejó el error
+        throw new Error(resultado.error || 'Error desconocido en el backend');
       }
-      return {
-        //pedido: dataPedido?.[0] || null,
-        mesa: dataMesa?.[0] || null
-      };
-    }catch(error){
-      console.log('error en la confirmacion del pago por parte del mozo', error)
-      throw error
+
+    } catch (error) {
+      console.error('Error al confirmar el pago:', error);
+      this.toastService.showToast('error', 'Error al confirmar el pago')
     }
   }
 
-  probarNotificacion(){
-    const cloudFunctionUrl = 'https://us-central1-taco--mex.cloudfunctions.net/api/notify-owner'
-
-    const notificacion = {
-      title: 'Mesa liberada',
-      body: 'El mozo ha confirmado el pago y liberado la mesa 3'
-    }
-    this.http.post(cloudFunctionUrl, notificacion).subscribe({
-      next: (response) => {
-        console.log('Notificación enviada con éxito!', response);
-        
-      },
-      error: (error) => {
-        console.error('Error al enviar la notificación:', error);
-        
-      }
-    });
-  }
+  
 
   
 

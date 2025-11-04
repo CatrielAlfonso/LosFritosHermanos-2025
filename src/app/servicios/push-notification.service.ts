@@ -26,7 +26,7 @@ export class PushNotificationService {
           title: notification.title || '',
           body: notification.body || '',
           id: new Date().getTime(),
-          smallIcon: 'default',
+          smallIcon: 'ic_stat_fritos_hermanos.png',
           sound: 'default'
         }]
       });
@@ -43,6 +43,32 @@ export class PushNotificationService {
         this.router.navigateByUrl('/home');
       }
     });
+  }
+
+  async generarFacturaYConfirmarPago(pedido: any, esAnonimo: boolean = false) {
+    try {
+      const response = await fetch(`${this.backendUrl}/api/facturacion/generar-y-enviar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pedidoId: pedido.id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Respuesta del backend (facturación):', result);
+      return result;
+
+    } catch (error) {
+      console.error('Falló el servicio de generación de factura:', error);
+      throw error;
+    }
   }
 
 

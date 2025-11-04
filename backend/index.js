@@ -87,7 +87,10 @@ app.get("/", (req, res) => {
 
 
 const emailRoutes = require('./routes/email.routes');
+const facturacionRoutes = require('./routes/facturacion.routes');
+
 app.use('/api/email', emailRoutes);
+app.use('/api/facturacion', facturacionRoutes);
 
 async function sendNotificationToRole(role, title, body) {
   try {
