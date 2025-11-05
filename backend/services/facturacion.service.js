@@ -1,4 +1,3 @@
-// En /services/facturacion.service.js
 
 const { createClient } = require('@supabase/supabase-js');
 const PDFDocument = require('pdfkit'); 
@@ -9,12 +8,14 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 const admin = require('firebase-admin'); 
 const { sendEmail } = require('./email.service');
+const path = require('path');
 
 
-async function generarYEnviarFactura({ pedidoId, clienteEmail, esAnonimo }) {
+async function generarYEnviarFactura(pedidoId) {
   try {
     // --- 1. Obtener Datos (Simulado por ahora) ---
     // En un caso real, harías las consultas a Supabase
+    console.log('en el metodo generarYEnviarFactura del facturacion.service, pedidoId: ', pedidoId)
     const pedido = await obtenerDatosDelPedido(pedidoId);
 
     const esAnonimo = false; // O la lógica que uses para anónimos (falta esta logica)
@@ -89,62 +90,73 @@ async function generarYEnviarFactura({ pedidoId, clienteEmail, esAnonimo }) {
 function generarPDFFactura(pedido) {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument({ 
-        size: 'A4', 
-        margin: 50 
-      });
+      const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
-      // Stream para capturar el PDF en memoria
       const chunks = [];
       const stream = new PassThrough();
       stream.on('data', (chunk) => chunks.push(chunk));
       stream.on('end', () => resolve(Buffer.concat(chunks)));
       doc.pipe(stream);
 
-
-      // 1. Encabezado: Logo y Datos
-      doc.image('https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/crispy2.png', 50, 45, { width: 100 });
-      doc.fontSize(20).text('Los Pollos Hermanos', 160, 50);
-      doc.fontSize(10).text('Av. Mitre 750', 160, 75);
+      // --- Constantes de Posición ---
+      const pageMargin = 50;
+      const pageWidth = doc.page.width - pageMargin * 2; // Ancho útil: 512
+      const tableTop = 220; // Posición Y donde empieza la tabla
       
-      doc.fontSize(10).text(`Factura #: 001-${pedido.id}`, { align: 'right' })
-         .text(`Fecha: ${new Date(pedido.fecha).toLocaleDateString()}`, { align: 'right' });
+      // --- 1. Encabezado (Logo y Título) ---
+      // Esto queda igual que antes
+      const logoPath = path.join(__dirname, '..', 'assets', 'crispy2.png');
+      doc.image(logoPath, pageMargin, 45, { width: 80 }); 
+      doc.fontSize(20).text('Los Pollos Hermanos', 140, 50);
+      doc.fontSize(10).text('Av. Mitre 750', 140, 75);
       
-      doc.moveDown(2);
-
-      // 2. Información del Cliente
-      doc.fontSize(12).text('Facturado a:', 50);
-      doc.fontSize(10).text(pedido.cliente.nombre);
-      doc.moveDown(2);
-
-      // 3. Tabla de Items (Cabecera)
-      let tableTop = 200;
       doc.fontSize(10)
-         .text('Cant.', 50, tableTop, { width: 50 })
-         .text('Descripción', 100, tableTop, { width: 250 })
-         .text('P. Unitario', 350, tableTop, { width: 100, align: 'right' })
-         .text('Total', 450, tableTop, { width: 100, align: 'right' });
+         .text(`Factura #: 001-${pedido.id}`, pageMargin, 50, { align: 'right' })
+         .text(`Fecha: ${new Date(pedido.fecha).toLocaleDateString()}`, pageMargin, 65, { align: 'right' });
+      
+      // --- 2. Información del Cliente ---
+      // Esto queda igual
+      let y_cliente = 150;
+      doc.fontSize(12).text('Facturado a:', pageMargin, y_cliente);
+      doc.fontSize(10).text(pedido.cliente.nombre);
+      
+      // --- 3. Tabla de Items (Cabecera) ---
+      // El borde de la tabla se mantiene en su lugar
+      doc.rect(pageMargin, tableTop - 5, pageWidth, 20).stroke();
 
-      // Dibuja la línea de la cabecera
-      doc.rect(50, tableTop - 5, 500, 20).stroke();
+      // ✅ AÑADIMOS PADDING A LAS COLUMNAS
+      const col1_x = pageMargin + 10;      // Cant.
+      const col2_x = pageMargin + 60;      // Descripción
+      const col3_x = pageMargin + 310;     // P. Unitario
+      const col4_x = pageMargin + 410;     // Total
+      
+      doc.fontSize(10)
+         .text('Cant.', col1_x, tableTop, { width: 40 })
+         .text('Descripción', col2_x, tableTop, { width: 250 })
+         .text('P. Unitario', col3_x, tableTop, { width: 100, align: 'right' })
+         .text('Total', col4_x, tableTop, { width: 100, align: 'right' });
       
       // 4. Items del Pedido (Bucle)
       let y = tableTop + 25;
       for (const item of pedido.items) {
         doc.fontSize(10)
-           .text(item.cantidad, 50, y, { width: 50 })
-           .text(item.nombre, 100, y, { width: 250 })
-           .text(`$${item.precioUnitario.toFixed(2)}`, 350, y, { width: 100, align: 'right' })
-           .text(`$${(item.cantidad * item.precioUnitario).toFixed(2)}`, 450, y, { width: 100, align: 'right' });
+           .text(item.cantidad, col1_x, y, { width: 40 })
+           .text(item.nombre, col2_x, y, { width: 250 })
+           .text(`$${item.precioUnitario.toFixed(2)}`, col3_x, y, { width: 100, align: 'right' })
+           .text(`$${(item.cantidad * item.precioUnitario).toFixed(2)}`, col4_x, y, { width: 100, align: 'right' });
         y += 20;
       }
 
       // 5. Total
-      doc.moveDown(2);
+      // ✅ AÑADIMOS MÁS ESPACIO VERTICAL
+      // Incrementamos 'y' 20px extra antes de dibujar el total
+      y += 20; 
+      
       doc.fontSize(14).font('Helvetica-Bold')
-         .text(`Total: $${pedido.total.toFixed(2)}`, 50, y, { align: 'right' });
+         // Usamos las coordenadas de la última columna para alinear el total
+         .text(`Total: $${pedido.total.toFixed(2)}`, col3_x, y, { width: 200, align: 'right' });
 
-     
+      // --- Fin del Dibujo ---
       doc.end();
 
     } catch (error) {
@@ -174,10 +186,10 @@ async function enviarFacturaPorEmail(clienteEmail, pdfUrl, pedido) {
     `;
 
     await sendEmail({
-      to: clienteEmail,
-      subject: `Tu factura del pedido #${pedido.id} de Los Pollos Hermanos`,
-      text: `¡Gracias por tu visita! Aquí puedes descargar tu factura: ${pdfUrl}`,
-      html: htmlBody
+        to: clienteEmail,
+        subject: `Tu factura del pedido #${pedido.id} de Los Fritos Hermanos`,
+        text: `¡Gracias por tu visita! Aquí puedes descargar tu factura: ${pdfUrl}`,
+        html: htmlBody
     });
     console.log('Email de factura enviado.');
 
@@ -267,6 +279,7 @@ async function obtenerDatosDelPedido(pedidoId) {
     fecha: pedidoData.fecha_pedido, 
     total: pedidoData.precio,        
     cliente: pedidoData.cliente,     
+    mesa: pedidoData.mesa,
     items: itemsCombinados           
   };
 

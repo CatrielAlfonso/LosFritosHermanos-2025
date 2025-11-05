@@ -9,7 +9,8 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class PushNotificationService {
-  private backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
+  private backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';  //COMENTADA PARA PROBAR LOCAL HOST, ESTA ES LA QUE VA
+  //private backendUrl = 'http://localhost:3000' //para probar en local host por si los cambios no se actualizaron
   private authService = inject(AuthService)
   private router = inject(Router)
 
@@ -47,6 +48,8 @@ export class PushNotificationService {
 
   async generarFacturaYConfirmarPago(pedido: any, esAnonimo: boolean = false) {
     try {
+      console.log('En el push notification service: ', pedido)
+      console.log('DEBUG (SERVICIO): El VALOR de pedido.id que voy a enviar es:', pedido.id);
       const response = await fetch(`${this.backendUrl}/api/facturacion/generar-y-enviar`, {
         method: 'POST',
         headers: {

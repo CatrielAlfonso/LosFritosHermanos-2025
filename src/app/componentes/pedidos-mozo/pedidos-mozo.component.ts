@@ -289,6 +289,8 @@ segmentoActivo = 'activos';
     try{
       const esClienteAnonimo = false
 
+      console.log('DEBUG: El objeto PEDIDO que se envía es:', pedido);
+
       const resultado = await this.pushNotificationService.generarFacturaYConfirmarPago(pedido);
 
       if (resultado.success) {
