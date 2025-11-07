@@ -12,6 +12,8 @@ import { IonCheckbox, IonTextarea } from '@ionic/angular/standalone';
 import { FeedbackService } from '../../servicios/feedback-service.service';
 import { HttpClient } from '@angular/common/http';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
+
 
 @Component({
   selector: 'app-register',
@@ -104,6 +106,7 @@ export class RegistroComponent implements OnInit {
     private feedback: FeedbackService,
     private loadingCtrl: LoadingController,
     private loadingService: LoadingService,
+    private customLoadService: CustomLoader,
     private http: HttpClient,
     private pushNotificationService: PushNotificationService
   ) {
@@ -247,7 +250,8 @@ export class RegistroComponent implements OnInit {
       return;
     }
 
-    this.loadingService.show();
+    //this.loadingService.show();
+    this.customLoadService.show();
 
     try {
       const { nombre, apellido, correo, contrasenia, dni, cuil, perfil } = this.empleadoForm.value;
@@ -262,7 +266,9 @@ export class RegistroComponent implements OnInit {
 
       if (empleadoExistente) {
         this.mensajeError = 'Este correo electrónico ya está registrado';
-        this.loadingService.hide();
+
+        //this.loadingService.hide();
+        this.customLoadService.hide();
         return;
       }
 
@@ -270,7 +276,8 @@ export class RegistroComponent implements OnInit {
       const usuario = await this.authService.registro(correo, contrasenia, 'empleado', nombre);
       if (!usuario) {
         this.mensajeError = 'Error al crear el usuario';
-        this.loadingService.hide();
+        //this.loadingService.hide();
+        this.customLoadService.hide();
         return;
       }
 
@@ -294,18 +301,22 @@ export class RegistroComponent implements OnInit {
       const { error } = await this.sb.supabase.from('empleados').insert([nuevoEmpleado]);
       if (error) {
         this.mensajeError = 'Error al registrar empleado: ' + error.message;
-        this.loadingService.hide();
+
+        //this.loadingService.hide();
+        this.customLoadService.hide();
         return;
       }
 
       this.mensajeExito = 'Empleado registrado exitosamente!';
       this.empleadoForm.reset();
       this.imagenEmpleadoURL = null;
-      this.loadingService.hide();
+      //this.loadingService.hide();
+      this.customLoadService.hide();
 
     } catch (e) {
       this.mensajeError = 'Error inesperado: ' + (e as Error).message;
-      this.loadingService.hide();
+      //this.loadingService.hide();
+      this.customLoadService.hide();
     }
   }
 
