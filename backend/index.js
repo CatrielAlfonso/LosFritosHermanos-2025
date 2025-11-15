@@ -855,6 +855,164 @@ app.post("/notify-payment-success", async (req, res) => {
   }
 });
 
+// ============================================
+// ENDPOINTS DE PRUEBA Y VERIFICACIÓN
+// ============================================
+
+/**
+ * Endpoint para verificar tokens FCM en la base de datos
+ * GET /test-fcm-tokens?role=cliente|empleado|supervisor
+ */
+app.get("/test-fcm-tokens", async (req, res) => {
+  try {
+    const { role } = req.query;
+    
+    let tableName = 'clientes';
+    let selectFields = "correo, nombre, apellido, fcm_token";
+    
+    if (role === 'empleado') {
+      tableName = 'empleados';
+      selectFields = "correo, nombre, apellido, fcm_token, perfil";
+    } else if (role === 'supervisor') {
+      tableName = 'supervisores';
+      selectFields = "correo, nombre, apellido, fcm_token";
+    }
+    
+    const { data, error } = await supabase
+      .from(tableName)
+      .select(selectFields)
+      .not("fcm_token", "is", null);
+    
+    if (error) {
+      throw error;
+    }
+    
+    res.status(200).send({
+      role: role || 'cliente',
+      table: tableName,
+      count: data?.length || 0,
+      tokens: data?.map(u => ({
+        email: u.correo,
+        name: `${u.nombre || ''} ${u.apellido || ''}`.trim(),
+        perfil: u.perfil || (role === 'cliente' ? 'cliente' : 'N/A'),
+        hasToken: !!u.fcm_token,
+        tokenLength: u.fcm_token?.length || 0,
+        tokenPreview: u.fcm_token ? `${u.fcm_token.substring(0, 20)}...` : 'N/A'
+      })) || []
+    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+/**
+ * Endpoint para probar notificación a un token FCM específico
+ * POST /test-notification
+ * Body: { token: "FCM_TOKEN", title: "Título", body: "Mensaje" }
+ */
+app.post("/test-notification", async (req, res) => {
+  try {
+    const { token, title, body } = req.body;
+    
+    if (!token || !title || !body) {
+      return res.status(400).send({ 
+        error: "token, title y body son requeridos",
+        example: {
+          token: "TU_TOKEN_FCM_AQUI",
+          title: "Prueba de Notificación",
+          body: "Esta es una notificación de prueba"
+        }
+      });
+    }
+    
+    const message = {
+      notification: { title, body },
+      token: token,
+    };
+    
+    const response = await admin.messaging().send(message);
+    
+    res.status(200).send({ 
+      success: true, 
+      message: "Notification sent successfully.",
+      messageId: response
+    });
+  } catch (error) {
+    console.error("Error sending test notification:", error);
+    res.status(500).send({ 
+      error: `Failed to send notification: ${error.message}`,
+      details: error.code || 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Endpoint para probar notificación a un email específico
+ * POST /test-notification-by-email
+ * Body: { email: "user@example.com", title: "Título", body: "Mensaje", role: "cliente|empleado|supervisor" }
+ */
+app.post("/test-notification-by-email", async (req, res) => {
+  try {
+    const { email, title, body, role } = req.body;
+    
+    if (!email || !title || !body) {
+      return res.status(400).send({ 
+        error: "email, title y body son requeridos",
+        optional: "role (cliente|empleado|supervisor)"
+      });
+    }
+    
+    let tableName = 'clientes';
+    if (role === 'empleado') tableName = 'empleados';
+    else if (role === 'supervisor') tableName = 'supervisores';
+    
+    // Buscar el usuario por email
+    const { data: user, error } = await supabase
+      .from(tableName)
+      .select("correo, nombre, apellido, fcm_token")
+      .eq("correo", email)
+      .single();
+    
+    if (error || !user) {
+      return res.status(404).send({ 
+        error: `Usuario no encontrado en la tabla ${tableName}`,
+        email: email
+      });
+    }
+    
+    if (!user.fcm_token) {
+      return res.status(400).send({ 
+        error: "El usuario no tiene un token FCM registrado",
+        email: email,
+        suggestion: "Inicia sesión en la app móvil para registrar el token FCM"
+      });
+    }
+    
+    const message = {
+      notification: { title, body },
+      token: user.fcm_token,
+    };
+    
+    const response = await admin.messaging().send(message);
+    
+    res.status(200).send({ 
+      success: true, 
+      message: "Notification sent successfully.",
+      user: {
+        email: user.correo,
+        name: `${user.nombre || ''} ${user.apellido || ''}`.trim()
+      },
+      messageId: response
+    });
+  } catch (error) {
+    console.error("Error sending test notification by email:", error);
+    res.status(500).send({ 
+      error: `Failed to send notification: ${error.message}`,
+      details: error.code || 'Unknown error'
+    });
+  }
+});
+
 
 
 
