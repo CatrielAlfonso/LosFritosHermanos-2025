@@ -1013,6 +1013,593 @@ app.post("/test-notification-by-email", async (req, res) => {
   }
 });
 
+// ============================================
+// ENDPOINTS DE RESERVAS
+// ============================================
+
+/**
+ * Notifica a dueños y supervisores sobre una nueva reserva
+ * POST /notify-new-reservation
+ */
+app.post("/notify-new-reservation", async (req, res) => {
+  try {
+    const { reservaId, clienteNombre, clienteApellido, fechaReserva, horaReserva, cantidadComensales } = req.body;
+    
+    if (!reservaId || !clienteNombre || !fechaReserva || !horaReserva) {
+      return res.status(400).send({ 
+        error: "reservaId, clienteNombre, fechaReserva y horaReserva son requeridos" 
+      });
+    }
+
+    const title = "📅 Nueva Reserva Solicitada";
+    const body = `${clienteNombre} ${clienteApellido || ''} - ${fechaReserva} a las ${horaReserva} (${cantidadComensales} comensales)`;
+
+    // Obtener tokens de supervisores y dueños
+    const { data: staffSuperior, error: staffError } = await supabase
+      .from("supervisores")
+      .select("fcm_token")
+      .in("perfil", ["dueño", "supervisor"])
+      .not("fcm_token", "is", null);
+
+    if (staffError) {
+      console.error("Error al buscar tokens de supervisores y dueños:", staffError);
+      throw new Error("Error en la base de datos al buscar destinatarios.");
+    }
+    
+    const tokensSuperiores = staffSuperior?.map(s => s.fcm_token) || [];
+
+    if (tokensSuperiores.length === 0) {
+      console.log("No se encontraron tokens válidos para notificar la reserva.");
+      return res.status(200).send({ message: "No se encontraron usuarios para notificar." });
+    }
+
+    // Preparar y enviar la notificación
+    const message = {
+      notification: { title, body },
+      tokens: tokensSuperiores,
+      data: {
+        link: '/gestionar-reservas',
+        reservaId: reservaId.toString()
+      }
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    console.log("Notificación de nueva reserva enviada con éxito:", response);
+
+    res.status(200).send({ 
+      message: "Notificación de nueva reserva enviada con éxito.", 
+      response 
+    });
+
+  } catch (error) {
+    console.error("Error en /notify-new-reservation:", error);
+    res.status(500).send({ 
+      error: `Falló el envío de la notificación: ${error.message}` 
+    });
+  }
+});
+
+/**
+ * Envía correo de confirmación cuando se aprueba una reserva
+ * POST /enviar-correo-reserva-aprobada
+ */
+app.post("/enviar-correo-reserva-aprobada", async (req, res) => {
+  const { correo, nombre, apellido, fechaReserva, horaReserva, cantidadComensales, mesaNumero } = req.body;
+  
+  if (!correo || !nombre || !fechaReserva || !horaReserva) {
+    return res.status(400).send({ error: "Correo, nombre, fechaReserva y horaReserva son requeridos." });
+  }
+  
+  try {
+    const { sendEmail } = require('./services/email.service');
+    
+    // Formatear fecha
+    const fechaFormateada = new Date(fechaReserva).toLocaleDateString('es-AR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset="utf-8">
+          <title>Reserva Confirmada - Los Fritos Hermanos</title>
+          <style>
+              @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700&display=swap');
+              
+              body {
+                  font-family: 'Poppins', sans-serif;
+                  line-height: 1.8;
+                  color: #2c3e50;
+                  max-width: 650px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              }
+              .container {
+                  background-color: #ffffff;
+                  border-radius: 20px;
+                  overflow: hidden;
+                  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+              }
+              .header {
+                  text-align: center;
+                  padding: 40px 20px;
+                  background: linear-gradient(135deg, #228B22 0%, #32CD32 100%);
+                  position: relative;
+              }
+              .logo {
+                  width: 200px;
+                  height: auto;
+                  margin-bottom: 20px;
+                  border-radius: 15px;
+                  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+              }
+              .header-title {
+                  color: #FFD700;
+                  font-size: 32px;
+                  font-family: 'Playfair Display', serif;
+                  margin: 0;
+                  text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+                  font-weight: 700;
+                  letter-spacing: 1px;
+              }
+              .celebration {
+                  font-size: 60px;
+                  margin: 20px 0;
+              }
+              .content {
+                  padding: 40px 30px;
+              }
+              .greeting {
+                  font-size: 22px;
+                  color: #228B22;
+                  font-weight: 700;
+                  margin-bottom: 25px;
+                  font-family: 'Playfair Display', serif;
+              }
+              .message {
+                  font-size: 16px;
+                  color: #34495e;
+                  line-height: 2;
+                  margin-bottom: 20px;
+              }
+              .success-box {
+                  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+                  border-left: 6px solid #228B22;
+                  padding: 25px;
+                  margin: 30px 0;
+                  border-radius: 12px;
+                  box-shadow: 0 4px 10px rgba(34, 139, 34, 0.2);
+              }
+              .reservation-details {
+                  background-color: #f8f9fa;
+                  border-radius: 12px;
+                  padding: 25px;
+                  margin: 25px 0;
+                  border: 2px solid #228B22;
+              }
+              .detail-item {
+                  display: flex;
+                  align-items: center;
+                  margin: 15px 0;
+                  font-size: 17px;
+                  color: #2c3e50;
+              }
+              .detail-icon {
+                  font-size: 24px;
+                  margin-right: 15px;
+                  color: #228B22;
+                  width: 30px;
+                  text-align: center;
+              }
+              .detail-label {
+                  font-weight: 700;
+                  color: #228B22;
+                  margin-right: 10px;
+                  min-width: 140px;
+              }
+              .detail-value {
+                  color: #2c3e50;
+                  font-weight: 600;
+              }
+              .footer {
+                  text-align: center;
+                  font-size: 14px;
+                  color: #7f8c8d;
+                  margin-top: 40px;
+                  padding: 30px;
+                  background-color: #ecf0f1;
+                  border-top: 3px solid #228B22;
+              }
+              .footer-note {
+                  font-size: 13px;
+                  color: #95a5a6;
+                  margin-top: 15px;
+                  font-style: italic;
+              }
+              .logo-footer {
+                  font-family: 'Playfair Display', serif;
+                  color: #228B22;
+                  font-weight: 700;
+                  font-size: 20px;
+                  margin-bottom: 10px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="header">
+                  <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Los Fritos Hermanos Logo" class="logo">
+                  <h1 class="header-title">Los Fritos Hermanos</h1>
+                  <div class="celebration">✅</div>
+              </div>
+              
+              <div class="content">
+                  <p class="greeting">¡Reserva Confirmada, ${nombre} ${apellido || ''}!</p>
+                  
+                  <p class="message">
+                      Nos complace informarte que tu reserva ha sido <strong style="color: #228B22; font-size: 18px;">CONFIRMADA</strong> exitosamente.
+                  </p>
+                  
+                  <div class="success-box">
+                      <p style="font-size: 19px; color: #228B22; font-weight: 700; margin: 0; text-align: center;">
+                          🎉 ¡Tu mesa está reservada! 🎉
+                      </p>
+                  </div>
+                  
+                  <div class="reservation-details">
+                      <h3 style="color: #228B22; font-family: 'Playfair Display', serif; font-size: 24px; margin-top: 0; margin-bottom: 20px; text-align: center;">
+                          Detalles de tu Reserva
+                      </h3>
+                      
+                      <div class="detail-item">
+                          <span class="detail-icon">📅</span>
+                          <span class="detail-label">Fecha:</span>
+                          <span class="detail-value">${fechaFormateada}</span>
+                      </div>
+                      
+                      <div class="detail-item">
+                          <span class="detail-icon">🕐</span>
+                          <span class="detail-label">Hora:</span>
+                          <span class="detail-value">${horaReserva}</span>
+                      </div>
+                      
+                      <div class="detail-item">
+                          <span class="detail-icon">👥</span>
+                          <span class="detail-label">Comensales:</span>
+                          <span class="detail-value">${cantidadComensales} ${cantidadComensales === 1 ? 'persona' : 'personas'}</span>
+                      </div>
+                      
+                      ${mesaNumero ? `
+                      <div class="detail-item">
+                          <span class="detail-icon">🪑</span>
+                          <span class="detail-label">Mesa Asignada:</span>
+                          <span class="detail-value" style="color: #228B22; font-size: 20px; font-weight: 700;">Mesa #${mesaNumero}</span>
+                      </div>
+                      ` : ''}
+                  </div>
+                  
+                  <p class="message" style="text-align: center; font-size: 18px; color: #228B22; font-weight: 600;">
+                      ¡Te esperamos en Los Fritos Hermanos!
+                  </p>
+                  
+                  <p class="message">
+                      Si necesitas modificar o cancelar tu reserva, por favor contáctanos con al menos 24 horas de anticipación.
+                  </p>
+              </div>
+              
+              <div class="footer">
+                  <p class="logo-footer">🌮 Los Fritos Hermanos 🌮</p>
+                  <p>© 2025 Los Fritos Hermanos. Todos los derechos reservados.</p>
+                  <p class="footer-note">Este es un correo automático, por favor no responder directamente.</p>
+              </div>
+          </div>
+      </body>
+      </html>
+    `;
+    
+    const result = await sendEmail({
+      to: correo,
+      subject: '✅ Reserva Confirmada - Los Fritos Hermanos',
+      text: `¡Hola ${nombre}! Tu reserva para el ${fechaFormateada} a las ${horaReserva} ha sido confirmada. ${mesaNumero ? `Mesa asignada: #${mesaNumero}` : ''} ¡Te esperamos!`,
+      html: htmlContent
+    });
+    
+    res.status(200).send({ 
+      success: true, 
+      message: "Correo de confirmación de reserva enviado exitosamente",
+      result 
+    });
+  } catch (error) {
+    console.error("Error al enviar correo de confirmación de reserva:", error);
+    res.status(500).send({ 
+      error: `Error al enviar correo: ${error.message}` 
+    });
+  }
+});
+
+/**
+ * Envía correo de rechazo cuando se rechaza una reserva
+ * POST /enviar-correo-reserva-rechazada
+ */
+app.post("/enviar-correo-reserva-rechazada", async (req, res) => {
+  const { correo, nombre, apellido, fechaReserva, horaReserva, motivo } = req.body;
+  
+  if (!correo || !nombre || !fechaReserva || !horaReserva || !motivo) {
+    return res.status(400).send({ error: "Correo, nombre, fechaReserva, horaReserva y motivo son requeridos." });
+  }
+  
+  try {
+    const { sendEmail } = require('./services/email.service');
+    
+    // Formatear fecha
+    const fechaFormateada = new Date(fechaReserva).toLocaleDateString('es-AR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset="utf-8">
+          <title>Reserva Rechazada - Los Fritos Hermanos</title>
+          <style>
+              @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700&display=swap');
+              
+              body {
+                  font-family: 'Poppins', sans-serif;
+                  line-height: 1.8;
+                  color: #2c3e50;
+                  max-width: 650px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              }
+              .container {
+                  background-color: #ffffff;
+                  border-radius: 20px;
+                  overflow: hidden;
+                  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+              }
+              .header {
+                  text-align: center;
+                  padding: 40px 20px;
+                  background: linear-gradient(135deg, #B22222 0%, #8B0000 100%);
+                  position: relative;
+              }
+              .logo {
+                  width: 200px;
+                  height: auto;
+                  margin-bottom: 20px;
+                  border-radius: 15px;
+                  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+              }
+              .header-title {
+                  color: #FFD700;
+                  font-size: 32px;
+                  font-family: 'Playfair Display', serif;
+                  margin: 0;
+                  text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+                  font-weight: 700;
+                  letter-spacing: 1px;
+              }
+              .content {
+                  padding: 40px 30px;
+              }
+              .greeting {
+                  font-size: 22px;
+                  color: #B22222;
+                  font-weight: 700;
+                  margin-bottom: 25px;
+                  font-family: 'Playfair Display', serif;
+              }
+              .message {
+                  font-size: 16px;
+                  color: #34495e;
+                  line-height: 2;
+                  margin-bottom: 20px;
+              }
+              .rejection-box {
+                  background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%);
+                  border-left: 6px solid #B22222;
+                  padding: 25px;
+                  margin: 30px 0;
+                  border-radius: 12px;
+                  box-shadow: 0 4px 10px rgba(178, 34, 34, 0.2);
+              }
+              .reservation-details {
+                  background-color: #f8f9fa;
+                  border-radius: 12px;
+                  padding: 25px;
+                  margin: 25px 0;
+                  border: 2px solid #B22222;
+              }
+              .detail-item {
+                  display: flex;
+                  align-items: center;
+                  margin: 15px 0;
+                  font-size: 17px;
+                  color: #2c3e50;
+              }
+              .detail-icon {
+                  font-size: 24px;
+                  margin-right: 15px;
+                  color: #B22222;
+                  width: 30px;
+                  text-align: center;
+              }
+              .detail-label {
+                  font-weight: 700;
+                  color: #B22222;
+                  margin-right: 10px;
+                  min-width: 140px;
+              }
+              .detail-value {
+                  color: #2c3e50;
+                  font-weight: 600;
+              }
+              .motivo-box {
+                  background-color: #fff8dc;
+                  border: 2px solid #B22222;
+                  border-radius: 12px;
+                  padding: 20px;
+                  margin: 25px 0;
+              }
+              .motivo-title {
+                  font-size: 18px;
+                  color: #B22222;
+                  font-weight: 700;
+                  margin-bottom: 15px;
+                  font-family: 'Playfair Display', serif;
+              }
+              .motivo-text {
+                  font-size: 16px;
+                  color: #555;
+                  line-height: 1.8;
+                  font-style: italic;
+              }
+              .footer {
+                  text-align: center;
+                  font-size: 14px;
+                  color: #7f8c8d;
+                  margin-top: 40px;
+                  padding: 30px;
+                  background-color: #ecf0f1;
+                  border-top: 3px solid #B22222;
+              }
+              .footer-note {
+                  font-size: 13px;
+                  color: #95a5a6;
+                  margin-top: 15px;
+                  font-style: italic;
+              }
+              .logo-footer {
+                  font-family: 'Playfair Display', serif;
+                  color: #B22222;
+                  font-weight: 700;
+                  font-size: 20px;
+                  margin-bottom: 10px;
+              }
+              .contact-button {
+                  display: inline-block;
+                  padding: 15px 35px;
+                  background: linear-gradient(135deg, #B22222 0%, #8B0000 100%);
+                  color: #ffffff !important;
+                  text-decoration: none;
+                  border-radius: 25px;
+                  margin-top: 20px;
+                  font-weight: 700;
+                  font-size: 16px;
+                  box-shadow: 0 4px 15px rgba(178, 34, 34, 0.4);
+                  transition: all 0.3s ease;
+              }
+              .contact-button:hover {
+                  transform: translateY(-2px);
+                  box-shadow: 0 6px 20px rgba(178, 34, 34, 0.5);
+              }
+              .button-container {
+                  text-align: center;
+                  margin-top: 30px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="header">
+                  <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Los Fritos Hermanos Logo" class="logo">
+                  <h1 class="header-title">Los Fritos Hermanos</h1>
+              </div>
+              
+              <div class="content">
+                  <p class="greeting">Estimado/a ${nombre} ${apellido || ''},</p>
+                  
+                  <p class="message">
+                      Lamentamos informarte que tu solicitud de reserva para el <strong>${fechaFormateada} a las ${horaReserva}</strong> 
+                      ha sido <strong style="color: #B22222; font-size: 18px;">RECHAZADA</strong>.
+                  </p>
+                  
+                  <div class="rejection-box">
+                      <p style="font-size: 19px; color: #B22222; font-weight: 700; margin: 0; text-align: center;">
+                          ❌ Reserva No Disponible
+                      </p>
+                  </div>
+                  
+                  <div class="reservation-details">
+                      <h3 style="color: #B22222; font-family: 'Playfair Display', serif; font-size: 24px; margin-top: 0; margin-bottom: 20px; text-align: center;">
+                          Detalles de la Reserva Solicitada
+                      </h3>
+                      
+                      <div class="detail-item">
+                          <span class="detail-icon">📅</span>
+                          <span class="detail-label">Fecha:</span>
+                          <span class="detail-value">${fechaFormateada}</span>
+                      </div>
+                      
+                      <div class="detail-item">
+                          <span class="detail-icon">🕐</span>
+                          <span class="detail-label">Hora:</span>
+                          <span class="detail-value">${horaReserva}</span>
+                      </div>
+                  </div>
+                  
+                  <div class="motivo-box">
+                      <p class="motivo-title">📋 Motivo del Rechazo:</p>
+                      <p class="motivo-text">"${motivo}"</p>
+                  </div>
+                  
+                  <p class="message">
+                      Si deseas realizar una nueva reserva o tienes alguna consulta, no dudes en contactarnos. 
+                      Estaremos encantados de ayudarte a encontrar una fecha y hora alternativa.
+                  </p>
+                  
+                  <div class="button-container">
+                      <a href="mailto:reservas@fritoshermanos.com" class="contact-button">
+                          📧 Contactar para Nueva Reserva
+                      </a>
+                  </div>
+                  
+                  <p class="message" style="text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 14px;">
+                      Esperamos poder atenderte en otra ocasión.
+                  </p>
+              </div>
+              
+              <div class="footer">
+                  <p class="logo-footer">🌮 Los Fritos Hermanos 🌮</p>
+                  <p>© 2025 Los Fritos Hermanos. Todos los derechos reservados.</p>
+                  <p class="footer-note">Este es un correo automático, por favor no responder directamente.</p>
+              </div>
+          </div>
+      </body>
+      </html>
+    `;
+    
+    const result = await sendEmail({
+      to: correo,
+      subject: '❌ Reserva Rechazada - Los Fritos Hermanos',
+      text: `Estimado/a ${nombre}, lamentamos informarte que tu reserva para el ${fechaFormateada} a las ${horaReserva} ha sido rechazada. Motivo: ${motivo}. Si deseas realizar una nueva reserva, contáctanos.`,
+      html: htmlContent
+    });
+    
+    res.status(200).send({ 
+      success: true, 
+      message: "Correo de rechazo de reserva enviado exitosamente",
+      result 
+    });
+  } catch (error) {
+    console.error("Error al enviar correo de rechazo de reserva:", error);
+    res.status(500).send({ 
+      error: `Error al enviar correo: ${error.message}` 
+    });
+  }
+});
+
 
 
 
