@@ -1080,6 +1080,151 @@ app.post("/notify-new-reservation", async (req, res) => {
 });
 
 /**
+ * Notifica a dueños y supervisores sobre un nuevo pedido delivery
+ * POST /notify-new-delivery
+ */
+app.post("/notify-new-delivery", async (req, res) => {
+  try {
+    const { pedidoId, clienteNombre, direccion, precioTotal } = req.body;
+    
+    if (!pedidoId || !clienteNombre || !direccion) {
+      return res.status(400).send({ 
+        error: "pedidoId, clienteNombre y direccion son requeridos" 
+      });
+    }
+
+    const title = "🚴 Nuevo Pedido Delivery";
+    const precioFormateado = new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(precioTotal || 0);
+    const body = `${clienteNombre} - ${direccion} - Total: ${precioFormateado}`;
+
+    // Obtener tokens de supervisores y dueños
+    const { data: staffSuperior, error: staffError } = await supabase
+      .from("supervisores")
+      .select("fcm_token")
+      .in("perfil", ["dueño", "supervisor"])
+      .not("fcm_token", "is", null);
+
+    if (staffError) {
+      console.error("Error al buscar tokens de supervisores y dueños:", staffError);
+      throw new Error("Error en la base de datos al buscar destinatarios.");
+    }
+    
+    const tokensSuperiores = staffSuperior?.map(s => s.fcm_token) || [];
+
+    if (tokensSuperiores.length === 0) {
+      console.log("No se encontraron tokens válidos para notificar el pedido delivery.");
+      return res.status(200).send({ message: "No se encontraron usuarios para notificar." });
+    }
+
+    // Preparar y enviar la notificación
+    const message = {
+      notification: { title, body },
+      tokens: tokensSuperiores,
+      data: {
+        link: '/gestionar-delivery',
+        pedidoId: pedidoId.toString()
+      }
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    console.log("Notificación de nuevo pedido delivery enviada con éxito:", response);
+
+    res.status(200).send({ 
+      message: "Notificación de nuevo pedido delivery enviada con éxito.", 
+      response 
+    });
+
+  } catch (error) {
+    console.error("Error en /notify-new-delivery:", error);
+    res.status(500).send({ 
+      error: `Falló el envío de la notificación: ${error.message}` 
+    });
+  }
+});
+
+/**
+ * Notifica al cliente sobre el cambio de estado de su pedido delivery
+ * POST /notify-client-delivery-status
+ */
+app.post("/notify-client-delivery-status", async (req, res) => {
+  try {
+    const { clienteEmail, pedidoId, estado, tiempoEstimado, motivo } = req.body;
+    
+    if (!clienteEmail || !pedidoId || !estado) {
+      return res.status(400).send({ 
+        error: "clienteEmail, pedidoId y estado son requeridos" 
+      });
+    }
+
+    // Obtener token FCM del cliente
+    const { data: cliente, error: clienteError } = await supabase
+      .from("clientes")
+      .select("fcm_token, nombre, apellido")
+      .eq("correo", clienteEmail)
+      .single();
+
+    if (clienteError || !cliente) {
+      console.error("Error al buscar cliente:", clienteError);
+      return res.status(404).send({ error: "Cliente no encontrado" });
+    }
+
+    if (!cliente.fcm_token) {
+      console.log("Cliente no tiene token FCM registrado");
+      return res.status(200).send({ message: "Cliente no tiene notificaciones habilitadas" });
+    }
+
+    // Construir mensaje según el estado
+    let title = "";
+    let body = "";
+
+    if (estado === 'confirmado') {
+      title = "✅ Pedido Confirmado";
+      body = `Tu pedido #${pedidoId} ha sido confirmado. Tiempo estimado: ${tiempoEstimado} minutos.`;
+    } else if (estado === 'rechazado') {
+      title = "❌ Pedido Rechazado";
+      body = `Lo sentimos, tu pedido #${pedidoId} ha sido rechazado. Motivo: ${motivo || 'No especificado'}`;
+    } else if (estado === 'preparando') {
+      title = "🍳 Pedido en Preparación";
+      body = `Tu pedido #${pedidoId} está siendo preparado. ¡Pronto estará listo!`;
+    } else if (estado === 'en_camino') {
+      title = "🚴 Pedido en Camino";
+      body = `Tu pedido #${pedidoId} está en camino. ¡Llegará pronto!`;
+    } else if (estado === 'entregado') {
+      title = "✅ Pedido Entregado";
+      body = `Tu pedido #${pedidoId} ha sido entregado. ¡Que lo disfrutes!`;
+    }
+
+    // Enviar notificación
+    const message = {
+      notification: { title, body },
+      token: cliente.fcm_token,
+      data: {
+        link: '/home',
+        pedidoId: pedidoId.toString(),
+        estado: estado
+      }
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log("Notificación de estado de pedido enviada al cliente:", response);
+
+    res.status(200).send({ 
+      message: "Notificación enviada al cliente exitosamente", 
+      response 
+    });
+
+  } catch (error) {
+    console.error("Error en /notify-client-delivery-status:", error);
+    res.status(500).send({ 
+      error: `Falló el envío de la notificación: ${error.message}` 
+    });
+  }
+});
+
+/**
  * Envía correo de confirmación cuando se aprueba una reserva
  * POST /enviar-correo-reserva-aprobada
  */
@@ -1603,6 +1748,288 @@ app.post("/enviar-correo-reserva-rechazada", async (req, res) => {
 
 
 
+
+// Endpoint para notificar al repartidor de un nuevo pedido asignado
+app.post("/notify-repartidor-pedido", async (req, res) => {
+  try {
+    const { repartidorEmail, pedidoId, clienteNombre, direccion } = req.body;
+    
+    if (!repartidorEmail || !pedidoId) {
+      return res.status(400).send({ 
+        error: "repartidorEmail y pedidoId son requeridos" 
+      });
+    }
+
+    // Obtener token FCM del repartidor
+    const { data: repartidor, error: repartidorError } = await supabase
+      .from("repartidores")
+      .select("fcm_token, nombre, apellido")
+      .eq("correo", repartidorEmail)
+      .single();
+
+    if (repartidorError || !repartidor) {
+      console.error("Error al buscar repartidor:", repartidorError);
+      return res.status(404).send({ error: "Repartidor no encontrado" });
+    }
+
+    if (!repartidor.fcm_token) {
+      console.log("Repartidor no tiene token FCM registrado");
+      return res.status(200).send({ message: "Repartidor no tiene notificaciones habilitadas" });
+    }
+
+    // Construir mensaje de notificación
+    const title = "🚴 Nuevo Pedido Asignado";
+    const body = `Tienes un nuevo pedido #${pedidoId} para entregar a ${clienteNombre || 'cliente'}. Dirección: ${direccion || 'Ver en app'}`;
+
+    // Enviar notificación
+    const message = {
+      notification: { title, body },
+      token: repartidor.fcm_token,
+      data: {
+        link: '/panel-repartidor',
+        pedidoId: pedidoId.toString(),
+        tipo: 'nuevo_pedido'
+      }
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log("Notificación enviada al repartidor:", response);
+
+    res.status(200).send({ 
+      message: "Notificación enviada al repartidor exitosamente", 
+      response 
+    });
+
+  } catch (error) {
+    console.error("Error en /notify-repartidor-pedido:", error);
+    res.status(500).send({ 
+      error: `Falló el envío de la notificación: ${error.message}` 
+    });
+  }
+});
+
+// Endpoint para generar y enviar boleta de delivery en PDF
+app.post("/generar-boleta-delivery", async (req, res) => {
+  try {
+    const { pedidoId, propina } = req.body;
+    
+    if (!pedidoId) {
+      return res.status(400).send({ error: "pedidoId es requerido" });
+    }
+
+    // Obtener información del pedido
+    const { data: pedido, error: pedidoError } = await supabase
+      .from("pedidos_delivery")
+      .select("*")
+      .eq("id", pedidoId)
+      .single();
+
+    if (pedidoError || !pedido) {
+      console.error("Error al obtener pedido:", pedidoError);
+      return res.status(404).send({ error: "Pedido no encontrado" });
+    }
+
+    // Crear PDF
+    const PDFDocument = require('pdfkit');
+    const doc = new PDFDocument({ margin: 50 });
+
+    // Buffer para almacenar el PDF
+    const chunks = [];
+    doc.on('data', chunk => chunks.push(chunk));
+    
+    await new Promise((resolve, reject) => {
+      doc.on('end', resolve);
+      doc.on('error', reject);
+
+      // Header
+      doc.fontSize(20)
+         .fillColor('#E53E3E')
+         .text('🌮 LOS FRITOS HERMANOS 🌮', { align: 'center' });
+      
+      doc.moveDown();
+      doc.fontSize(16)
+         .fillColor('#333')
+         .text('BOLETA DE DELIVERY', { align: 'center' });
+      
+      doc.moveDown();
+      doc.fontSize(10)
+         .fillColor('#666')
+         .text(`Fecha: ${new Date(pedido.created_at).toLocaleString('es-AR')}`, { align: 'center' });
+      doc.text(`Pedido N°: ${pedido.id}`, { align: 'center' });
+      
+      // Línea separadora
+      doc.moveDown();
+      doc.strokeColor('#E53E3E')
+         .lineWidth(2)
+         .moveTo(50, doc.y)
+         .lineTo(550, doc.y)
+         .stroke();
+      doc.moveDown();
+
+      // Datos del cliente
+      doc.fontSize(12)
+         .fillColor('#333')
+         .text('DATOS DEL CLIENTE', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10)
+         .fillColor('#666')
+         .text(`Nombre: ${pedido.cliente_nombre}`);
+      doc.text(`Teléfono: ${pedido.cliente_telefono || 'No especificado'}`);
+      doc.text(`Dirección: ${pedido.direccion_completa}`);
+      
+      doc.moveDown();
+
+      // Detalles del pedido
+      doc.fontSize(12)
+         .fillColor('#333')
+         .text('DETALLE DEL PEDIDO', { underline: true });
+      doc.moveDown(0.5);
+
+      // Función para formatear precio
+      const formatearPrecio = (precio) => {
+        return new Intl.NumberFormat('es-AR', {
+          style: 'currency',
+          currency: 'ARS'
+        }).format(precio);
+      };
+
+      // Productos
+      const productos = [
+        ...(pedido.comidas || []),
+        ...(pedido.bebidas || []),
+        ...(pedido.postres || [])
+      ];
+
+      doc.fontSize(10).fillColor('#666');
+      productos.forEach(producto => {
+        doc.text(
+          `${producto.cantidad}x ${producto.nombre} - ${formatearPrecio(producto.precio * producto.cantidad)}`
+        );
+      });
+
+      doc.moveDown();
+
+      // Resumen de costos
+      doc.strokeColor('#ccc')
+         .lineWidth(1)
+         .moveTo(50, doc.y)
+         .lineTo(550, doc.y)
+         .stroke();
+      doc.moveDown(0.5);
+
+      const subtotal = pedido.precio_productos;
+      const costoEnvio = pedido.precio_envio || 0;
+      const propinaFinal = propina || 0;
+      const total = subtotal + costoEnvio + propinaFinal;
+
+      doc.fontSize(11).fillColor('#333');
+      doc.text(`Subtotal: ${formatearPrecio(subtotal)}`, { align: 'right' });
+      doc.text(`Costo de Envío: ${formatearPrecio(costoEnvio)}`, { align: 'right' });
+      
+      if (propinaFinal > 0) {
+        doc.fillColor('#38A169')
+           .text(`Propina: ${formatearPrecio(propinaFinal)}`, { align: 'right' });
+      }
+
+      doc.moveDown(0.5);
+      doc.strokeColor('#E53E3E')
+         .lineWidth(2)
+         .moveTo(50, doc.y)
+         .lineTo(550, doc.y)
+         .stroke();
+      doc.moveDown(0.5);
+
+      doc.fontSize(14)
+         .fillColor('#E53E3E')
+         .text(`TOTAL: ${formatearPrecio(total)}`, { align: 'right' });
+
+      doc.moveDown(2);
+
+      // Footer
+      doc.fontSize(10)
+         .fillColor('#666')
+         .text('¡Gracias por tu compra!', { align: 'center' });
+      doc.text('Los Fritos Hermanos - Tu comida favorita', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(8)
+         .fillColor('#999')
+         .text('www.fritoshermanos.com | Tel: (011) 1234-5678', { align: 'center' });
+
+      doc.end();
+    });
+
+    const pdfBuffer = Buffer.concat(chunks);
+
+    // Enviar por correo
+    const { sendEmail } = require('./services/email.service');
+    
+    await sendEmail({
+      to: pedido.cliente_email,
+      subject: `📋 Boleta de Delivery - Pedido #${pedido.id} - Los Fritos Hermanos`,
+      text: `Adjunto encontrarás la boleta de tu pedido #${pedido.id}. Total: ${formatearPrecio(total)}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+          <div style="background: linear-gradient(135deg, #E53E3E 0%, #F4C451 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">🌮 Los Fritos Hermanos 🌮</h1>
+          </div>
+          
+          <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #333; margin-top: 0;">¡Gracias por tu pedido!</h2>
+            
+            <p style="color: #666; font-size: 16px;">
+              Estimado/a <strong>${pedido.cliente_nombre}</strong>,
+            </p>
+            
+            <p style="color: #666; font-size: 16px;">
+              Adjunto encontrarás la boleta de tu pedido #${pedido.id}.
+            </p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #E53E3E;">
+              <p style="margin: 5px 0; color: #333;"><strong>Pedido:</strong> #${pedido.id}</p>
+              <p style="margin: 5px 0; color: #333;"><strong>Dirección:</strong> ${pedido.direccion_completa}</p>
+              <p style="margin: 5px 0; color: #333;"><strong>Total:</strong> ${formatearPrecio(total)}</p>
+            </div>
+            
+            ${propinaFinal > 0 ? `
+              <p style="color: #38A169; font-weight: bold; text-align: center; font-size: 18px;">
+                ¡Gracias por dejar ${formatearPrecio(propinaFinal)} de propina! 🙏
+              </p>
+            ` : ''}
+            
+            <p style="color: #666; font-size: 14px; margin-top: 30px; text-align: center;">
+              Esperamos que hayas disfrutado tu comida.<br>
+              ¡Hasta la próxima!
+            </p>
+          </div>
+          
+          <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+            <p>© 2025 Los Fritos Hermanos. Todos los derechos reservados.</p>
+            <p>Este es un correo automático, por favor no responder.</p>
+          </div>
+        </div>
+      `,
+      attachments: [
+        {
+          content: pdfBuffer.toString('base64'),
+          filename: `boleta-pedido-${pedido.id}.pdf`,
+          type: 'application/pdf',
+          disposition: 'attachment'
+        }
+      ]
+    });
+
+    res.status(200).send({ 
+      success: true, 
+      message: "Boleta generada y enviada por correo exitosamente" 
+    });
+
+  } catch (error) {
+    console.error("Error en /generar-boleta-delivery:", error);
+    res.status(500).send({ 
+      error: `Error al generar boleta: ${error.message}` 
+    });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
