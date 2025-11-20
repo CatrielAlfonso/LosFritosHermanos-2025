@@ -1,0 +1,158 @@
+.reservas-content {
+  --background: linear-gradient(135deg, var(--ion-color-fritos-blue) 0%, var(--ion-color-fritos-orange) 100%);
+  font-family: 'Poppins', sans-serif;
+}
+
+.container {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.action-buttons {
+  margin-bottom: 1.5rem;
+}
+
+.form-card {
+  margin-bottom: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: white;
+  
+  ion-card-header {
+    ion-card-title {
+      color: var(--ion-color-fritos-red);
+      font-weight: 700;
+    }
+  }
+  
+  ion-item {
+    --background: rgba(255, 255, 255, 0.95);
+    --border-radius: 12px;
+    --color: #333;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    
+    ion-label {
+      color: var(--ion-color-fritos-blue) !important;
+      font-weight: 600;
+    }
+    
+    ion-input {
+      --color: #333 !important;
+      --placeholder-color: #999 !important;
+    }
+    
+    ion-datetime {
+      --placeholder-color: #999 !important;
+      color: #333 !important;
+      
+      &::part(text) {
+        color: #333 !important;
+      }
+      
+      &::part(placeholder) {
+        color: #999 !important;
+      }
+    }
+  }
+}
+
+.section-title {
+  color: var(--ion-color-fritos-red);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1.5rem 0 1rem 0;
+  text-align: center;
+}
+
+.no-reservas {
+  text-align: center;
+  color: var(--ion-color-fritos-blue);
+  font-size: 1.1rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.reservas-list {
+  margin-top: 1rem;
+}
+
+.reserva-card {
+  margin-bottom: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid var(--ion-color-fritos-yellow);
+  
+  .reserva-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.2rem;
+      color: var(--ion-color-fritos-red);
+      
+      ion-icon {
+        font-size: 1.5rem;
+        color: var(--ion-color-fritos-blue);
+      }
+    }
+  }
+  
+  .reserva-info {
+    margin: 1rem 0;
+    
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      color: var(--ion-color-fritos-blue);
+      font-size: 1rem;
+      
+      ion-icon {
+        font-size: 1.2rem;
+        color: var(--ion-color-fritos-red);
+      }
+      
+      strong {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+  
+  .reserva-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+ion-button {
+  --border-radius: 12px;
+  font-weight: 600;
+  text-transform: none;
+  
+  &[color="fritos-red"] {
+    --background: var(--ion-color-fritos-red);
+    --background-hover: var(--ion-color-fritos-red-shade);
+    --color: var(--ion-color-fritos-red-contrast);
+  }
+}
+
+ion-badge {
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+

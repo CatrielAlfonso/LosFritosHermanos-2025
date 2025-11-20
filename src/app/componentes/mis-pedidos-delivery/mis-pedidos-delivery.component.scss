@@ -1,0 +1,229 @@
+.content-pedidos {
+  --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.pedidos-container {
+  padding: 16px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  
+  ion-spinner {
+    transform: scale(1.5);
+    margin-bottom: 20px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  
+  ion-icon {
+    font-size: 100px;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+  
+  h2 {
+    color: #333;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 10px 0;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+    margin: 10px 0 30px;
+  }
+  
+  ion-button {
+    --border-radius: 12px;
+    font-weight: 600;
+    max-width: 300px;
+  }
+}
+
+.pedido-card {
+  margin-bottom: 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: fadeInUp 0.4s ease-out;
+  
+  ion-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px;
+    
+    &.header-entregado {
+      background: linear-gradient(135deg, #38a169 0%, #2d7a56 100%);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .pedido-numero {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 18px;
+        font-weight: 700;
+        
+        ion-icon {
+          font-size: 24px;
+        }
+      }
+      
+      ion-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 12px;
+      }
+    }
+  }
+  
+  ion-card-content {
+    padding: 20px;
+  }
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  color: #666;
+  font-size: 14px;
+  
+  ion-icon {
+    font-size: 20px;
+    color: #667eea;
+    flex-shrink: 0;
+  }
+  
+  span {
+    flex: 1;
+  }
+  
+  &.total-row {
+    margin-top: 10px;
+    border-bottom: 2px solid #667eea;
+    padding: 12px 0;
+    
+    .label {
+      font-weight: 600;
+      color: #333;
+      font-size: 16px;
+    }
+    
+    .precio {
+      font-size: 20px;
+      font-weight: 700;
+      color: #667eea;
+    }
+  }
+  
+  &.propina-row {
+    border-bottom: none;
+    padding: 8px 0;
+    
+    .label {
+      font-weight: 600;
+      color: #38a169;
+    }
+    
+    .propina {
+      font-weight: 700;
+      color: #38a169;
+      font-size: 16px;
+    }
+  }
+}
+
+.actions {
+  margin-top: 20px;
+  
+  ion-button {
+    margin-top: 10px;
+    --border-radius: 12px;
+    font-weight: 600;
+    text-transform: none;
+    height: 44px;
+  }
+  
+  .confirmado-msg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: #d4edda;
+    border-radius: 12px;
+    margin-top: 10px;
+    color: #38a169;
+    font-weight: 600;
+    
+    ion-icon {
+      font-size: 24px;
+    }
+  }
+}
+
+// Animación
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .pedido-card {
+    ion-card-header {
+      .header-content {
+        .pedido-numero {
+          font-size: 16px;
+          
+          ion-icon {
+            font-size: 20px;
+          }
+        }
+      }
+    }
+  }
+  
+  .info-row {
+    font-size: 13px;
+    
+    &.total-row {
+      .precio {
+        font-size: 18px;
+      }
+    }
+  }
+}
+

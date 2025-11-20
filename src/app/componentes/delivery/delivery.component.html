@@ -1,0 +1,238 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Pedido Delivery</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Información del Cliente -->
+  <ion-card *ngIf="clienteInfo" class="cliente-card">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="home-outline"></ion-icon>
+        Datos de Entrega
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Cliente:</strong> {{ clienteInfo.nombre }} {{ clienteInfo.apellido }}</p>
+      <p><strong>Email:</strong> {{ clienteInfo.email }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Formulario de Dirección -->
+  <ion-card class="direccion-card">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="location-outline"></ion-icon>
+        Dirección de Entrega
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <form [formGroup]="direccionForm">
+        <ion-grid>
+          <ion-row>
+            <ion-col size="8">
+              <ion-item>
+                <ion-label position="stacked">Calle *</ion-label>
+                <ion-input 
+                  formControlName="calle" 
+                  type="text" 
+                  placeholder="Ej: Av. Corrientes">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="4">
+              <ion-item>
+                <ion-label position="stacked">Número *</ion-label>
+                <ion-input 
+                  formControlName="numero" 
+                  type="text" 
+                  placeholder="1234">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="6">
+              <ion-item>
+                <ion-label position="stacked">Piso</ion-label>
+                <ion-input 
+                  formControlName="piso" 
+                  type="text" 
+                  placeholder="Opcional">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="6">
+              <ion-item>
+                <ion-label position="stacked">Depto</ion-label>
+                <ion-input 
+                  formControlName="depto" 
+                  type="text" 
+                  placeholder="Opcional">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12">
+              <ion-item>
+                <ion-label position="stacked">Teléfono *</ion-label>
+                <ion-input 
+                  formControlName="telefono" 
+                  type="tel" 
+                  placeholder="Ej: +54 9 11 1234-5678">
+                  <ion-icon name="call-outline" slot="start"></ion-icon>
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12">
+              <ion-item>
+                <ion-label position="stacked">Referencias</ion-label>
+                <ion-textarea 
+                  formControlName="referencia" 
+                  rows="2" 
+                  placeholder="Ej: Casa con puerta verde, timbre 3A">
+                </ion-textarea>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- Botón para mostrar/ocultar mapa -->
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          (click)="toggleMapa()"
+          class="mapa-toggle-btn">
+          <ion-icon [name]="mostrarMapa ? 'close-circle-outline' : 'map-outline'" slot="start"></ion-icon>
+          {{ mostrarMapa ? 'Ocultar' : 'Seleccionar en' }} Mapa
+        </ion-button>
+
+        <!-- Contenedor del Mapa -->
+        <div *ngIf="mostrarMapa" class="map-container">
+          <div #mapContainer class="map"></div>
+          <ion-note class="map-note">
+            <ion-icon name="location-outline"></ion-icon>
+            Arrastra el marcador o toca el mapa para seleccionar tu ubicación
+          </ion-note>
+        </div>
+
+        <!-- Mostrar coordenadas si se seleccionaron -->
+        <ion-note *ngIf="selectedLocation" class="coordinates-note">
+          <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+          Ubicación seleccionada: {{ selectedLocation.lat | number:'1.4-4' }}, {{ selectedLocation.lng | number:'1.4-4' }}
+        </ion-note>
+      </form>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Resumen del Carrito -->
+  <ion-card class="carrito-card">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="cart-outline"></ion-icon>
+        Tu Pedido
+        <ion-badge color="fritos-red">{{ cartItems.length }}</ion-badge>
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let item of cartItems" class="cart-item">
+          <ion-label>
+            <h3>{{ item.nombre }}</h3>
+            <p *ngIf="item.observaciones" class="observaciones">{{ item.observaciones }}</p>
+            <p class="precio">{{ formatearPrecio(item.precioUnitario) }} x {{ item.cantidad }}</p>
+          </ion-label>
+          
+          <div slot="end" class="quantity-controls">
+            <ion-button size="small" fill="clear" (click)="disminuirCantidad(item)">
+              <ion-icon name="remove-outline"></ion-icon>
+            </ion-button>
+            <span class="quantity">{{ item.cantidad }}</span>
+            <ion-button size="small" fill="clear" (click)="aumentarCantidad(item)">
+              <ion-icon name="add-outline"></ion-icon>
+            </ion-button>
+            <ion-button size="small" fill="clear" color="danger" (click)="eliminarItem(item)">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </ion-button>
+          </div>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Método de Pago -->
+  <ion-card class="pago-card">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="cash-outline"></ion-icon>
+        Método de Pago
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-radio-group [(ngModel)]="metodoPago">
+        <ion-item>
+          <ion-icon name="cash-outline" slot="start"></ion-icon>
+          <ion-label>Efectivo</ion-label>
+          <ion-radio value="efectivo"></ion-radio>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="card-outline" slot="start"></ion-icon>
+          <ion-label>Tarjeta de Débito/Crédito</ion-label>
+          <ion-radio value="tarjeta"></ion-radio>
+        </ion-item>
+      </ion-radio-group>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Resumen de Precios -->
+  <ion-card class="total-card">
+    <ion-card-content>
+      <div class="precio-linea">
+        <span>Subtotal (productos):</span>
+        <span>{{ formatearPrecio(precioProductos) }}</span>
+      </div>
+      <div class="precio-linea">
+        <span>Costo de envío:</span>
+        <span>{{ formatearPrecio(precioEnvio) }}</span>
+      </div>
+      <ion-note *ngIf="selectedLocation" class="envio-note">
+        <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+        Precio calculado según distancia
+      </ion-note>
+      <div class="precio-linea total">
+        <span><strong>TOTAL:</strong></span>
+        <span><strong>{{ formatearPrecio(precioTotal) }}</strong></span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Botón Confirmar Pedido -->
+  <ion-button 
+    expand="block" 
+    size="large"
+    color="fritos-red"
+    (click)="confirmarPedido()"
+    [disabled]="direccionForm.invalid || cartItems.length === 0"
+    class="confirmar-btn">
+    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+    Confirmar Pedido - {{ formatearPrecio(precioTotal) }}
+  </ion-button>
+
+  <ion-note class="tiempo-estimado">
+    <ion-icon name="time-outline"></ion-icon>
+    Tiempo estimado de entrega: <strong>45 minutos</strong>
+  </ion-note>
+</ion-content>
+

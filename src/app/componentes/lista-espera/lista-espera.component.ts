@@ -4,6 +4,7 @@ import { IonContent, IonList, IonItem, IonLabel, IonHeader, IonToolbar, IonTitle
 import { SupabaseService } from '../../servicios/supabase.service';
 import { LoadingService } from '../../servicios/loading.service';
 import { PushNotificationService } from '../../servicios/push-notification.service';
+import { ReservasService } from '../../servicios/reservas.service';
 import { Router } from '@angular/router';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
@@ -47,6 +48,7 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
     private supabase: SupabaseService,
     private loadingService: LoadingService,
     private pushNotificationService: PushNotificationService,
+    private reservasService: ReservasService,
     private router: Router,
     private alertController: AlertController
   ) { }
@@ -130,6 +132,9 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
   async abrirModalMesasDisponibles() {
     this.loadingService.show();
     try {
+      // Primero liberar mesas de reservas expiradas
+      await this.reservasService.liberarMesasReservasExpiradas();
+
       const { data, error } = await this.supabase.supabase
         .from('mesas')
         .select('*')
@@ -141,7 +146,16 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
         return;
       }
       
-      this.mesasDisponibles = data || [];
+      // Filtrar mesas que tienen reservas confirmadas activas
+      const mesasDisponiblesFiltradas = [];
+      for (const mesa of (data || [])) {
+        const tieneReservaActiva = await this.reservasService.tieneReservaConfirmadaActiva(mesa.numero);
+        if (!tieneReservaActiva) {
+          mesasDisponiblesFiltradas.push(mesa);
+        }
+      }
+      
+      this.mesasDisponibles = mesasDisponiblesFiltradas;
       this.mostrarModalMesas = true;
     } catch (error) {
       this.mostrarMensajeErrorQR('Error inesperado al cargar las mesas.');
@@ -219,6 +233,14 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
       const clienteSeleccionado = this.clientesDisponibles.find(c => c.id === clienteId);
       if (!clienteSeleccionado) {
         this.mensajeErrorAsignacion = 'Cliente no encontrado';
+        return;
+      }
+
+      // Verificar si la mesa tiene una reserva confirmada activa
+      const tieneReservaActiva = await this.reservasService.tieneReservaConfirmadaActiva(this.mesaSeleccionada.numero);
+      if (tieneReservaActiva) {
+        this.mensajeErrorAsignacion = `La mesa ${this.mesaSeleccionada.numero} está reservada y no puede ser asignada a otro cliente.`;
+        this.loadingService.hide();
         return;
       }
       

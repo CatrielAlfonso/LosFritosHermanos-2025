@@ -1,0 +1,271 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Confirmar Entrega</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="content-delivery">
+  <!-- Loading -->
+  <div *ngIf="cargando" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando pedido...</p>
+  </div>
+
+  <!-- Paso 1: Confirmar Recepción -->
+  <div *ngIf="!cargando && pasoActual === 1" class="step-container">
+    <ion-card class="main-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Confirmar Recepción
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="pedido-info">
+          <h3>Pedido #{{ pedidoId }}</h3>
+          <p><strong>Total:</strong> {{ formatearPrecio(pedido?.precio_total || 0) }}</p>
+          <p><strong>Dirección:</strong> {{ pedido?.direccion_completa }}</p>
+        </div>
+
+        <div class="productos-list">
+          <h4>Productos:</h4>
+          <ion-chip *ngFor="let producto of getTodosLosProductos(pedido)" color="primary">
+            {{ producto.cantidad }}x {{ producto.nombre }}
+          </ion-chip>
+        </div>
+
+        <p class="mensaje">
+          ¿Has recibido tu pedido completo y en buen estado?
+        </p>
+
+        <ion-button 
+          expand="block" 
+          color="success" 
+          (click)="confirmarRecepcion()">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Sí, Confirmar Recepción
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          color="danger" 
+          (click)="reportarProblema()">
+          Reportar un Problema
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Paso 2: Propina -->
+  <div *ngIf="pasoActual === 2" class="step-container">
+    <ion-card class="main-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="cash-outline"></ion-icon>
+          ¿Dejar Propina?
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="mensaje">
+          Si el servicio fue bueno, puedes dejar una propina para el repartidor
+        </p>
+
+        <!-- Opciones de propina predefinidas -->
+        <div class="propina-options">
+          <ion-button 
+            [fill]="propinaPorcentaje === 5 ? 'solid' : 'outline'"
+            (click)="propinaPorcentaje = 5; propinaPersonalizada = 0">
+            5%
+          </ion-button>
+          <ion-button 
+            [fill]="propinaPorcentaje === 10 ? 'solid' : 'outline'"
+            (click)="propinaPorcentaje = 10; propinaPersonalizada = 0">
+            10%
+          </ion-button>
+          <ion-button 
+            [fill]="propinaPorcentaje === 15 ? 'solid' : 'outline'"
+            (click)="propinaPorcentaje = 15; propinaPersonalizada = 0">
+            15%
+          </ion-button>
+          <ion-button 
+            [fill]="propinaPorcentaje === 20 ? 'solid' : 'outline'"
+            (click)="propinaPorcentaje = 20; propinaPersonalizada = 0">
+            20%
+          </ion-button>
+        </div>
+
+        <!-- Propina personalizada -->
+        <ion-item lines="none" class="propina-personalizada">
+          <ion-label position="stacked">O ingresa un monto personalizado:</ion-label>
+          <ion-range
+            [(ngModel)]="propinaPersonalizada"
+            [min]="0"
+            [max]="2000"
+            [step]="50"
+            [pin]="true"
+            [pinFormatter]="formatearPrecio.bind(this)"
+            (ionChange)="propinaPorcentaje = 0">
+          </ion-range>
+        </ion-item>
+
+        <!-- Resumen -->
+        <div class="resumen-propina">
+          <div class="resumen-item">
+            <span>Subtotal:</span>
+            <span>{{ formatearPrecio(pedido?.precio_total || 0) }}</span>
+          </div>
+          <div class="resumen-item propina-amount">
+            <span>Propina:</span>
+            <span>{{ formatearPrecio(calcularPropina()) }}</span>
+          </div>
+          <div class="resumen-item total">
+            <span><strong>Total:</strong></span>
+            <span><strong>{{ formatearPrecio(calcularTotal()) }}</strong></span>
+          </div>
+        </div>
+
+        <!-- Comentario opcional -->
+        <ion-item lines="none">
+          <ion-textarea
+            [(ngModel)]="comentarioPropina"
+            placeholder="Mensaje para el repartidor (opcional)"
+            [autoGrow]="true"
+            rows="2">
+          </ion-textarea>
+        </ion-item>
+
+        <ion-button 
+          expand="block" 
+          color="success" 
+          (click)="confirmarPropina()">
+          Continuar con {{ formatearPrecio(calcularPropina()) }} de propina
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          (click)="omitirPropina()">
+          No dejar propina
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Paso 3: Encuesta -->
+  <div *ngIf="pasoActual === 3" class="step-container">
+    <ion-card class="main-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="star-outline"></ion-icon>
+          Encuesta de Satisfacción
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="mensaje">
+          Tu opinión nos ayuda a mejorar el servicio
+        </p>
+
+        <!-- Calificación General -->
+        <div class="calificacion-item">
+          <label>Calificación General:</label>
+          <div class="estrellas">
+            <ion-icon 
+              *ngFor="let star of [1,2,3,4,5]"
+              [name]="star <= calificacionGeneral ? 'star' : 'star-outline'"
+              [class.active]="star <= calificacionGeneral"
+              (click)="calificacionGeneral = star">
+            </ion-icon>
+          </div>
+        </div>
+
+        <!-- Calificación Repartidor -->
+        <div class="calificacion-item">
+          <label>Atención del Repartidor:</label>
+          <div class="estrellas">
+            <ion-icon 
+              *ngFor="let star of [1,2,3,4,5]"
+              [name]="star <= calificacionRepartidor ? 'star' : 'star-outline'"
+              [class.active]="star <= calificacionRepartidor"
+              (click)="calificacionRepartidor = star">
+            </ion-icon>
+          </div>
+        </div>
+
+        <!-- Calificación Tiempo -->
+        <div class="calificacion-item">
+          <label>Tiempo de Entrega:</label>
+          <div class="estrellas">
+            <ion-icon 
+              *ngFor="let star of [1,2,3,4,5]"
+              [name]="star <= calificacionTiempo ? 'star' : 'star-outline'"
+              [class.active]="star <= calificacionTiempo"
+              (click)="calificacionTiempo = star">
+            </ion-icon>
+          </div>
+        </div>
+
+        <!-- Calificación Calidad -->
+        <div class="calificacion-item">
+          <label>Calidad de la Comida:</label>
+          <div class="estrellas">
+            <ion-icon 
+              *ngFor="let star of [1,2,3,4,5]"
+              [name]="star <= calificacionCalidad ? 'star' : 'star-outline'"
+              [class.active]="star <= calificacionCalidad"
+              (click)="calificacionCalidad = star">
+            </ion-icon>
+          </div>
+        </div>
+
+        <!-- Comentarios -->
+        <ion-item lines="none">
+          <ion-label position="stacked">Comentarios adicionales:</ion-label>
+          <ion-textarea
+            [(ngModel)]="comentarioEncuesta"
+            placeholder="Cuéntanos tu experiencia..."
+            [autoGrow]="true"
+            rows="3">
+          </ion-textarea>
+        </ion-item>
+
+        <ion-button 
+          expand="block" 
+          color="success" 
+          (click)="enviarEncuesta()">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Enviar Encuesta
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          (click)="omitirEncuesta()">
+          Omitir Encuesta
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Paso 4: Finalizado -->
+  <div *ngIf="pasoActual === 4" class="step-container finalizado">
+    <ion-card class="main-card success-card">
+      <ion-card-content>
+        <div class="success-icon">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <h2>¡Gracias por tu compra!</h2>
+        <p>Tu boleta ha sido enviada a tu correo electrónico.</p>
+        <p class="propina-mensaje" *ngIf="calcularPropina() > 0">
+          Propina de {{ formatearPrecio(calcularPropina()) }} registrada ✓
+        </p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+

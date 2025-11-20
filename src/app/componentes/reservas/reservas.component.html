@@ -1,0 +1,155 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Mis Reservas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="reservas-content">
+  <div class="container">
+    <!-- Mensaje si no puede hacer reservas -->
+    <ion-card *ngIf="!puedeHacerReserva" color="warning">
+      <ion-card-content>
+        <p><strong>Tu cuenta debe estar validada y aceptada para hacer reservas.</strong></p>
+        <p>Por favor, espera a que un administrador valide tu cuenta.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Botón para crear nueva reserva -->
+    <div class="action-buttons" *ngIf="puedeHacerReserva">
+      <ion-button 
+        expand="block" 
+        color="fritos-red" 
+        (click)="toggleFormulario()"
+        [fill]="mostrarFormulario ? 'outline' : 'solid'">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        {{ mostrarFormulario ? 'Cancelar' : 'Nueva Reserva' }}
+      </ion-button>
+    </div>
+
+    <!-- Formulario de reserva -->
+    <ion-card *ngIf="mostrarFormulario && puedeHacerReserva" class="form-card">
+      <ion-card-header>
+        <ion-card-title>Nueva Reserva</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="reservaForm" (ngSubmit)="crearReserva()">
+          <!-- Fecha -->
+          <ion-item lines="none">
+            <ion-label position="stacked">Fecha de la Reserva *</ion-label>
+            <ion-datetime
+              formControlName="fecha_reserva"
+              presentation="date"
+              [min]="fechaMinima"
+              (ionChange)="onFechaChange($event)"
+              placeholder="Selecciona una fecha"
+              display-format="DD/MM/YYYY"
+              locale="es-ES"
+              size="cover">
+            </ion-datetime>
+          </ion-item>
+
+          <!-- Hora -->
+          <ion-item lines="none" button="true" (click)="abrirSelectorHora()">
+            <ion-label position="stacked">Hora de la Reserva *</ion-label>
+            <ion-input
+              readonly
+              [value]="horaSeleccionada || 'Selecciona una hora'"
+              placeholder="Selecciona una hora">
+            </ion-input>
+          </ion-item>
+
+          <!-- Cantidad de comensales -->
+          <ion-item lines="none" button="true" (click)="abrirSelectorComensales()">
+            <ion-label position="stacked">Cantidad de Comensales *</ion-label>
+            <ion-input
+              readonly
+              [value]="reservaForm.get('cantidad_comensales')?.value ? reservaForm.get('cantidad_comensales')?.value + ' ' + (reservaForm.get('cantidad_comensales')?.value === 1 ? 'persona' : 'personas') : 'Selecciona cantidad'"
+              placeholder="Selecciona cantidad">
+            </ion-input>
+          </ion-item>
+          <ion-note color="medium" style="padding-left: 1rem; font-size: 0.85rem;">
+            Tu reserva será revisada por nuestro equipo para confirmar disponibilidad
+          </ion-note>
+
+          <!-- Notas -->
+          <ion-item lines="none">
+            <ion-label position="stacked">Notas (opcional)</ion-label>
+            <ion-input
+              formControlName="notas"
+              placeholder="Ej: Mesa cerca de la ventana">
+            </ion-input>
+          </ion-item>
+
+          <!-- Botón enviar -->
+          <ion-button 
+            expand="block" 
+            type="submit" 
+            color="fritos-red"
+            [disabled]="reservaForm.invalid">
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            Crear Reserva
+          </ion-button>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Lista de reservas -->
+    <div class="reservas-list">
+      <h2 *ngIf="reservas.length > 0" class="section-title">Mis Reservas</h2>
+      <p *ngIf="reservas.length === 0" class="no-reservas">
+        No tienes reservas agendadas. ¡Crea tu primera reserva!
+      </p>
+
+      <ion-card *ngFor="let reserva of reservas" class="reserva-card">
+        <ion-card-header>
+          <div class="reserva-header">
+            <ion-card-title>
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ formatearFecha(reserva.fecha_reserva) }}
+            </ion-card-title>
+            <ion-badge [color]="getEstadoColor(reserva.estado)">
+              {{ getEstadoTexto(reserva.estado) }}
+            </ion-badge>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="reserva-info">
+            <div class="info-item">
+              <ion-icon name="time-outline"></ion-icon>
+              <span><strong>Hora:</strong> {{ formatearHora(reserva.hora_reserva) }}</span>
+            </div>
+            <div class="info-item">
+              <ion-icon name="people-outline"></ion-icon>
+              <span><strong>Comensales:</strong> {{ reserva.cantidad_comensales }}</span>
+            </div>
+            <div class="info-item" *ngIf="reserva.mesa_numero">
+              <ion-icon name="restaurant-outline"></ion-icon>
+              <span><strong>Mesa:</strong> {{ reserva.mesa_numero }}</span>
+            </div>
+            <div class="info-item" *ngIf="reserva.notas">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <span><strong>Notas:</strong> {{ reserva.notas }}</span>
+            </div>
+          </div>
+          
+          <div class="reserva-actions" *ngIf="reserva.estado === 'pendiente' || reserva.estado === 'confirmada'">
+            <ion-button 
+              fill="clear" 
+              color="danger" 
+              size="small"
+              (click)="cancelarReserva(reserva)">
+              <ion-icon name="trash-outline" slot="start"></ion-icon>
+              Cancelar
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>
+

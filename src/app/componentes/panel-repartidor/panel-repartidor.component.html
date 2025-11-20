@@ -1,0 +1,189 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Panel del Repartidor</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarPedidos()">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Información del Repartidor -->
+  <ion-card class="repartidor-card" *ngIf="repartidorInfo">
+    <ion-card-content>
+      <div class="repartidor-info">
+        <ion-icon name="bicycle-outline" class="repartidor-icon"></ion-icon>
+        <div>
+          <h2>{{ repartidorInfo.nombre }} {{ repartidorInfo.apellido }}</h2>
+          <p>{{ repartidorInfo.tipo_vehiculo | titlecase }}</p>
+        </div>
+        <ion-badge color="success" *ngIf="repartidorInfo.disponible">Disponible</ion-badge>
+        <ion-badge color="medium" *ngIf="!repartidorInfo.disponible">Ocupado</ion-badge>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Resumen -->
+  <div class="summary-cards">
+    <ion-card class="summary-card asignados">
+      <ion-card-content>
+        <h3>{{ getCantidadAsignados() }}</h3>
+        <p>Asignados</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card en-camino">
+      <ion-card-content>
+        <h3>{{ getCantidadEnCamino() }}</h3>
+        <p>En Camino</p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Filtro -->
+  <ion-segment [(ngModel)]="filtroEstado" (ionChange)="aplicarFiltro()" class="filter-segment">
+    <ion-segment-button value="asignados">
+      <ion-label>Asignados</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="en_camino">
+      <ion-label>En Camino</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="todos">
+      <ion-label>Todos</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando pedidos...</p>
+  </div>
+
+  <!-- Sin Pedidos -->
+  <ion-card *ngIf="!cargando && pedidosFiltrados.length === 0" class="empty-card">
+    <ion-card-content>
+      <ion-icon name="bicycle-outline" class="empty-icon"></ion-icon>
+      <h3>No hay pedidos</h3>
+      <p>No tienes pedidos {{ filtroEstado === 'asignados' ? 'asignados' : filtroEstado === 'en_camino' ? 'en camino' : '' }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Lista de Pedidos -->
+  <ion-card *ngFor="let pedido of pedidosFiltrados" class="pedido-card">
+    <ion-card-header>
+      <div class="card-header-content">
+        <ion-card-title>
+          Pedido #{{ pedido.id }}
+          <ion-badge [color]="getEstadoColor(pedido.estado)">
+            {{ getEstadoTexto(pedido.estado) }}
+          </ion-badge>
+        </ion-card-title>
+      </div>
+    </ion-card-header>
+
+    <ion-card-content>
+      <!-- Cliente -->
+      <div class="info-section">
+        <h4><ion-icon name="person-outline"></ion-icon> Cliente</h4>
+        <p><strong>{{ pedido.cliente_nombre }}</strong></p>
+        <p class="telefono" (click)="llamarCliente(pedido.cliente_telefono!)">
+          <ion-icon name="call-outline"></ion-icon> {{ pedido.cliente_telefono }}
+        </p>
+      </div>
+
+      <!-- Dirección -->
+      <div class="info-section direccion-section">
+        <h4><ion-icon name="location-outline"></ion-icon> Dirección de Entrega</h4>
+        <p>{{ pedido.direccion_completa }}</p>
+        <p *ngIf="pedido.direccion_referencia" class="referencias">
+          📝 {{ pedido.direccion_referencia }}
+        </p>
+      </div>
+
+      <!-- Productos Resumen -->
+      <div class="info-section">
+        <h4><ion-icon name="restaurant-outline"></ion-icon> Pedido</h4>
+        <p>{{ getTotalProductos(pedido) }} productos</p>
+        <p class="precio-total">Total: {{ formatearPrecio(pedido.precio_total) }}</p>
+      </div>
+
+      <!-- Hora -->
+      <div class="info-section">
+        <h4><ion-icon name="time-outline"></ion-icon> Hora del Pedido</h4>
+        <p>{{ formatearFecha(pedido.created_at!) }}</p>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="actions-section">
+        <!-- Confirmar Recepción (solo si está confirmado/preparando) -->
+        <ion-button 
+          *ngIf="pedido.estado === 'confirmado' || pedido.estado === 'preparando'"
+          expand="block" 
+          color="success" 
+          (click)="confirmarRecepcion(pedido)">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Confirmar Recepción
+        </ion-button>
+
+        <!-- Marcar En Camino -->
+        <ion-button 
+          *ngIf="pedido.estado === 'confirmado' || pedido.estado === 'preparando'"
+          expand="block" 
+          color="primary" 
+          (click)="marcarEnCamino(pedido)">
+          <ion-icon name="bicycle-outline" slot="start"></ion-icon>
+          Marcar En Camino
+        </ion-button>
+
+        <!-- Marcar Entregado -->
+        <ion-button 
+          *ngIf="pedido.estado === 'en_camino'"
+          expand="block" 
+          color="success" 
+          (click)="marcarEntregado(pedido)">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Marcar como Entregado
+        </ion-button>
+
+        <!-- Botones de Utilidades -->
+        <div class="utility-buttons">
+          <ion-button 
+            expand="block" 
+            fill="outline"
+            color="primary"
+            (click)="verMapa(pedido)">
+            <ion-icon name="map-outline" slot="start"></ion-icon>
+            Ver Mapa
+          </ion-button>
+
+          <ion-button 
+            expand="block" 
+            fill="outline"
+            color="tertiary"
+            [routerLink]="['/chat-delivery', pedido.id]">
+            <ion-icon name="chatbubble-outline" slot="start"></ion-icon>
+            Chat con Cliente
+          </ion-button>
+        </div>
+
+        <!-- Abrir en Google Maps -->
+        <ion-button 
+          expand="block" 
+          fill="clear"
+          size="small"
+          (click)="abrirGoogleMaps(pedido)">
+          <ion-icon name="navigate-outline" slot="start"></ion-icon>
+          Navegar en Google Maps
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+

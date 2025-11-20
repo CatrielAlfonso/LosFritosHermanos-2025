@@ -1,0 +1,409 @@
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
+  IonToolbar,
+  IonButton,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonIcon,
+  IonBadge,
+  IonButtons,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonNote,
+  IonSegment,
+  IonSegmentButton,
+  IonSpinner,
+  AlertController,
+  ToastController
+} from '@ionic/angular/standalone';
+import { DeliveryService, PedidoDelivery } from '../../servicios/delivery.service';
+import { AuthService } from '../../servicios/auth.service';
+import { CustomLoader } from '../../servicios/custom-loader.service';
+import { addIcons } from 'ionicons';
+import {
+  arrowBackOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  timeOutline,
+  locationOutline,
+  cashOutline,
+  restaurantOutline,
+  bicycleOutline,
+  callOutline,
+  refreshOutline
+} from 'ionicons/icons';
+
+@Component({
+  selector: 'app-gestionar-delivery',
+  templateUrl: './gestionar-delivery.component.html',
+  styleUrls: ['./gestionar-delivery.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonContent,
+    IonHeader,
+    IonTitle,
+    IonToolbar,
+    IonButton,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonIcon,
+    IonBadge,
+    IonButtons,
+    IonList,
+    IonItem,
+    IonLabel,
+    IonNote,
+    IonSegment,
+    IonSegmentButton
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
+export class GestionarDeliveryComponent implements OnInit {
+  pedidos: PedidoDelivery[] = [];
+  pedidosFiltrados: PedidoDelivery[] = [];
+  filtroEstado: string = 'pendiente';
+  cargando: boolean = false;
+
+  constructor(
+    private deliveryService: DeliveryService,
+    private authService: AuthService,
+    private router: Router,
+    private customLoader: CustomLoader,
+    private alertController: AlertController,
+    private toastController: ToastController
+  ) {
+    addIcons({
+      arrowBackOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline,
+      timeOutline,
+      locationOutline,
+      cashOutline,
+      restaurantOutline,
+      bicycleOutline,
+      callOutline,
+      refreshOutline
+    });
+  }
+
+  async ngOnInit() {
+    // Verificar que sea dueño o supervisor
+    const perfil = this.authService.getPerfilUsuario();
+    if (perfil !== 'dueño' && perfil !== 'supervisor') {
+      await this.mostrarToast('Solo dueños y supervisores pueden acceder a esta sección', 'danger');
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    await this.cargarPedidos();
+  }
+
+  async cargarPedidos() {
+    try {
+      this.cargando = true;
+      this.pedidos = await this.deliveryService.obtenerTodosPedidosDelivery();
+      this.aplicarFiltro();
+    } catch (error: any) {
+      console.error('Error al cargar pedidos delivery:', error);
+      await this.mostrarToast('Error al cargar los pedidos', 'danger');
+    } finally {
+      this.cargando = false;
+    }
+  }
+
+  aplicarFiltro() {
+    if (this.filtroEstado === 'todos') {
+      this.pedidosFiltrados = this.pedidos;
+    } else {
+      this.pedidosFiltrados = this.pedidos.filter(
+        pedido => pedido.estado === this.filtroEstado
+      );
+    }
+  }
+
+  async confirmarPedido(pedido: PedidoDelivery) {
+    const alert = await this.alertController.create({
+      header: 'Confirmar Pedido Delivery',
+      message: '¿Confirmar este pedido? Se notificará al cliente y se derivará a cocina/bar.',
+      inputs: [
+        {
+          name: 'tiempo_estimado',
+          type: 'number',
+          placeholder: 'Tiempo estimado (minutos)',
+          value: 45,
+          min: 15,
+          max: 120
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Confirmar',
+          handler: async (data) => {
+            const tiempoEstimado = parseInt(data.tiempo_estimado) || 45;
+            await this.procesarConfirmacion(pedido, tiempoEstimado);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async procesarConfirmacion(pedido: PedidoDelivery, tiempoEstimado: number) {
+    try {
+      this.customLoader.show();
+
+      // Confirmar el pedido
+      await this.deliveryService.confirmarPedidoDelivery(pedido.id!, tiempoEstimado);
+
+      // Derivar a cocina y bar
+      await this.derivarACocinaYBar(pedido);
+
+      // Actualizar lista
+      await this.cargarPedidos();
+
+      this.customLoader.hide();
+      await this.mostrarToast(
+        `Pedido confirmado. Cliente notificado. Tiempo estimado: ${tiempoEstimado} minutos`,
+        'success'
+      );
+
+    } catch (error: any) {
+      console.error('Error al confirmar pedido:', error);
+      this.customLoader.hide();
+      await this.mostrarToast(error.message || 'Error al confirmar el pedido', 'danger');
+    }
+  }
+
+  async rechazarPedido(pedido: PedidoDelivery) {
+    const alert = await this.alertController.create({
+      header: 'Rechazar Pedido Delivery',
+      message: 'Ingresa el motivo del rechazo:',
+      inputs: [
+        {
+          name: 'motivo',
+          type: 'textarea',
+          placeholder: 'Ej: No hay repartidores disponibles, dirección fuera de zona de reparto, etc.'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Rechazar',
+          handler: async (data) => {
+            if (!data.motivo || data.motivo.trim() === '') {
+              await this.mostrarToast('Debes ingresar un motivo', 'warning');
+              return false;
+            }
+            await this.procesarRechazo(pedido, data.motivo.trim());
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async procesarRechazo(pedido: PedidoDelivery, motivo: string) {
+    try {
+      this.customLoader.show();
+
+      await this.deliveryService.rechazarPedidoDelivery(pedido.id!, motivo);
+
+      await this.cargarPedidos();
+
+      this.customLoader.hide();
+      await this.mostrarToast('Pedido rechazado. Cliente notificado.', 'success');
+
+    } catch (error: any) {
+      console.error('Error al rechazar pedido:', error);
+      this.customLoader.hide();
+      await this.mostrarToast(error.message || 'Error al rechazar el pedido', 'danger');
+    }
+  }
+
+  async derivarACocinaYBar(pedido: PedidoDelivery) {
+    try {
+      // Crear pedido en la tabla pedidos para cocina/bar
+      // Usando el servicio de Supabase directamente
+      const { data: { user } } = await this.authService.getCurrentUser();
+      
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      // Preparar datos del pedido para cocina/bar
+      const pedidoRestaurante = {
+        cliente_id: pedido.cliente_id,
+        comidas: pedido.comidas || [],
+        bebidas: pedido.bebidas || [],
+        postres: pedido.postres || [],
+        precio: pedido.precio_productos,
+        tiempo_estimado: pedido.tiempo_estimado || 45,
+        confirmado: true,
+        mesa: 'DELIVERY', // Identificador especial para delivery
+        estado: 'en preparacion',
+        estado_comida: (pedido.comidas && pedido.comidas.length > 0) ? 'en preparacion' : 'pendiente',
+        estado_bebida: (pedido.bebidas && pedido.bebidas.length > 0) ? 'en preparacion' : 'pendiente',
+        estado_postre: (pedido.postres && pedido.postres.length > 0) ? 'en preparacion' : 'pendiente',
+        recepcion: true,
+        pagado: 0,
+        cuenta: 0,
+        fecha_pedido: new Date().toISOString(),
+        observaciones_generales: `PEDIDO DELIVERY #${pedido.id} - ${pedido.direccion_completa}`
+      };
+
+      // Insertar en tabla pedidos
+      const { data: pedidoCreado, error } = await this.deliveryService.crearPedidoRestaurante(pedidoRestaurante);
+
+      if (error) {
+        console.error('Error al crear pedido en restaurante:', error);
+        throw new Error('Error al derivar a cocina/bar');
+      }
+
+      // Notificar a cocina y bar
+      await this.notificarCocinaYBar(pedido, pedidoCreado);
+
+      console.log('✅ Pedido derivado a cocina y bar exitosamente');
+
+    } catch (error: any) {
+      console.error('Error al derivar a cocina y bar:', error);
+      throw error;
+    }
+  }
+
+  async notificarCocinaYBar(pedidoDelivery: PedidoDelivery, pedidoRestaurante: any) {
+    try {
+      const backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
+      // const backendUrl = 'http://localhost:8080';
+
+      // Notificar a cocina si hay comidas o postres
+      if (pedidoDelivery.comidas && pedidoDelivery.comidas.length > 0 || 
+          pedidoDelivery.postres && pedidoDelivery.postres.length > 0) {
+        
+        const comidasYPostres = [
+          ...(pedidoDelivery.comidas || []),
+          ...(pedidoDelivery.postres || [])
+        ];
+
+        await fetch(`${backendUrl}/notify-cocinero-new-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mesaNumero: `DELIVERY #${pedidoDelivery.id}`,
+            comidas: comidasYPostres,
+            postres: []
+          })
+        });
+      }
+
+      // Notificar a bar si hay bebidas
+      if (pedidoDelivery.bebidas && pedidoDelivery.bebidas.length > 0) {
+        await fetch(`${backendUrl}/notify-bartender-new-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mesaNumero: `DELIVERY #${pedidoDelivery.id}`,
+            bebidas: pedidoDelivery.bebidas
+          })
+        });
+      }
+
+      console.log('✅ Notificaciones enviadas a cocina y bar');
+
+    } catch (error) {
+      console.error('Error al notificar a cocina/bar:', error);
+      // No lanzamos error para no bloquear la confirmación del pedido
+    }
+  }
+
+  getCantidadPendientes(): number {
+    return this.pedidos.filter(p => p.estado === 'pendiente').length;
+  }
+
+  getEstadoColor(estado: string | undefined): string {
+    if (!estado) return 'medium';
+    const colores: { [key: string]: string } = {
+      'pendiente': 'warning',
+      'confirmado': 'primary',
+      'preparando': 'secondary',
+      'en_camino': 'tertiary',
+      'entregado': 'success',
+      'cancelado': 'danger'
+    };
+    return colores[estado] || 'medium';
+  }
+
+  getEstadoTexto(estado: string | undefined): string {
+    if (!estado) return 'Sin estado';
+    const textos: { [key: string]: string } = {
+      'pendiente': '⏳ Pendiente',
+      'confirmado': '✅ Confirmado',
+      'preparando': '🍳 Preparando',
+      'en_camino': '🚴 En Camino',
+      'entregado': '✅ Entregado',
+      'cancelado': '❌ Cancelado'
+    };
+    return textos[estado] || estado;
+  }
+
+  formatearFecha(fecha: string): string {
+    return new Date(fecha).toLocaleString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  formatearPrecio(precio: number): string {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(precio);
+  }
+
+  getTotalProductos(pedido: PedidoDelivery): number {
+    const comidas = pedido.comidas?.length || 0;
+    const bebidas = pedido.bebidas?.length || 0;
+    const postres = pedido.postres?.length || 0;
+    return comidas + bebidas + postres;
+  }
+
+  async mostrarToast(mensaje: string, color: 'success' | 'danger' | 'warning' = 'success') {
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 3000,
+      color: color,
+      position: 'top'
+    });
+    await toast.present();
+  }
+
+  volver() {
+    this.router.navigate(['/home']);
+  }
+}
+

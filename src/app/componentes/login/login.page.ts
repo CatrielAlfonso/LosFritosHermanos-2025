@@ -68,6 +68,82 @@ export class LoginPage implements OnInit {
     this.loginForm.get('contrasenia')?.valueChanges.subscribe(() => {
       this.validarCampo('contrasenia');
     });
+
+    // Verificar si hay un callback de OAuth solo si venimos de una navegación normal
+    // El deep link se maneja en app.component.ts
+    // Timeout de seguridad para ocultar el loader si algo falla
+    setTimeout(() => {
+      console.log('Timeout de seguridad alcanzado en login, ocultando loader');
+      this.customLoader.hide();
+    }, 8000); // 8 segundos máximo
+    
+    // Solo verificar si no venimos de un deep link
+    setTimeout(() => {
+      this.checkOAuthCallback();
+    }, 500);
+  }
+
+  /**
+   * Verifica si hay un callback de OAuth y maneja la autenticación
+   */
+  async checkOAuthCallback() {
+    try {
+      console.log('Verificando callback de OAuth...');
+      
+      // Verificar si hay una sesión activa (puede ser de OAuth)
+      const { data: { session }, error } = await this.authService.supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error obteniendo sesión:', error);
+        this.customLoader.hide();
+        return;
+      }
+      
+      if (session && session.user) {
+        console.log('Sesión encontrada:', session.user.email);
+        
+        // Verificar si el usuario viene de OAuth (tiene provider metadata)
+        const provider = session.user.app_metadata?.provider;
+        
+        if (provider && provider !== 'email') {
+          console.log('Provider OAuth detectado:', provider);
+          // Es un login OAuth, manejar el callback
+          
+          try {
+            const usuario = await this.authService.handleOAuthCallback();
+            
+            if (usuario) {
+              console.log('Usuario OAuth autenticado correctamente');
+              // Registrar push token
+              this.registrarPushToken(usuario.id);
+              
+              // Redirigir a home
+              this.router.navigate(['/home']);
+              setTimeout(async () => {
+                this.customLoader.hide();
+              }, 2000);
+            } else {
+              console.error('No se pudo obtener el usuario');
+              this.errorMessage = 'Error al procesar la autenticación';
+              this.customLoader.hide();
+            }
+          } catch (error: any) {
+            console.error('Error en handleOAuthCallback:', error);
+            this.errorMessage = error.message || 'Error al iniciar sesión con Google';
+            this.customLoader.hide();
+          }
+        } else {
+          console.log('No es un login OAuth, ocultando loader');
+          this.customLoader.hide();
+        }
+      } else {
+        console.log('No hay sesión activa, ocultando loader');
+        this.customLoader.hide();
+      }
+    } catch (error) {
+      console.error('Error verificando callback OAuth:', error);
+      this.customLoader.hide();
+    }
   }
 
   validarCampo(campo: string) {
@@ -233,6 +309,26 @@ export class LoginPage implements OnInit {
       }
     } catch (error) {
       console.error('Error en registrarPushToken:', error);
+    }
+  }
+
+  /**
+   * Inicia sesión con Google OAuth
+   */
+  async signInWithGoogle() {
+    this.limpiarErrores();
+    this.customLoader.show();
+
+    try {
+      console.log('Iniciando OAuth con Google...');
+      await this.authService.signInWithGoogle();
+      // El usuario será redirigido a Google, luego volverá a la app
+      // El loader se mantendrá hasta que el callback se complete en checkOAuthCallback()
+      console.log('Redirigiendo a Google...');
+    } catch (error: any) {
+      console.error('Error al iniciar sesión con Google:', error);
+      this.errorMessage = error.message || 'Error al iniciar sesión con Google. Por favor, intenta nuevamente.';
+      this.customLoader.hide();
     }
   }
 

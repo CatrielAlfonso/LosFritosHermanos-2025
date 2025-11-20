@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { AlertController, ToastController, IonContent, IonHeader, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonIcon, IonButton,IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButtons, IonCardSubtitle } from '@ionic/angular/standalone';
 import { SupabaseService } from '../../servicios/supabase.service';
 import { FeedbackService } from '../../servicios/feedback-service.service';
+import { ReservasService } from '../../servicios/reservas.service';
+import { AuthService } from '../../servicios/auth.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
 
@@ -50,7 +52,9 @@ export class MaitreMesasComponent  implements OnInit {
     private sb: SupabaseService,
     private feedback: FeedbackService,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private authService: AuthService,
+    private reservasService: ReservasService
   ) { }
 
   async ngOnInit() {
@@ -146,6 +150,15 @@ export class MaitreMesasComponent  implements OnInit {
       console.log('🔵 [ejecutarAsignacion] Iniciando asignación');
       console.log('👤 Cliente:', cliente);
       console.log('🪑 Mesa:', mesa);
+
+      // 0. Verificar si la mesa tiene una reserva confirmada activa
+      const tieneReservaActiva = await this.reservasService.tieneReservaConfirmadaActiva(mesa.numero);
+      
+      if (tieneReservaActiva) {
+        this.feedback.hide();
+        this.feedback.showToast('error', `❌ La mesa ${mesa.numero} está reservada y no puede ser asignada a otro cliente.`);
+        return;
+      }
 
       // 1. Primero, actualizar lista_espera con mesa asignada
       const { error: errorEspera } = await this.sb.supabase

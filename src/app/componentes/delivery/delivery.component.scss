@@ -1,0 +1,283 @@
+ion-content {
+  --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.cliente-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  
+  ion-card-title {
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.2rem;
+  }
+  
+  p {
+    margin: 5px 0;
+    font-size: 0.95rem;
+  }
+}
+
+.direccion-card {
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ion-color-fritos-red);
+  }
+  
+  ion-item {
+    --background: transparent;
+    margin-bottom: 10px;
+  }
+  
+  ion-label[position="stacked"] {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+  }
+  
+  .mapa-toggle-btn {
+    margin-top: 20px;
+  }
+}
+
+.map-container {
+  margin-top: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  
+  .map {
+    width: 100%;
+    height: 400px;
+  }
+  
+  .map-note {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 10px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    font-size: 0.85rem;
+    text-align: center;
+    justify-content: center;
+    
+    ion-icon {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+.coordinates-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  
+  ion-icon {
+    font-size: 1.2rem;
+  }
+}
+
+.carrito-card {
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ion-color-fritos-red);
+    
+    ion-badge {
+      margin-left: auto;
+    }
+  }
+  
+  .cart-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    
+    ion-label {
+      h3 {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+      }
+      
+      .observaciones {
+        font-style: italic;
+        color: #666;
+        font-size: 0.85rem;
+        margin: 5px 0;
+      }
+      
+      .precio {
+        color: var(--ion-color-fritos-red);
+        font-weight: 600;
+        margin-top: 5px;
+      }
+    }
+    
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      
+      .quantity {
+        font-weight: 600;
+        font-size: 1.1rem;
+        min-width: 30px;
+        text-align: center;
+      }
+      
+      ion-button {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        margin: 0;
+      }
+    }
+  }
+}
+
+.pago-card {
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ion-color-fritos-red);
+  }
+  
+  ion-item {
+    --background: transparent;
+    margin-bottom: 5px;
+    
+    ion-icon[slot="start"] {
+      margin-right: 10px;
+      font-size: 1.5rem;
+      color: var(--ion-color-fritos-red);
+    }
+  }
+}
+
+.total-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin-top: 20px;
+  
+  .precio-linea {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 1rem;
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    &.total {
+      margin-top: 10px;
+      padding-top: 15px;
+      font-size: 1.3rem;
+      color: #ffd700;
+    }
+  }
+  
+  .envio-note {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: white;
+    
+    ion-icon {
+      font-size: 1.2rem;
+      color: #90ee90;
+    }
+  }
+}
+
+.confirmar-btn {
+  margin-top: 25px;
+  margin-bottom: 10px;
+  --border-radius: 12px;
+  height: 56px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  --box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+  
+  &:hover:not([disabled]) {
+    --box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+}
+
+.tiempo-estimado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 15px;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  
+  ion-icon {
+    font-size: 1.3rem;
+  }
+  
+  strong {
+    color: var(--ion-color-fritos-red);
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+ion-card {
+  animation: fadeIn 0.5s ease-out;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .map-container .map {
+    height: 300px;
+  }
+  
+  .total-card .precio-linea {
+    font-size: 0.9rem;
+    
+    &.total {
+      font-size: 1.1rem;
+    }
+  }
+}
+

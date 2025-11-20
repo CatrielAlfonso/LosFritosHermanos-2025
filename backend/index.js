@@ -3,6 +3,7 @@ const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const admin = require("firebase-admin");
 const path = require('path');
+const cron = require('node-cron');
 require("dotenv").config();
 
 const app = express();
@@ -46,6 +47,37 @@ const supabaseUrl = process.env.SUPABASE_URL || 'https://jpwlvaprtxszeimmimlq.su
 const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwd2x2YXBydHhzemVpbW1pbWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxODEyMDAsImV4cCI6MjA3Mjc1NzIwMH0.gkhOncDbc192hLHc4KIT3SLRI6aUIlQt13pf2hY1IA8';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// ============================================
+// CRON JOB PARA LIBERAR MESAS VENCIDAS
+// ============================================
+
+/**
+ * Cron job que se ejecuta cada 5 minutos para liberar mesas vencidas
+ * Formato cron: cada 5 minutos
+ */
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    console.log('🔄 Ejecutando liberación de mesas vencidas...', new Date().toISOString());
+    
+    const { data, error } = await supabase.rpc('liberar_mesas_vencidas');
+    
+    if (error) {
+      console.error('❌ Error al liberar mesas vencidas:', error);
+    } else {
+      if (data && data.reservas_liberadas > 0) {
+        console.log(`✅ Liberadas ${data.reservas_liberadas} reservas vencidas`);
+        console.log(`📋 Mesas liberadas: ${data.mesas_liberadas?.join(', ') || 'ninguna'}`);
+      } else {
+        console.log('ℹ️  No hay mesas vencidas para liberar');
+      }
+    }
+  } catch (cronError) {
+    console.error('💥 Error crítico en cron job de liberación de mesas:', cronError);
+  }
+});
+
+console.log('⏰ Cron job de liberación de mesas configurado: cada 5 minutos');
+
 try {
   console.log('Iniciando configuración de Firebase...');
   
@@ -82,6 +114,56 @@ try {
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");
+});
+
+// ============================================
+// ENDPOINT PARA LIBERAR MESAS MANUALMENTE
+// ============================================
+
+/**
+ * Endpoint para ejecutar manualmente la liberación de mesas vencidas
+ * GET /liberar-mesas-vencidas
+ */
+app.get("/liberar-mesas-vencidas", async (req, res) => {
+  try {
+    console.log('🔄 Liberación manual de mesas vencidas solicitada...', new Date().toISOString());
+    
+    const { data, error } = await supabase.rpc('liberar_mesas_vencidas');
+    
+    if (error) {
+      console.error('❌ Error al liberar mesas vencidas:', error);
+      return res.status(500).send({ 
+        error: `Error al liberar mesas: ${error.message}`,
+        success: false
+      });
+    }
+    
+    const response = {
+      success: true,
+      message: "Liberación de mesas ejecutada correctamente",
+      timestamp: new Date().toISOString(),
+      reservas_liberadas: data?.reservas_liberadas || 0,
+      mesas_liberadas: data?.mesas_liberadas || [],
+      detalles: data?.detalles || []
+    };
+    
+    if (data && data.reservas_liberadas > 0) {
+      console.log(`✅ Liberadas ${data.reservas_liberadas} reservas vencidas`);
+      console.log(`📋 Mesas liberadas: ${data.mesas_liberadas?.join(', ') || 'ninguna'}`);
+      response.message = `Se liberaron ${data.reservas_liberadas} reservas vencidas`;
+    } else {
+      console.log('ℹ️  No hay mesas vencidas para liberar');
+      response.message = "No hay mesas vencidas para liberar en este momento";
+    }
+    
+    res.status(200).send(response);
+  } catch (error) {
+    console.error('💥 Error en endpoint de liberación manual:', error);
+    res.status(500).send({ 
+      error: `Error interno: ${error.message}`,
+      success: false
+    });
+  }
 });
 
 

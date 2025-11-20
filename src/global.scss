@@ -342,3 +342,132 @@ ion-button {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.1); opacity: 0.8; }
 }
+
+/* Estilos para ion-datetime picker/popover */
+ion-popover.datetime-popover,
+ion-modal.datetime-modal {
+  --background: white;
+  
+  ion-datetime {
+    --background: white;
+    color: #333 !important;
+    
+    /* Botones del datetime */
+    .datetime-button {
+      color: var(--ion-color-fritos-blue) !important;
+    }
+    
+    /* Texto del calendario/hora */
+    .calendar-day,
+    .calendar-day-today,
+    .time-item {
+      color: #333 !important;
+    }
+    
+    /* Día seleccionado */
+    .calendar-day.calendar-day-active {
+      background: var(--ion-color-fritos-red) !important;
+      color: white !important;
+    }
+    
+    /* Hora seleccionada */
+    .time-item-active {
+      background: var(--ion-color-fritos-red) !important;
+      color: white !important;
+    }
+    
+    /* Headers del datetime */
+    .datetime-header,
+    .calendar-month-year {
+      color: var(--ion-color-fritos-blue) !important;
+    }
+  }
+}
+
+/* Estilos específicos para el picker de datetime cuando se abre */
+.datetime-picker {
+  --background: white !important;
+  
+  .picker-opt {
+    color: #333 !important;
+  }
+  
+  .picker-opt-selected {
+    color: var(--ion-color-fritos-red) !important;
+    font-weight: 700;
+  }
+  
+  .picker-button {
+    color: var(--ion-color-fritos-blue) !important;
+  }
+}
+
+/* Estilos para el selector de hora personalizado y comensales */
+.hora-selector-alert, .comensales-selector-alert {
+  --background: white;
+  
+  .alert-wrapper {
+    max-height: 70vh;
+    min-width: 320px; /* Asegurar ancho mínimo */
+  }
+  
+  .alert-head {
+    background: var(--ion-color-fritos-red);
+    color: white;
+    padding: 1rem;
+    
+    h2 {
+      color: white !important;
+      font-weight: 700;
+    }
+  }
+  
+  .alert-radio-group {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 0.5rem;
+    
+    .alert-radio-label {
+      color: #333 !important;
+      font-size: 1.1rem;
+      padding: 0.75rem 0;
+      padding-right: 3rem !important; /* Más espacio a la derecha */
+      margin-right: 1rem; /* Margen adicional */
+      min-width: 120px; /* Ancho mínimo para el texto */
+      display: flex;
+      align-items: center;
+    }
+    
+    .alert-radio-icon {
+      border-color: var(--ion-color-fritos-blue);
+      margin-left: auto; /* Empujar el ícono hacia la derecha */
+      margin-right: 0.5rem;
+      flex-shrink: 0; /* No permitir que se encoja */
+    }
+    
+    [aria-checked="true"] .alert-radio-icon {
+      border-color: var(--ion-color-fritos-red);
+      background: var(--ion-color-fritos-red);
+    }
+    
+    /* Ajustar el contenedor de cada opción */
+    .alert-radio-button {
+      padding-right: 1rem !important;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+  
+  .alert-button-group {
+    .alert-button {
+      color: var(--ion-color-fritos-blue);
+      font-weight: 600;
+      
+      &:last-child {
+        color: var(--ion-color-fritos-red);
+      }
+    }
+  }
+}

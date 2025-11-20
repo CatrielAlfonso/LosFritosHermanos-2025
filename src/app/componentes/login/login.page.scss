@@ -227,4 +227,49 @@
     box-shadow: 0 4px 12px rgba(27, 55, 105, 0.2);
     margin-bottom: 1rem;
   }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--ion-color-fritos-yellow);
+    }
+    
+    .divider-text {
+      padding: 0 1rem;
+      color: var(--ion-color-fritos-blue);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+  }
+
+  .google-button {
+    margin-top: 0.5rem;
+    --background: #ffffff;
+    --background-hover: #f5f5f5;
+    --color: #4285f4;
+    --border-radius: 12px;
+    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dadce0;
+    height: 42px;
+    font-weight: 600;
+    text-transform: none;
+    
+    ion-icon {
+      color: #4285f4;
+      font-size: 1.3rem;
+      margin-right: 0.5rem;
+    }
+
+    &:hover {
+      --background: #f8f9fa;
+      --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
 }

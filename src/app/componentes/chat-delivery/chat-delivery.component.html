@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      Chat con {{ nombreOtraParte || (esRepartidor ? 'Cliente' : 'Repartidor') }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="chat-content">
+  <!-- Loading -->
+  <div *ngIf="cargando" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando conversación...</p>
+  </div>
+
+  <!-- Sin conversación -->
+  <div *ngIf="!cargando && !conversacionId" class="empty-chat">
+    <ion-icon name="chatbubble-outline"></ion-icon>
+    <p>No se pudo cargar la conversación</p>
+  </div>
+
+  <!-- Mensajes -->
+  <div *ngIf="!cargando && conversacionId" class="messages-container">
+    <ng-container *ngFor="let mensaje of mensajes; let i = index">
+      <!-- Separador de fecha -->
+      <div *ngIf="mostrarSeparadorFecha(i)" class="date-separator">
+        <span>{{ formatearFecha(mensaje.created_at) }}</span>
+      </div>
+
+      <!-- Mensaje -->
+      <div 
+        class="mensaje"
+        [class.mensaje-propio]="mensaje.remitente_tipo === miTipo"
+        [class.mensaje-otro]="mensaje.remitente_tipo !== miTipo">
+        <div class="mensaje-content">
+          <p class="mensaje-texto">{{ mensaje.mensaje }}</p>
+          <div class="mensaje-info">
+            <span class="mensaje-hora">{{ formatearHora(mensaje.created_at) }}</span>
+            <ion-icon 
+              *ngIf="mensaje.remitente_tipo === miTipo && mensaje.leido" 
+              name="checkmark-done-outline"
+              class="mensaje-leido">
+            </ion-icon>
+            <ion-icon 
+              *ngIf="mensaje.remitente_tipo === miTipo && !mensaje.leido" 
+              name="checkmark-outline"
+              class="mensaje-enviado">
+            </ion-icon>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Sin mensajes -->
+    <div *ngIf="mensajes.length === 0" class="empty-messages">
+      <ion-icon name="chatbubbles-outline"></ion-icon>
+      <p>No hay mensajes aún</p>
+      <p class="subtitle">Envía el primer mensaje para iniciar la conversación</p>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer *ngIf="!cargando && conversacionId">
+  <ion-toolbar class="chat-toolbar">
+    <ion-item lines="none" class="message-input-item">
+      <ion-textarea 
+        [(ngModel)]="nuevoMensaje" 
+        placeholder="Escribe un mensaje..."
+        [autoGrow]="true"
+        rows="1"
+        maxlength="500"
+        (keypress.enter)="$event.preventDefault(); enviarMensaje()">
+      </ion-textarea>
+      <ion-button 
+        slot="end" 
+        (click)="enviarMensaje()"
+        [disabled]="!nuevoMensaje.trim()"
+        class="send-button">
+        <ion-icon name="send-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-toolbar>
+</ion-footer>
+
