@@ -1,0 +1,207 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Gestionar Pedidos Delivery</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarPedidos()">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Resumen de Pedidos Pendientes -->
+  <ion-card class="summary-card" *ngIf="getCantidadPendientes() > 0">
+    <ion-card-content>
+      <div class="summary-content">
+        <ion-icon name="bicycle-outline" class="summary-icon"></ion-icon>
+        <div class="summary-text">
+          <h2>{{ getCantidadPendientes() }}</h2>
+          <p>Pedidos Pendientes</p>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Filtro de Estados -->
+  <ion-segment [(ngModel)]="filtroEstado" (ionChange)="aplicarFiltro()" class="filter-segment">
+    <ion-segment-button value="pendiente">
+      <ion-label>Pendientes</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="confirmado">
+      <ion-label>Confirmados</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="en_camino">
+      <ion-label>En Camino</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="todos">
+      <ion-label>Todos</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando pedidos...</p>
+  </div>
+
+  <!-- Sin Pedidos -->
+  <ion-card *ngIf="!cargando && pedidosFiltrados.length === 0" class="empty-card">
+    <ion-card-content>
+      <ion-icon name="bicycle-outline" class="empty-icon"></ion-icon>
+      <h3>No hay pedidos</h3>
+      <p>No se encontraron pedidos con el estado seleccionado</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Lista de Pedidos -->
+  <ion-card *ngFor="let pedido of pedidosFiltrados" class="pedido-card">
+    <ion-card-header>
+      <div class="card-header-content">
+        <ion-card-title>
+          Pedido #{{ pedido.id }}
+          <ion-badge [color]="getEstadoColor(pedido.estado)">
+            {{ getEstadoTexto(pedido.estado) }}
+          </ion-badge>
+        </ion-card-title>
+      </div>
+    </ion-card-header>
+
+    <ion-card-content>
+      <!-- Información del Cliente -->
+      <div class="info-section">
+        <h4><ion-icon name="person-outline"></ion-icon> Cliente</h4>
+        <p><strong>{{ pedido.cliente_nombre }}</strong></p>
+        <p class="small-text">{{ pedido.cliente_email }}</p>
+        <p *ngIf="pedido.cliente_telefono" class="small-text">
+          <ion-icon name="call-outline"></ion-icon> {{ pedido.cliente_telefono }}
+        </p>
+      </div>
+
+      <!-- Dirección de Entrega -->
+      <div class="info-section">
+        <h4><ion-icon name="location-outline"></ion-icon> Dirección de Entrega</h4>
+        <p>{{ pedido.direccion_completa }}</p>
+        <p *ngIf="pedido.direccion_referencia" class="small-text referencias">
+          📝 {{ pedido.direccion_referencia }}
+        </p>
+        <p *ngIf="pedido.latitud && pedido.longitud" class="small-text">
+          📍 Lat: {{ pedido.latitud | number:'1.4-4' }}, Lng: {{ pedido.longitud | number:'1.4-4' }}
+        </p>
+      </div>
+
+      <!-- Productos -->
+      <div class="info-section">
+        <h4><ion-icon name="restaurant-outline"></ion-icon> Productos ({{ getTotalProductos(pedido) }})</h4>
+        
+        <!-- Comidas -->
+        <div *ngIf="pedido.comidas && pedido.comidas.length > 0" class="productos-grupo">
+          <p class="grupo-titulo">🍽️ Comidas:</p>
+          <ion-list class="productos-list">
+            <ion-item *ngFor="let item of pedido.comidas" lines="none">
+              <ion-label>
+                <p>{{ item.cantidad }}x {{ item.nombre }}</p>
+                <p class="precio-item">{{ formatearPrecio(item.precio * item.cantidad) }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+
+        <!-- Bebidas -->
+        <div *ngIf="pedido.bebidas && pedido.bebidas.length > 0" class="productos-grupo">
+          <p class="grupo-titulo">🥤 Bebidas:</p>
+          <ion-list class="productos-list">
+            <ion-item *ngFor="let item of pedido.bebidas" lines="none">
+              <ion-label>
+                <p>{{ item.cantidad }}x {{ item.nombre }}</p>
+                <p class="precio-item">{{ formatearPrecio(item.precio * item.cantidad) }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+
+        <!-- Postres -->
+        <div *ngIf="pedido.postres && pedido.postres.length > 0" class="productos-grupo">
+          <p class="grupo-titulo">🍰 Postres:</p>
+          <ion-list class="productos-list">
+            <ion-item *ngFor="let item of pedido.postres" lines="none">
+              <ion-label>
+                <p>{{ item.cantidad }}x {{ item.nombre }}</p>
+                <p class="precio-item">{{ formatearPrecio(item.precio * item.cantidad) }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+      </div>
+
+      <!-- Precios -->
+      <div class="info-section precios-section">
+        <div class="precio-linea">
+          <span>Subtotal:</span>
+          <span>{{ formatearPrecio(pedido.precio_productos) }}</span>
+        </div>
+        <div class="precio-linea">
+          <span>Envío:</span>
+          <span>{{ formatearPrecio(pedido.precio_envio) }}</span>
+        </div>
+        <div class="precio-linea total">
+          <span><strong>TOTAL:</strong></span>
+          <span><strong>{{ formatearPrecio(pedido.precio_total) }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Método de Pago -->
+      <div class="info-section">
+        <h4><ion-icon name="cash-outline"></ion-icon> Método de Pago</h4>
+        <p>{{ pedido.metodo_pago === 'efectivo' ? '💵 Efectivo' : '💳 Tarjeta' }}</p>
+      </div>
+
+      <!-- Fecha y Hora -->
+      <div class="info-section">
+        <h4><ion-icon name="time-outline"></ion-icon> Fecha y Hora</h4>
+        <p>{{ formatearFecha(pedido.created_at!) }}</p>
+        <p *ngIf="pedido.tiempo_estimado" class="small-text">
+          ⏱️ Tiempo estimado: {{ pedido.tiempo_estimado }} minutos
+        </p>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="info-section" *ngIf="pedido.observaciones_generales">
+        <h4>📝 Observaciones</h4>
+        <p>{{ pedido.observaciones_generales }}</p>
+      </div>
+
+      <!-- Botones de Acción (Solo para pendientes) -->
+      <div class="actions-section" *ngIf="pedido.estado === 'pendiente'">
+        <ion-button 
+          expand="block" 
+          color="success" 
+          (click)="confirmarPedido(pedido)">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Confirmar Pedido
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          color="danger" 
+          fill="outline"
+          (click)="rechazarPedido(pedido)">
+          <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+          Rechazar Pedido
+        </ion-button>
+      </div>
+
+      <!-- Info de Confirmación -->
+      <div class="info-confirmacion" *ngIf="pedido.estado === 'confirmado'">
+        <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+        <span>Pedido confirmado y derivado a cocina/bar</span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+

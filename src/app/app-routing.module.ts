@@ -143,8 +143,40 @@ const routes: Routes = [
   {
     path: 'consultas-lista',
     loadComponent: () => import('./componentes/consultas-lista/consultas-lista.component').then(m => m.ConsultasListaComponent)
-  }, 
- 
+  },
+  {
+    path: 'reservas',
+    loadComponent: () => import('./componentes/reservas/reservas.component').then(m => m.ReservasComponent)
+  },
+  {
+    path: 'gestionar-reservas',
+    loadComponent: () => import('./componentes/gestionar-reservas/gestionar-reservas.component').then(m => m.GestionarReservasComponent)
+  },
+  {
+    path: 'delivery',
+    loadComponent: () => import('./componentes/delivery/delivery.component').then(m => m.DeliveryComponent)
+  },
+  {
+    path: 'gestionar-delivery',
+    loadComponent: () => import('./componentes/gestionar-delivery/gestionar-delivery.component').then(m => m.GestionarDeliveryComponent)
+  },
+  {
+    path: 'panel-repartidor',
+    loadComponent: () => import('./componentes/panel-repartidor/panel-repartidor.component').then(m => m.PanelRepartidorComponent)
+  },
+  {
+    path: 'chat-delivery/:pedidoId',
+    loadComponent: () => import('./componentes/chat-delivery/chat-delivery.component').then(m => m.ChatDeliveryComponent)
+  },
+  {
+    path: 'confirmar-entrega/:pedidoId',
+    loadComponent: () => import('./componentes/confirmar-entrega/confirmar-entrega.component').then(m => m.ConfirmarEntregaComponent)
+  },
+  {
+    path: 'mis-pedidos-delivery',
+    loadComponent: () => import('./componentes/mis-pedidos-delivery/mis-pedidos-delivery.component').then(m => m.MisPedidosDeliveryComponent)
+  },
+
 ];
 
 @NgModule({

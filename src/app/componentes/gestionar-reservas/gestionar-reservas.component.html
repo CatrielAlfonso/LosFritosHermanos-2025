@@ -1,0 +1,134 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Gestionar Reservas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Resumen de reservas pendientes -->
+  <ion-card *ngIf="getCantidadPendientes() > 0" color="warning">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="time-outline"></ion-icon>
+        {{ getCantidadPendientes() }} Reserva{{ getCantidadPendientes() !== 1 ? 's' : '' }} Pendiente{{ getCantidadPendientes() !== 1 ? 's' : '' }}
+      </ion-card-title>
+    </ion-card-header>
+  </ion-card>
+
+  <!-- Filtro de estado -->
+  <ion-card>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">Filtrar por estado:</ion-label>
+        <ion-select [(ngModel)]="filtroEstado" (ionChange)="aplicarFiltro()" interface="popover">
+          <ion-select-option value="pendiente">Pendientes</ion-select-option>
+          <ion-select-option value="confirmada">Confirmadas</ion-select-option>
+          <ion-select-option value="cancelada">Canceladas</ion-select-option>
+          <ion-select-option value="todas">Todas</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Lista de reservas -->
+  <div *ngIf="reservasFiltradas.length === 0" class="empty-state">
+    <ion-icon name="calendar-outline" class="empty-icon"></ion-icon>
+    <p>No hay reservas con el filtro seleccionado</p>
+  </div>
+
+  <ion-card *ngFor="let reserva of reservasFiltradas" class="reserva-card">
+    <ion-card-header>
+      <div class="card-header-content">
+        <div>
+          <ion-card-title>
+            <ion-icon name="person-outline"></ion-icon>
+            {{ reserva.cliente_nombre }} {{ reserva.cliente_apellido || '' }}
+          </ion-card-title>
+          <p class="cliente-email">
+            <ion-icon name="mail-outline"></ion-icon>
+            {{ reserva.cliente_email }}
+          </p>
+        </div>
+        <ion-badge [color]="getEstadoColor(reserva.estado)">
+          {{ getEstadoTexto(reserva.estado) }}
+        </ion-badge>
+      </div>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div class="reserva-details">
+        <div class="detail-item">
+          <ion-icon name="calendar-outline" class="detail-icon"></ion-icon>
+          <div>
+            <span class="detail-label">Fecha:</span>
+            <span class="detail-value">{{ formatearFecha(reserva.fecha_reserva) }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <ion-icon name="time-outline" class="detail-icon"></ion-icon>
+          <div>
+            <span class="detail-label">Hora:</span>
+            <span class="detail-value">{{ formatearHora(reserva.hora_reserva) }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <ion-icon name="people-outline" class="detail-icon"></ion-icon>
+          <div>
+            <span class="detail-label">Comensales:</span>
+            <span class="detail-value">{{ reserva.cantidad_comensales }} {{ reserva.cantidad_comensales === 1 ? 'persona' : 'personas' }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="reserva.mesa_numero">
+          <ion-icon name="restaurant-outline" class="detail-icon"></ion-icon>
+          <div>
+            <span class="detail-label">Mesa:</span>
+            <span class="detail-value">#{{ reserva.mesa_numero }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="reserva.notas">
+          <ion-icon name="document-text-outline" class="detail-icon"></ion-icon>
+          <div>
+            <span class="detail-label">Notas:</span>
+            <span class="detail-value">{{ reserva.notas }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="reserva.created_at">
+          <span class="detail-label">Solicitada:</span>
+          <span class="detail-value">{{ formatearFecha(reserva.created_at) }}</span>
+        </div>
+      </div>
+
+      <!-- Botones de acción (solo para reservas pendientes) -->
+      <div *ngIf="reserva.estado === 'pendiente'" class="action-buttons">
+        <ion-button 
+          expand="block" 
+          color="success" 
+          (click)="aprobarReserva(reserva)"
+          class="action-button">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Aprobar Reserva
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          color="danger" 
+          (click)="rechazarReserva(reserva)"
+          class="action-button">
+          <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+          Rechazar Reserva
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+

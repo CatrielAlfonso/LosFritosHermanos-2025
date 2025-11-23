@@ -1,14 +1,16 @@
 const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Configurar API Key de SendGrid
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
+sgMail.setApiKey(SENDGRID_API_KEY);
 
 const sendEmail = async ({ to, subject, text, html }) => {
   try {
     const msg = {
       to,
       from: {
-        email: process.env.SENDGRID_FROM_EMAIL,
+        email: process.env.SENDGRID_FROM_EMAIL || 'losfritoshermanos@gmail.com',
         name: 'Los Fritos Hermanos' // Este nombre aparecerá en los emails
       },
       subject,

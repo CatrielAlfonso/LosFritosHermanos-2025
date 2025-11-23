@@ -222,3 +222,91 @@ swiper-container::part(bullet-active) {
   text-align: center;
   font-family: sans-serif;
 }
+
+// ========================================
+// ESTILOS PARA CONTROL POR MOVIMIENTO (PUNTO 31)
+// ========================================
+
+.motion-indicator {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(102, 126, 234, 0.95);
+  color: white;
+  padding: 16px 32px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 700;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: fadeInScale 0.3s ease-out;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+.control-guide {
+  margin: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px;
+  animation: slideInDown 0.5s ease-out;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  
+  ion-card-content {
+    padding: 20px;
+    
+    h3 {
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+    }
+    
+    .guide-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: 14px;
+      
+      ion-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+      }
+      
+      span {
+        flex: 1;
+      }
+    }
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.producto-activo {
+  border: 3px solid #667eea !important;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.5) !important;
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}

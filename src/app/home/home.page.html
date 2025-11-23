@@ -54,6 +54,16 @@
         Aprobar Clientes
       </ion-button>
 
+      <ion-button expand="block" color="fritos-green" class="fritos-button" routerLink="/gestionar-reservas">
+        <ion-icon name="calendar-outline" slot="start"></ion-icon>
+        Gestionar Reservas
+      </ion-button>
+
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/gestionar-delivery">
+        <ion-icon name="bicycle-outline" slot="start"></ion-icon>
+        Gestionar Pedidos Delivery
+      </ion-button>
+
     </div>
 
     <div *ngIf="esMaitre && !esAdmin" class="maitre-options">
@@ -124,12 +134,36 @@
       </ion-button>
     </div>
 
+    <div *ngIf="tipoUsuario === 'repartidor'" class="repartidor-options">
+      <h3 class="fritos-subtitle">Panel de Repartidor</h3>
+      
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/panel-repartidor">
+        <ion-icon name="bicycle-outline" slot="start"></ion-icon>
+        Mis Pedidos Asignados
+      </ion-button>
+    </div>
+
     <div *ngIf="tipoUsuario === 'cliente'" class="cliente-options">
       <h3 class="fritos-subtitle">Panel de Cliente</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Ver Menú
+      </ion-button>
+
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/reservas']">
+        <ion-icon name="calendar-outline" slot="start"></ion-icon>
+        Mis Reservas
+      </ion-button>
+
+      <ion-button expand="block" color="fritos-green" class="fritos-button" [routerLink]="['/menu']" [queryParams]="{tipo: 'delivery'}">
+        <ion-icon name="bicycle-outline" slot="start"></ion-icon>
+        Pedir Delivery
+      </ion-button>
+
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/mis-pedidos-delivery">
+        <ion-icon name="receipt-outline" slot="start"></ion-icon>
+        Mis Pedidos Delivery
       </ion-button>
 
       @if (tipoUsuario === 'cliente' && mostrarBotonEscanearMesa && !clienteSentado)

@@ -47,6 +47,11 @@ Permite gestionar mesas, pedidos, clientes registrados o anónimos, juegos con d
 - **Lucas Carmagnola** → 7 puntos (2, 5, 8, 11, 14, 17, 20)  
 - **Catriel Alfonso** → 8 puntos (3, 6, 9, 12, 15, 18, 21, 22) + **extras de diseño**
 
+### 🔍 Distribución equitativa de los nuevos puntos:
+- **Catriel:** 24, 26, 29  
+- **Lucas:** 25, 28, 31  
+- **Tomás:** 23, 27, 30  
+
 ---
 
 ## ✅ Metas
@@ -83,7 +88,16 @@ Permite gestionar mesas, pedidos, clientes registrados o anónimos, juegos con d
 | 20    | Catriel       | master/punto-20-encuesta         | ✅ Completado  | 10/10/2025 | 10/10/2025 |
 | 21    | Catriel     | master/punto-21-cuenta-pago      | ⏳ Pendiente | -- | -- |
 | 22    | Catriel     | master/punto-22-confirmar-pago   | ⏳ Pendiente | -- | -- |
-
+| 22a    |   Lucas, Catriel | master/punto-22a-factura   | ⏳ Pendiente | -- | -- |
+| 23 | Tomás | master/punto-23-login-social | ⏳ Pendiente | -- | -- |
+| 24 | Catriel | master/punto-24-reservas-cliente | ⏳ Pendiente | -- | -- |
+| 25 | Lucas | master/punto-25-confirmar-reserva | ⏳ Pendiente | -- | -- |
+| 26 | Catriel | master/punto-26-gestionar-reserva-tiempo | ⏳ Pendiente | -- | -- |
+| 27 | Tomás | master/punto-27-pedido-delivery | ⏳ Pendiente | -- | -- |
+| 28 | Lucas | master/punto-28-confirmar-delivery | ⏳ Pendiente | -- | -- |
+| 29 | Catriel | master/punto-29-ruta-delivery-chat | ⏳ Pendiente | -- | -- |
+| 30 | Tomás | master/punto-30-entrega-delivery-pdf | ⏳ Pendiente | -- | -- |
+| 31 | Lucas | master/punto-31-sensores-menu | ⏳ Pendiente | -- | -- |
 ---
 
 ## ✅ Convenciones de estado

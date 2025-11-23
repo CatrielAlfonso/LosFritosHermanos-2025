@@ -14,6 +14,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { SweetAlertService } from '../servicios/sweet-alert.service';
 import { PushNotificationService } from '../servicios/push-notification.service';
 import { NotificationsService } from '../servicios/notifications.service';
+import { ReservasService } from '../servicios/reservas.service';
 
 
 @Component({
@@ -89,6 +90,7 @@ export class HomePage implements OnInit {
     private customLoader: CustomLoader,
     private pushNotificationService: PushNotificationService,
     private notificationsService: NotificationsService,
+    private reservasService: ReservasService,
     //private cdr: ChangeDetectorRef
   ) {
       
@@ -105,6 +107,11 @@ export class HomePage implements OnInit {
       this.esCocinero = perfil === 'cocinero';
       this.esBartender = perfil === 'bartender';  
       this.esMozo = perfil === 'mozo';
+      
+      // Redirigir repartidores a su panel
+      if (perfil === 'repartidor') {
+        this.router.navigate(['/panel-repartidor']);
+      }
     });
 
     this.loadUserData(); // lo podés dejar después
@@ -944,30 +951,48 @@ export class HomePage implements OnInit {
   async validarMesaEscaneada(codigoEscaneado: string) {
     
     let qrValido = false;
+    let numeroMesaQR: string | null = null;
+    
     try {
       const datosQR = JSON.parse(codigoEscaneado);
-
-      const numeroMesaQR = String(datosQR.numeroMesa);
-      const mesaAsignadaStr = String(this.mesaAsignada);
-      
-      if (numeroMesaQR === mesaAsignadaStr) {
-        qrValido = true;
-      }
+      numeroMesaQR = String(datosQR.numeroMesa);
     } catch (e) {
-      const patronEsperado = `numeroMesa: ${this.mesaAsignada}`;
-      
-      if (codigoEscaneado.includes(patronEsperado)) {
-        qrValido = true;
+      // Intentar extraer el número de mesa del formato alternativo
+      const match = codigoEscaneado.match(/numeroMesa[:\s]+(\d+)/);
+      if (match) {
+        numeroMesaQR = match[1];
+      }
+    }
+
+    if (!numeroMesaQR) {
+      this.customLoader.hide();
+      this.swal.showTemporaryAlert('Error', 'QR inválido, escanea el QR de tu mesa', 'error');
+      return;
+    }
+
+    const numeroMesa = parseInt(numeroMesaQR, 10);
+    
+    // Verificar si el cliente tiene una mesa asignada en lista de espera
+    if (this.mesaAsignada && numeroMesa === this.mesaAsignada) {
+      qrValido = true;
+    } else {
+      // Verificar si el cliente tiene una reserva confirmada activa para esta mesa
+      if (this.usuario && this.usuario.email) {
+        const reservaActiva = await this.reservasService.obtenerReservaConfirmadaActiva(this.usuario.email);
+        
+        if (reservaActiva && reservaActiva.mesa_numero === numeroMesa) {
+          qrValido = true;
+          // Asignar la mesa al cliente si no estaba asignada
+          if (!this.mesaAsignada) {
+            this.mesaAsignada = numeroMesa;
+          }
+        }
       }
     }
     
     if (!qrValido) {
       this.customLoader.hide();
-      
-      this.swal.showTemporaryAlert('Error', 'QR inválido, escanea el QR de tu mesa', 'error');
-      //this.mostrarMensajeError('QR inválido, escanea el QR de tu mesa');
-      
-
+      this.swal.showTemporaryAlert('Error', 'QR inválido, escanea el QR de tu mesa asignada o reservada', 'error');
     } else {
       await this.marcarClienteSentado();
     }

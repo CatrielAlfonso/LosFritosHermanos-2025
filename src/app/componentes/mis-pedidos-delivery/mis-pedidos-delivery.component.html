@@ -1,0 +1,120 @@
+<ion-header>
+  <ion-toolbar color="fritos-red">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Mis Pedidos Delivery</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarPedidos()">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="content-pedidos">
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="refrescar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="pedidos-container">
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando tus pedidos...</p>
+    </div>
+
+    <!-- Sin pedidos -->
+    <div *ngIf="!cargando && pedidos.length === 0" class="empty-state">
+      <ion-icon name="bicycle-outline"></ion-icon>
+      <h2>No tienes pedidos delivery</h2>
+      <p>Realiza tu primer pedido y lo verás aquí</p>
+      <ion-button expand="block" routerLink="/delivery">
+        Pedir Delivery
+      </ion-button>
+    </div>
+
+    <!-- Lista de pedidos -->
+    <div *ngIf="!cargando && pedidos.length > 0">
+      <ion-card *ngFor="let pedido of pedidos" class="pedido-card">
+        <ion-card-header [class.header-entregado]="pedido.estado === 'entregado'">
+          <div class="header-content">
+            <div class="pedido-numero">
+              <ion-icon name="receipt-outline"></ion-icon>
+              <span>Pedido #{{ pedido.id }}</span>
+            </div>
+            <ion-badge [color]="getColorEstado(pedido.estado)">
+              {{ getTextoEstado(pedido.estado) }}
+            </ion-badge>
+          </div>
+        </ion-card-header>
+
+        <ion-card-content>
+          <!-- Fecha -->
+          <div class="info-row">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <span>{{ formatearFecha(pedido.created_at!) }}</span>
+          </div>
+
+          <!-- Dirección -->
+          <div class="info-row">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>{{ pedido.direccion_completa }}</span>
+          </div>
+
+          <!-- Productos -->
+          <div class="info-row">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>{{ getTotalProductos(pedido) }} productos</span>
+          </div>
+
+          <!-- Total -->
+          <div class="info-row total-row">
+            <span class="label">Total:</span>
+            <span class="precio">{{ formatearPrecio(pedido.precio_total) }}</span>
+          </div>
+
+          <!-- Propina (si existe) -->
+          <div *ngIf="pedido.propina && pedido.propina > 0" class="info-row propina-row">
+            <span class="label">Propina dejada:</span>
+            <span class="propina">{{ formatearPrecio(pedido.propina) }}</span>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="actions">
+            <!-- Chat (solo si está en camino o preparando) -->
+            <ion-button 
+              *ngIf="pedido.estado === 'en_camino' || pedido.estado === 'preparando'"
+              expand="block"
+              fill="outline"
+              color="tertiary"
+              (click)="abrirChat(pedido)">
+              <ion-icon name="chatbubble-outline" slot="start"></ion-icon>
+              Chat con Repartidor
+            </ion-button>
+
+            <!-- Confirmar Entrega (solo si está entregado y no confirmado) -->
+            <ion-button 
+              *ngIf="pedido.estado === 'entregado'"
+              expand="block"
+              color="success"
+              (click)="confirmarEntrega(pedido)">
+              <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+              Confirmar Entrega
+            </ion-button>
+
+            <!-- Mensaje de confirmado -->
+            <div *ngIf="pedido.propina && pedido.propina > 0" class="confirmado-msg">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>Pedido confirmado y evaluado</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>
+

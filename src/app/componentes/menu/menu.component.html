@@ -1,8 +1,13 @@
 <ion-header class="header">
   <ion-toolbar>
     <ion-title class="titulo-menu" id="titulo-menu">Platos principales</ion-title>
-    <ion-buttons slot="end" *ngIf="tieneMesaAsignada">
-      <ion-button (click)="irAConsultaMozo()" color="primary" fill="solid">
+    <ion-buttons slot="end">
+      <!-- Botón para toggle motion -->
+      <ion-button (click)="toggleMotion()" [color]="motionEnabled ? 'success' : 'medium'" fill="solid">
+        <ion-icon [name]="motionEnabled ? 'phone-portrait' : 'phone-portrait-outline'" slot="icon-only"></ion-icon>
+      </ion-button>
+      
+      <ion-button *ngIf="tieneMesaAsignada" (click)="irAConsultaMozo()" color="primary" fill="solid">
         <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
         Consultar Mozo
       </ion-button>
@@ -11,9 +16,41 @@
 </ion-header>
 
 <ion-content class="container-prods">
-  @for(plato of platos; track plato){
-    <ion-card class="container-plato">
-      <swiper-container pagination="true" class="bebida-swiper">
+  <!-- Indicador de movimiento -->
+  <div class="motion-indicator" *ngIf="showMotionIndicator" [@fadeIn]>
+    {{ motionIndicatorText }}
+  </div>
+
+  <!-- Guía de controles -->
+  <ion-card class="control-guide" *ngIf="motionEnabled">
+    <ion-card-content>
+      <h3>🎮 Control por Movimiento</h3>
+      <div class="guide-item">
+        <ion-icon name="arrow-back"></ion-icon>
+        <span>Izquierda: Foto anterior</span>
+      </div>
+      <div class="guide-item">
+        <ion-icon name="arrow-forward"></ion-icon>
+        <span>Derecha: Foto siguiente</span>
+      </div>
+      <div class="guide-item">
+        <ion-icon name="arrow-up"></ion-icon>
+        <span>Adelante: Producto anterior</span>
+      </div>
+      <div class="guide-item">
+        <ion-icon name="arrow-down"></ion-icon>
+        <span>Atrás: Producto siguiente</span>
+      </div>
+      <div class="guide-item">
+        <ion-icon name="phone-portrait"></ion-icon>
+        <span>Agitar: Volver al inicio</span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  @for(plato of platos; track plato; let i = $index){
+    <ion-card class="container-plato" [class.producto-activo]="productoActualIndex === i">
+      <swiper-container #swiperContainer pagination="true" class="bebida-swiper">
         @for(foto of plato.imagenes; track foto){
           <swiper-slide>
             <img [src]="foto" [alt]="plato.nombre + 'foto'" class="bebida-image" />
@@ -66,9 +103,9 @@
     </ion-card> 
   }
   
-  @for(bebida of bebidas; track bebida){
-    <ion-card class="container-plato">
-      <swiper-container pagination="true" class="bebida-swiper">
+  @for(bebida of bebidas; track bebida; let i = $index){
+    <ion-card class="container-plato" [class.producto-activo]="productoActualIndex === (platos.length + i)">
+      <swiper-container #swiperContainer pagination="true" class="bebida-swiper">
         @for(imagen of bebida.imagenes; track imagen){
           <swiper-slide>
             <img [src]="imagen" [alt]="bebida.nombre + ' foto 1'" class="bebida-image" />

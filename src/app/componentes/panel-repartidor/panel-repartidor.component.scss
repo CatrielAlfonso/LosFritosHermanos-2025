@@ -1,0 +1,288 @@
+ion-content {
+  --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.repartidor-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin-bottom: 20px;
+  
+  .repartidor-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    
+    .repartidor-icon {
+      font-size: 50px;
+    }
+    
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    p {
+      margin: 5px 0 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    ion-badge {
+      margin-left: auto;
+    }
+  }
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+  
+  .summary-card {
+    text-align: center;
+    margin: 0;
+    
+    &.asignados {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    &.en-camino {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    
+    h3 {
+      font-size: 36px;
+      font-weight: 700;
+      margin: 0;
+    }
+    
+    p {
+      margin: 5px 0 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+  }
+}
+
+.filter-segment {
+  margin-bottom: 20px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  
+  ion-spinner {
+    transform: scale(1.5);
+    margin-bottom: 20px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.empty-card {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 15px;
+  
+  .empty-icon {
+    font-size: 80px;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+  
+  h3 {
+    color: #333;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+.pedido-card {
+  margin-bottom: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 0.5s ease-out;
+  
+  ion-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    
+    .card-header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      
+      ion-badge {
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+    }
+  }
+  
+  ion-card-content {
+    padding: 20px;
+  }
+}
+
+.info-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  h4 {
+    color: var(--ion-color-fritos-red);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+  
+  p {
+    margin: 5px 0;
+    color: #333;
+    font-size: 14px;
+    
+    &.telefono {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ion-color-primary);
+      cursor: pointer;
+      font-weight: 600;
+      
+      &:active {
+        opacity: 0.7;
+      }
+    }
+    
+    &.referencias {
+      background-color: #fff3cd;
+      padding: 8px;
+      border-radius: 8px;
+      border-left: 3px solid #ffc107;
+      margin-top: 10px;
+    }
+    
+    &.precio-total {
+      color: var(--ion-color-fritos-red);
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 5px;
+    }
+  }
+}
+
+.direccion-section {
+  background-color: #e3f2fd;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  
+  p {
+    font-weight: 600;
+  }
+}
+
+.actions-section {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  
+  ion-button {
+    --border-radius: 12px;
+    font-weight: 600;
+    height: 48px;
+    
+    &:not([fill="outline"]):not([fill="clear"]) {
+      &:hover {
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+      }
+    }
+  }
+  
+  .utility-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+}
+
+// Animaciones
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .utility-buttons {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .pedido-card {
+    ion-card-header {
+      ion-card-title {
+        font-size: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+  }
+}
+

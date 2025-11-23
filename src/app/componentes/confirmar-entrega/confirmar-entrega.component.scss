@@ -1,0 +1,304 @@
+.content-delivery {
+  --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  
+  ion-spinner {
+    transform: scale(1.5);
+    margin-bottom: 20px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.step-container {
+  padding: 20px;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.main-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  
+  ion-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      
+      ion-icon {
+        font-size: 28px;
+      }
+    }
+  }
+  
+  ion-card-content {
+    padding: 24px;
+  }
+}
+
+.pedido-info {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  
+  h3 {
+    margin: 0 0 10px 0;
+    color: #667eea;
+    font-weight: 700;
+  }
+  
+  p {
+    margin: 5px 0;
+    color: #666;
+  }
+}
+
+.productos-list {
+  margin-bottom: 20px;
+  
+  h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  ion-chip {
+    margin: 4px;
+  }
+}
+
+.mensaje {
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+  margin: 20px 0;
+  line-height: 1.5;
+}
+
+// Estilos de Propina
+.propina-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+  
+  ion-button {
+    margin: 0;
+    font-weight: 600;
+  }
+}
+
+.propina-personalizada {
+  --background: #f8f9fa;
+  --border-radius: 12px;
+  margin: 20px 0;
+  padding: 16px;
+  
+  ion-label {
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  ion-range {
+    padding: 10px 0;
+  }
+}
+
+.resumen-propina {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 20px 0;
+  
+  .resumen-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 16px;
+    
+    &.propina-amount {
+      color: #667eea;
+      font-weight: 600;
+    }
+    
+    &.total {
+      border-top: 2px solid #ddd;
+      margin-top: 8px;
+      padding-top: 12px;
+      font-size: 20px;
+      color: #333;
+    }
+  }
+}
+
+// Estilos de Encuesta
+.calificacion-item {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  
+  label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    font-size: 15px;
+  }
+  
+  .estrellas {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    
+    ion-icon {
+      font-size: 36px;
+      color: #ddd;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &.active {
+        color: #ffd700;
+      }
+      
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+  }
+}
+
+ion-textarea {
+  --background: #f8f9fa;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+// Botones
+ion-button {
+  margin-top: 16px;
+  --border-radius: 12px;
+  font-weight: 600;
+  text-transform: none;
+  height: 48px;
+  
+  &[fill="outline"] {
+    margin-top: 8px;
+  }
+}
+
+// Paso Finalizado
+.finalizado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.success-card {
+  text-align: center;
+  
+  .success-icon {
+    ion-icon {
+      font-size: 100px;
+      color: #38a169;
+      animation: scaleIn 0.5s ease-out;
+    }
+  }
+  
+  h2 {
+    color: #333;
+    font-size: 26px;
+    font-weight: 700;
+    margin: 20px 0 10px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+    margin: 10px 0;
+  }
+  
+  .propina-mensaje {
+    color: #38a169;
+    font-weight: 600;
+    font-size: 18px;
+    margin-top: 20px;
+  }
+}
+
+// Animaciones
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .propina-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .main-card {
+    ion-card-header {
+      ion-card-title {
+        font-size: 18px;
+        
+        ion-icon {
+          font-size: 24px;
+        }
+      }
+    }
+  }
+  
+  .calificacion-item {
+    .estrellas {
+      ion-icon {
+        font-size: 28px;
+      }
+    }
+  }
+}
+

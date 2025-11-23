@@ -1,10 +1,10 @@
-
+require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const PDFDocument = require('pdfkit'); 
 const { PassThrough } = require('stream'); 
 // Inicializa Supabase
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || 'https://jpwlvaprtxszeimmimlq.supabase.co';
+const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwd2x2YXBydHhzemVpbW1pbWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxODEyMDAsImV4cCI6MjA3Mjc1NzIwMH0.gkhOncDbc192hLHc4KIT3SLRI6aUIlQt13pf2hY1IA8';
 const supabase = createClient(supabaseUrl, supabaseKey);
 const admin = require('firebase-admin'); 
 const { sendEmail } = require('./email.service');
