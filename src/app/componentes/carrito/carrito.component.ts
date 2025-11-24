@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CarritoService, CartItem } from 'src/app/servicios/carrito.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { AuthService } from 'src/app/servicios/auth.service';
+import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 
 
 
@@ -30,7 +31,8 @@ export class CarritoComponent {
     private alertController: AlertController,
     private toastController : ToastController,
     private supabase : SupabaseService,
-    private route : ActivatedRoute
+    private route : ActivatedRoute,
+    private pushService: PushNotificationService
   ) {}
 
 
@@ -121,6 +123,14 @@ export class CarritoComponent {
 
       console.log('Pedido realizado con éxito:', data);
 
+      // Notificar a todos los mozos sobre el nuevo pedido
+      try {
+        await this.notificarMozosNuevoPedido(data[0]);
+      } catch (notifError) {
+        console.error('Error al notificar mozos:', notifError);
+        // No bloquear el flujo si falla la notificación
+      }
+
       const toast = await this.toastController.create({
         message: 'Pedido enviado',
         duration: 3000,
@@ -138,5 +148,54 @@ export class CarritoComponent {
 
   volverAlMenu() {
     this.router.navigate(['/menu']);
+  }
+
+  /**
+   * Notifica a todos los mozos sobre un nuevo pedido
+   */
+  private async notificarMozosNuevoPedido(pedido: any) {
+    try {
+      // Obtener información del cliente
+      const { data: cliente } = await this.supabase.supabase
+        .from('clientes')
+        .select('nombre, apellido')
+        .eq('uid', pedido.cliente_id)
+        .single();
+
+      const clienteNombre = cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Cliente';
+      
+      // Preparar lista de productos
+      const productos = [
+        ...pedido.comidas.map((c: any) => `${c.cantidad}x ${c.nombre}`),
+        ...pedido.bebidas.map((b: any) => `${b.cantidad}x ${b.nombre}`),
+        ...pedido.postres.map((p: any) => `${p.cantidad}x ${p.nombre}`)
+      ];
+
+      // Obtener todos los mozos
+      const { data: mozos } = await this.supabase.supabase
+        .from('empleados')
+        .select('correo, nombre, apellido, fcm_token')
+        .eq('perfil', 'mozo');
+
+      if (mozos && mozos.length > 0) {
+        console.log('🔔 Notificando nuevo pedido a', mozos.length, 'mozos');
+        
+        // Notificar a cada mozo
+        for (const mozo of mozos) {
+          if (mozo.fcm_token) {
+            await this.pushService.notificarMozoNuevoPedido(
+              mozo.correo,
+              pedido.mesa,
+              clienteNombre,
+              productos,
+              pedido.precio
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error al notificar mozos sobre nuevo pedido:', error);
+      throw error;
+    }
   }
 }

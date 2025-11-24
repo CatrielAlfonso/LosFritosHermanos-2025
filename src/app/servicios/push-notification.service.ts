@@ -498,6 +498,130 @@ export class PushNotificationService {
     }
   }
 
+  // Notificar a mozos cuando hay un nuevo pedido del cliente
+  async notificarMozoNuevoPedido(
+    mozoEmail: string, 
+    mesa: string, 
+    clienteNombre: string, 
+    productos: string[], 
+    total: number
+  ) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-mozo-new-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mozoEmail,
+          mesa,
+          clienteNombre,
+          productos,
+          total
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Notificación de nuevo pedido enviada al mozo:', mozoEmail);
+      return result;
+      
+    } catch (error) {
+      console.error('Error al notificar mozo sobre nuevo pedido:', error);
+      throw error;
+    }
+  }
+
+  // Notificar al cliente cuando el mozo confirma el pedido
+  async notificarClientePedidoConfirmado(clienteEmail: string, mesa: string, tiempoEstimado: number) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-client-order-confirmed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clienteEmail,
+          mesa,
+          tiempoEstimado
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Notificación de pedido confirmado enviada al cliente:', clienteEmail);
+      return result;
+      
+    } catch (error) {
+      console.error('Error al notificar cliente sobre confirmación:', error);
+      throw error;
+    }
+  }
+
+  // Notificar al cliente cuando el mozo rechaza el pedido
+  async notificarClientePedidoRechazado(clienteEmail: string, mesa: string, motivo: string) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-client-order-rejected`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clienteEmail,
+          mesa,
+          motivo
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Notificación de pedido rechazado enviada al cliente:', clienteEmail);
+      return result;
+      
+    } catch (error) {
+      console.error('Error al notificar cliente sobre rechazo:', error);
+      throw error;
+    }
+  }
+
+  // Notificar a dueños y supervisores cuando el mozo confirma un pago
+  async notificarConfirmacionPago(mesa: string, montoTotal: number, mozoNombre: string) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-payment-confirmed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mesa,
+          montoTotal,
+          mozoNombre
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Notificación de confirmación de pago enviada a dueños/supervisores');
+      return result;
+      
+    } catch (error) {
+      console.error('Error al notificar confirmación de pago:', error);
+      throw error;
+    }
+  }
+
 
 
 }

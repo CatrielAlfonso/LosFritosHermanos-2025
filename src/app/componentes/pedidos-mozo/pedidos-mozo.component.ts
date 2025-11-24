@@ -102,6 +102,13 @@ segmentoActivo = 'activos';
         confirmado: true
       });
       
+      // Notificar al cliente que el pedido fue confirmado
+      try {
+        await this.notificarClientePedidoConfirmado(pedido);
+      } catch (notifError) {
+        console.error('Error al notificar cliente sobre confirmación:', notifError);
+        // No bloquear el flujo si falla la notificación
+      }
       
       await this.sb.cargarPedidos();
       const toast = await this.toastController.create({
@@ -193,6 +200,14 @@ segmentoActivo = 'activos';
         confirmado: false,
         motivo_rechazo: motivo
       });
+
+      // Notificar al cliente que el pedido fue rechazado
+      try {
+        await this.notificarClientePedidoRechazado(pedido, motivo);
+      } catch (notifError) {
+        console.error('Error al notificar cliente sobre rechazo:', notifError);
+        // No bloquear el flujo si falla la notificación
+      }
 
       // No necesitas recargar manualmente, realtime lo hará automáticamente
       
@@ -296,7 +311,27 @@ segmentoActivo = 'activos';
       if (resultado.success) {
         // ¡Éxito! Muestra un toast al mozo
         console.log('Pago confirmado y factura generada:', resultado.pdfUrl);
-        // Aquí puedes actualizar tu UI, por ejemplo, quitando el pedido de la lista.
+        
+        // 1. Actualizar estado del pedido a finalizado
+        await this.sb.actualizarPedido(pedido.id, {
+          estado: 'finalizado'
+        });
+
+        // 2. Liberar la mesa
+        await this.liberarMesa(pedido.mesa);
+
+        // 3. Notificar a dueños y supervisores
+        try {
+          await this.notificarConfirmacionPago(pedido);
+        } catch (notifError) {
+          console.error('Error al notificar confirmación de pago:', notifError);
+          // No bloquear el flujo si falla la notificación
+        }
+
+        // 4. Recargar pedidos para actualizar la UI
+        await this.sb.cargarPedidos();
+
+        this.toastService.showToast('exito', 'Pago confirmado y mesa liberada');
       } else {
         // El backend manejó el error
         throw new Error(resultado.error || 'Error desconocido en el backend');
@@ -307,9 +342,114 @@ segmentoActivo = 'activos';
       this.toastService.showToast('error', 'Error al confirmar el pago')
     }
   }
-
   
+  /**
+   * Notifica al cliente que su pedido fue confirmado
+   */
+  private async notificarClientePedidoConfirmado(pedido: any) {
+    try {
+      // Obtener email del cliente
+      const { data: cliente } = await this.sb.supabase
+        .from('clientes')
+        .select('correo')
+        .eq('uid', pedido.cliente_id)
+        .single();
 
-  
+      if (cliente && cliente.correo) {
+        await this.pushNotificationService.notificarClientePedidoConfirmado(
+          cliente.correo,
+          pedido.mesa,
+          pedido.tiempo_estimado || 30
+        );
+      }
+    } catch (error) {
+      console.error('Error al notificar cliente sobre confirmación:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Notifica al cliente que su pedido fue rechazado
+   */
+  private async notificarClientePedidoRechazado(pedido: any, motivo: string) {
+    try {
+      // Obtener email del cliente
+      const { data: cliente } = await this.sb.supabase
+        .from('clientes')
+        .select('correo')
+        .eq('uid', pedido.cliente_id)
+        .single();
+
+      if (cliente && cliente.correo) {
+        await this.pushNotificationService.notificarClientePedidoRechazado(
+          cliente.correo,
+          pedido.mesa,
+          motivo
+        );
+      }
+    } catch (error) {
+      console.error('Error al notificar cliente sobre rechazo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Libera una mesa estableciendo su estado como disponible
+   */
+  private async liberarMesa(numeroMesa: string) {
+    try {
+      const { error } = await this.sb.supabase
+        .from('mesas')
+        .update({ 
+          estado: 'libre',
+          cliente_id: null,
+          pedido_id: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('numero', parseInt(numeroMesa));
+
+      if (error) {
+        console.error('Error al liberar mesa:', error);
+        throw error;
+      }
+
+      console.log(`✅ Mesa ${numeroMesa} liberada exitosamente`);
+    } catch (error) {
+      console.error('Error al liberar mesa:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Notifica a dueños y supervisores sobre la confirmación de pago
+   */
+  private async notificarConfirmacionPago(pedido: any) {
+    try {
+      // Obtener nombre del mozo actual
+      const { data: { user } } = await this.sb.supabase.auth.getUser();
+      let mozoNombre = 'Mozo';
+      
+      if (user && user.email) {
+        const { data: empleado } = await this.sb.supabase
+          .from('empleados')
+          .select('nombre, apellido')
+          .eq('correo', user.email)
+          .single();
+        
+        if (empleado) {
+          mozoNombre = `${empleado.nombre} ${empleado.apellido}`;
+        }
+      }
+
+      await this.pushNotificationService.notificarConfirmacionPago(
+        pedido.mesa,
+        pedido.precio || pedido.cuenta,
+        mozoNombre
+      );
+    } catch (error) {
+      console.error('Error al notificar confirmación de pago:', error);
+      throw error;
+    }
+  }
 
 }
