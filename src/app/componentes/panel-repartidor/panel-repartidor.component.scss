@@ -36,7 +36,7 @@ ion-content {
 
 .summary-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 15px;
   margin-bottom: 20px;
   
@@ -46,6 +46,11 @@ ion-content {
     
     &.asignados {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    &.listos {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
       color: white;
     }
     
@@ -250,6 +255,28 @@ ion-content {
     gap: 10px;
     margin-top: 10px;
   }
+  
+  .info-card {
+    margin: 0;
+    border-radius: 12px;
+    
+    ion-card-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      
+      ion-icon {
+        font-size: 24px;
+      }
+      
+      p {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+    }
+  }
 }
 
 // Animaciones
@@ -265,6 +292,12 @@ ion-content {
 }
 
 // Responsive
+@media (max-width: 768px) {
+  .summary-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 576px) {
   .summary-cards {
     grid-template-columns: 1fr;

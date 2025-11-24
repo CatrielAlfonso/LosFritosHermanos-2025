@@ -162,7 +162,7 @@ const routes: Routes = [
   },
   {
     path: 'panel-repartidor',
-    loadComponent: () => import('./componentes/panel-repartidor/panel-repartidor.component').then(m => m.PanelRepartidorComponent)
+    loadChildren: () => import('./componentes/panel-repartidor/panel-repartidor.module').then(m => m.PanelRepartidorModule)
   },
   {
     path: 'chat-delivery/:pedidoId',

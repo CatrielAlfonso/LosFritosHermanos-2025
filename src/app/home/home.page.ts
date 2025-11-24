@@ -198,6 +198,14 @@ export class HomePage implements OnInit {
   this.esCocinero = this.perfilUsuario === 'cocinero';
   this.esBartender = this.perfilUsuario === 'bartender';
   this.esMozo = this.perfilUsuario === 'mozo';
+  
+  console.log('🔍 [aplicarPerfil] Perfil aplicado:', this.perfilUsuario);
+  
+  // Redirigir repartidores a su panel
+  if (this.perfilUsuario === 'repartidor') {
+    console.log('🚚 [aplicarPerfil] Es repartidor, redirigiendo a panel...');
+    this.router.navigate(['/panel-repartidor']);
+  }
 }
 
    async cargarClienteInfo() {
@@ -1034,7 +1042,11 @@ export class HomePage implements OnInit {
   }
 
   irAVerPedidosCocina(){
-    this.router.navigate(['/pedidos'])
+    this.router.navigate(['/cocina'])
+  }
+
+  irAVerPedidosBar(){
+    this.router.navigate(['/bar'])
   }
 
   irAListaEspera()

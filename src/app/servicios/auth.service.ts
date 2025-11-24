@@ -184,17 +184,22 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
     }
 
     // Buscar en repartidores
-    const { data: repartidor } = await this.sb.supabase
+    console.log('🚚 [DEBUG asignarPerfil] Verificando repartidor:', correo);
+    const { data: repartidor, error: repartidorError } = await this.sb.supabase
       .from('repartidores')
-      .select('id, activo')
+      .select('id, activo, nombre, apellido')
       .eq('correo', correo)
       .maybeSingle();
 
+    console.log('🚚 [DEBUG asignarPerfil] Resultado:', { repartidor, error: repartidorError });
+
     if (repartidor) {
+      console.log('🚚 [DEBUG asignarPerfil] Repartidor encontrado, verificando si está activo:', repartidor.activo);
       if (!repartidor.activo) {
         await this.sb.supabase.auth.signOut();
         throw new Error('Tu cuenta de repartidor está desactivada. Contacta al administrador.');
       }
+      console.log('🚚 [DEBUG asignarPerfil] Estableciendo perfil repartidor');
       this.setPerfil('repartidor');
       return this.usuarioActual;
     }
@@ -233,55 +238,79 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
 
   async asignarPerfilDesdeBD(email: string) {
   try {
+    console.log('🔍 [DEBUG asignarPerfil] Iniciando búsqueda para email:', email);
+
     // Buscar en supervisores
-    const { data: supervisor } = await this.sb.supabase
+    console.log('🔍 [DEBUG] Buscando en supervisores...');
+    const { data: supervisor, error: supervisorError } = await this.sb.supabase
       .from('supervisores')
       .select('perfil')
       .eq('correo', email)
-      .single();
+      .maybeSingle();
+
+    console.log('🔍 [DEBUG] Supervisor resultado:', { supervisor, error: supervisorError });
 
     if (supervisor?.perfil) {
+      console.log('✅ [DEBUG] Supervisor encontrado, perfil:', supervisor.perfil);
       this.setPerfil(supervisor.perfil);
       return;
     }
 
     // Buscar en empleados
-    const { data: empleado } = await this.sb.supabase
+    console.log('🔍 [DEBUG] Buscando en empleados...');
+    const { data: empleado, error: empleadoError } = await this.sb.supabase
       .from('empleados')
       .select('perfil')
       .eq('correo', email)
-      .single();
+      .maybeSingle();
+
+    console.log('🔍 [DEBUG] Empleado resultado:', { empleado, error: empleadoError });
 
     if (empleado?.perfil) {
+      console.log('✅ [DEBUG] Empleado encontrado, perfil:', empleado.perfil);
       this.setPerfil(empleado.perfil);
       return;
     }
 
     // Buscar en clientes
-    const { data: cliente } = await this.sb.supabase
+    console.log('🔍 [DEBUG] Buscando en clientes...');
+    const { data: cliente, error: clienteError } = await this.sb.supabase
       .from('clientes')
-      .select('perfil')
+      .select('id, validado, aceptado')
       .eq('correo', email)
-      .single();
+      .maybeSingle();
 
-    if (cliente?.perfil) {
-      this.setPerfil(cliente.perfil);
+    console.log('🔍 [DEBUG] Cliente resultado:', { cliente, error: clienteError });
+
+    if (cliente) {
+      console.log('✅ [DEBUG] Cliente encontrado');
+      this.setPerfil('cliente');
       return;
     }
 
     // Buscar en repartidores
-    const { data: repartidor } = await this.sb.supabase
+    console.log('🚚 [DEBUG] Buscando en repartidores...');
+    const { data: repartidor, error: repartidorError } = await this.sb.supabase
       .from('repartidores')
-      .select('id')
+      .select('id, activo, nombre, apellido')
       .eq('correo', email)
-      .single();
+      .maybeSingle();
+
+    console.log('🚚 [DEBUG] Repartidor resultado:', { repartidor, error: repartidorError });
 
     if (repartidor) {
+      console.log('✅ [DEBUG] Repartidor encontrado, verificando activo:', repartidor.activo);
+      if (!repartidor.activo) {
+        console.log('❌ [DEBUG] Repartidor inactivo');
+        throw new Error('Tu cuenta de repartidor está desactivada. Contacta al administrador.');
+      }
+      console.log('✅ [DEBUG] Estableciendo perfil repartidor');
       this.setPerfil('repartidor');
       return;
     }
 
     // Si no se encontró en ninguna tabla
+    console.log('❌ [DEBUG] Usuario no encontrado en ninguna tabla');
     this.setPerfil('');
     console.warn('Usuario no encontrado en ninguna tabla.');
 
@@ -471,17 +500,22 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
       }
 
       // Verificar si es repartidor
-      const { data: repartidor } = await this.sb.supabase
+      console.log('🚚 [DEBUG] Verificando si es repartidor:', email);
+      const { data: repartidor, error: repartidorError } = await this.sb.supabase
         .from('repartidores')
-        .select('id, activo')
+        .select('id, activo, nombre, apellido')
         .eq('correo', email)
         .maybeSingle();
 
+      console.log('🚚 [DEBUG] Resultado repartidor:', { repartidor, error: repartidorError });
+
       if (repartidor) {
+        console.log('🚚 [DEBUG] Repartidor encontrado:', repartidor);
         if (!repartidor.activo) {
           await this.sb.supabase.auth.signOut();
           throw new Error('Tu cuenta de repartidor está desactivada. Contacta al administrador.');
         }
+        console.log('🚚 [DEBUG] Estableciendo perfil como repartidor');
         this.setPerfil('repartidor');
         this.usuarioActual = session.user;
         return session.user;
@@ -563,6 +597,12 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
         .eq('correo', email)
         .single();
 
+      const { data: repartidor } = await this.sb.supabase
+        .from('repartidores')
+        .select('id')
+        .eq('correo', email)
+        .single();
+
       let tableName = '';
       let updateData = { fcm_token: token };
 
@@ -570,8 +610,10 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
         tableName = 'supervisores';
       } else if (empleado) {
         tableName = 'empleados';
-      } else if (cliente) {
+      } else if (cliente) { 
         tableName = 'clientes';
+      } else if (repartidor) {
+        tableName = 'repartidores';
       } else {
         console.log('Usuario no encontrado en ninguna tabla');
         return;

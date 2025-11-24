@@ -109,6 +109,39 @@ export class DeliveryService {
 
     return data;
   }
+  // En delivery.service.ts
+
+/**
+ * Busca el UUID (Auth ID) de un cliente basado en su email
+ * Ahora usa la columna user_id que está vinculada directamente con auth.users
+ */
+async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
+  try {
+    // Consultar la tabla clientes que ahora tiene user_id vinculado
+    const { data, error } = await this.supabase.supabase
+      .from('clientes')
+      .select('uid')
+      .eq('correo', email)
+      .single();
+
+    if (error) {
+      console.error('Error consultando cliente por email:', error);
+      return null;
+    }
+
+    if (!data || !data.uid) {
+      console.warn('No se encontró user_id para el cliente:', email);
+      return null;
+    }
+
+    console.log('✅ UUID obtenido de tabla clientes:', data.uid);
+    return data.uid;
+    
+  } catch (error) {
+    console.error('Error obteniendo UUID del cliente:', error);
+    return null;
+  }
+}
 
   /**
    * Obtiene los pedidos delivery del cliente autenticado

@@ -1,30 +1,6 @@
-import { Component, OnInit, ViewChild, ElementRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import {
-  IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonButton,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonIcon,
-  IonBadge,
-  IonButtons,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonSegment,
-  IonSegmentButton,
-  IonSpinner,
-  AlertController,
-  ToastController,
-  ModalController
-} from '@ionic/angular/standalone';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlertController, ToastController, ModalController } from '@ionic/angular';
 import { DeliveryService, PedidoDelivery } from '../../servicios/delivery.service';
 import { AuthService } from '../../servicios/auth.service';
 import { CustomLoader } from '../../servicios/custom-loader.service';
@@ -48,37 +24,14 @@ declare var google: any;
   selector: 'app-panel-repartidor',
   templateUrl: './panel-repartidor.component.html',
   styleUrls: ['./panel-repartidor.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
-    IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    IonButton,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
-    IonIcon,
-    IonBadge,
-    IonButtons,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonSegment,
-    IonSegmentButton
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  standalone: false
 })
 export class PanelRepartidorComponent implements OnInit {
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
 
   pedidos: PedidoDelivery[] = [];
   pedidosFiltrados: PedidoDelivery[] = [];
-  filtroEstado: string = 'asignados'; // asignados, en_camino, todos
+  filtroEstado: string = 'listos'; // asignados, listos, en_camino, todos
   repartidorInfo: any = null;
   map: any;
   directionsService: any;
@@ -109,14 +62,46 @@ export class PanelRepartidorComponent implements OnInit {
   }
 
   async ngOnInit() {
+    console.log('🚚 [PanelRepartidor] Iniciando componente...');
+    
+    // Esperar a que el perfil esté disponible
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Verificar que sea repartidor
     const perfil = this.authService.getPerfilUsuario();
-    if (perfil !== 'repartidor') {
+    console.log('🚚 [PanelRepartidor] Perfil detectado:', perfil);
+    console.log('🚚 [PanelRepartidor] perfilUsuario del authService:', this.authService.perfilUsuario);
+    
+    // Si no hay perfil aún, intentar obtenerlo del usuario actual
+    if (!perfil || perfil === '') {
+      console.log('🚚 [PanelRepartidor] Perfil vacío, verificando usuario...');
+      const { data: { user } } = await this.authService.getCurrentUser();
+      if (user && user.email) {
+        console.log('🚚 [PanelRepartidor] Usuario encontrado, asignando perfil desde BD...');
+        await this.authService.asignarPerfilDesdeBD(user.email);
+        const nuevoPerf = this.authService.getPerfilUsuario();
+        console.log('🚚 [PanelRepartidor] Nuevo perfil asignado:', nuevoPerf);
+        
+        if (nuevoPerf !== 'repartidor') {
+          console.log('❌ [PanelRepartidor] Perfil NO es repartidor, redirigiendo...');
+          await this.mostrarToast('Solo repartidores pueden acceder a esta sección', 'danger');
+          this.router.navigate(['/home']);
+          return;
+        }
+      } else {
+        console.log('❌ [PanelRepartidor] No hay usuario autenticado');
+        await this.mostrarToast('Solo repartidores pueden acceder a esta sección', 'danger');
+        this.router.navigate(['/home']);
+        return;
+      }
+    } else if (perfil !== 'repartidor') {
+      console.log('❌ [PanelRepartidor] Perfil NO es repartidor, redirigiendo...');
       await this.mostrarToast('Solo repartidores pueden acceder a esta sección', 'danger');
       this.router.navigate(['/home']);
       return;
     }
 
+    console.log('✅ [PanelRepartidor] Perfil es repartidor, cargando info...');
     // Obtener info del repartidor
     await this.cargarInfoRepartidor();
     
@@ -155,8 +140,14 @@ export class PanelRepartidorComponent implements OnInit {
 
   aplicarFiltro() {
     if (this.filtroEstado === 'asignados') {
+      // Mostrar pedidos confirmados/preparando que AÚN NO están listos para entregar
       this.pedidosFiltrados = this.pedidos.filter(
-        p => p.estado === 'confirmado' || p.estado === 'preparando'
+        p => (p.estado === 'confirmado' || p.estado === 'preparando') && !this.estaListoParaEntregar(p)
+      );
+    } else if (this.filtroEstado === 'listos') {
+      // Mostrar solo pedidos que están completamente listos para entregar
+      this.pedidosFiltrados = this.pedidos.filter(
+        p => (p.estado === 'confirmado' || p.estado === 'preparando') && this.estaListoParaEntregar(p)
       );
     } else if (this.filtroEstado === 'en_camino') {
       this.pedidosFiltrados = this.pedidos.filter(p => p.estado === 'en_camino');
@@ -168,14 +159,14 @@ export class PanelRepartidorComponent implements OnInit {
   async confirmarRecepcion(pedido: PedidoDelivery) {
     const alert = await this.alertController.create({
       header: 'Confirmar Recepción',
-      message: '¿Confirmas que has recibido este pedido y estás listo para entregarlo?',
+      message: '¿Confirmas que has recibido este pedido y estás listo para entregarlo? Se abrirá automáticamente el mapa de navegación.',
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel'
         },
         {
-          text: 'Confirmar',
+          text: 'Confirmar y Navegar',
           handler: async () => {
             await this.procesarConfirmacion(pedido);
           }
@@ -190,12 +181,18 @@ export class PanelRepartidorComponent implements OnInit {
     try {
       this.customLoader.show();
 
-      await this.deliveryService.confirmarRecepcionRepartidor(pedido.id!);
+      // Cambiar estado a 'en_camino' directamente cuando confirma recepción
+      await this.deliveryService.actualizarEstadoPedidoDelivery(pedido.id!, 'en_camino');
 
       await this.cargarPedidos();
 
       this.customLoader.hide();
       await this.mostrarToast('Pedido confirmado. ¡En camino!', 'success');
+
+      // Abrir automáticamente el mapa después de confirmar
+      setTimeout(() => {
+        this.verMapa(pedido);
+      }, 1000);
 
     } catch (error: any) {
       console.error('Error al confirmar recepción:', error);
@@ -286,7 +283,11 @@ export class PanelRepartidorComponent implements OnInit {
   }
 
   getCantidadAsignados(): number {
-    return this.pedidos.filter(p => p.estado === 'confirmado' || p.estado === 'preparando').length;
+    return this.pedidos.filter(p => (p.estado === 'confirmado' || p.estado === 'preparando') && !this.estaListoParaEntregar(p)).length;
+  }
+
+  getCantidadListos(): number {
+    return this.pedidos.filter(p => (p.estado === 'confirmado' || p.estado === 'preparando') && this.estaListoParaEntregar(p)).length;
   }
 
   getCantidadEnCamino(): number {
@@ -349,6 +350,49 @@ export class PanelRepartidorComponent implements OnInit {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${pedido.latitud},${pedido.longitud}`;
       window.open(url, '_system');
     }
+  }
+
+  /**
+   * Determina si un pedido de delivery está completamente listo para ser entregado
+   * Similar a la lógica del mozo pero adaptada para delivery
+   */
+  estaListoParaEntregar(pedido: PedidoDelivery): boolean {
+    const tieneComida = pedido.comidas && pedido.comidas.length > 0;
+    const tieneBebida = pedido.bebidas && pedido.bebidas.length > 0;
+    const tienePostre = pedido.postres && pedido.postres.length > 0;
+    
+    console.log('🔍 Debug estaListoParaEntregar (Delivery):', {
+      id: pedido.id,
+      tieneComida,
+      tieneBebida,
+      tienePostre,
+      estado_comida: pedido.estado_comida,
+      estado_bebida: pedido.estado_bebida,
+      estado_postre: pedido.estado_postre
+    });
+    
+    // Si tiene comida, debe estar lista
+    if (tieneComida && pedido.estado_comida !== 'listo') {
+      return false;
+    }
+    
+    // Si tiene bebida, debe estar lista
+    if (tieneBebida && pedido.estado_bebida !== 'listo') {
+      return false;
+    }
+    
+    // Si tiene postre, debe estar listo
+    if (tienePostre && pedido.estado_postre !== 'listo') {
+      return false;
+    }
+    
+    // Si no tiene ningún producto, no está listo
+    if (!tieneComida && !tieneBebida && !tienePostre) {
+      return false;
+    }
+    
+    // Si llegamos aquí, todos los productos que tiene están listos
+    return true;
   }
 
   async mostrarToast(mensaje: string, color: 'success' | 'danger' | 'warning' = 'success') {
@@ -414,8 +458,7 @@ export class PanelRepartidorComponent implements OnInit {
       }
     }
   `],
-  standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent]
+  standalone: false
 })
 export class MapaRutaComponent implements OnInit {
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;

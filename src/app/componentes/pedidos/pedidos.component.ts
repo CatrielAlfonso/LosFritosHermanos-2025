@@ -20,13 +20,41 @@ export class PedidosComponent  implements OnInit {
   pedidos : any = null
   user = this.authService.userActual
 
-  misPedidos = computed(() => {
-    const user = this.user();
-    const todosPedidos = this.supabase.todosLosPedidos();
-    if (!user?.id || !todosPedidos) return [];
-    
+// En pedidos.component.ts
+
+// En pedidos.component.ts
+
+misPedidos = computed(() => {
+  const user = this.user();
+  const todosPedidos = this.supabase.todosLosPedidos();
+  
+  // Obtenemos el rol del usuario (Asegúrate de tener acceso a esto)
+  // Puede venir de una signal en authService o de una variable local
+  const perfil = this.authService.getPerfilUsuario(); // 'cliente', 'cocinero', 'dueño', etc.
+
+  if (!user || !todosPedidos) return [];
+
+  console.log(`👤 Usuario: ${user.email} | Rol: ${perfil}`);
+
+  // --- LÓGICA CONDICIONAL ---
+
+  // CASO 1: ES UN CLIENTE
+  // Solo puede ver SUS propios pedidos
+  if (perfil === 'cliente') {
     return todosPedidos.filter(p => p.cliente_id === user.id);
-  });
+  }
+
+  // CASO 2: ES STAFF (Cocinero, Dueño, Mozo)
+  // Necesita ver TODOS los pedidos para trabajar.
+  // Opcional: Puedes filtrar solo los "activos" si no quieres ver los viejos.
+  else {
+    // Retornamos todos (o filtra solo los pendientes/en proceso si prefieres)
+    return todosPedidos.filter(p => 
+      // Opcional: Ocultar los cancelados/entregados viejos para limpiar la vista del cocinero
+      p.estado !== 'entregado' && p.estado !== 'finalizado'
+    );
+  }
+});
     
 
   constructor(

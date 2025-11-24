@@ -62,6 +62,11 @@ export class BarComponent  implements OnInit {
         estado_bebida: 'listo'
       });
       
+      // 1.1. Si es un pedido de delivery, sincronizar con pedidos_delivery
+      if (pedido.mesa === 'DELIVERY') {
+        await this.sincronizarConPedidoDelivery(pedido, { estado_bebida: 'listo' });
+      }
+      
       // 2. Preparar información de los productos
       const productos = pedido.bebidas.map((b: any) => `${b.cantidad}x ${b.nombre}`);
       
@@ -109,6 +114,40 @@ export class BarComponent  implements OnInit {
         position: 'top'
       });
       await toast.present();
+    }
+  }
+
+  /**
+   * Sincroniza los estados de un pedido con la tabla pedidos_delivery
+   */
+  private async sincronizarConPedidoDelivery(pedido: any, estadosActualizados: any) {
+    try {
+      // Extraer el ID del pedido delivery desde las observaciones
+      const observaciones = pedido.observaciones_generales || '';
+      const match = observaciones.match(/CLIENTE #(\d+):/);
+      
+      if (!match) {
+        console.log('🔍 No se pudo extraer ID de delivery desde observaciones:', observaciones);
+        return;
+      }
+      
+      const deliveryId = parseInt(match[1]);
+      console.log('🔄 Sincronizando pedido delivery ID:', deliveryId, 'con estados:', estadosActualizados);
+      
+      // Actualizar el pedido de delivery
+      const { error } = await this.supabaseService.supabase
+        .from('pedidos_delivery')
+        .update(estadosActualizados)
+        .eq('id', deliveryId);
+      
+      if (error) {
+        console.error('❌ Error sincronizando con pedidos_delivery:', error);
+      } else {
+        console.log('✅ Pedido delivery sincronizado correctamente');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en sincronización con delivery:', error);
     }
   }
 

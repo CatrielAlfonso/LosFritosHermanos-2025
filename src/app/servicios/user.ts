@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 export interface UserData {
   id: string;
   email: string;
-  tipo: 'cliente' | 'maitre' | 'supervisor' | 'dueño' | 'mozo' | 'bartender' | 'cocinero';
+  tipo: 'cliente' | 'maitre' | 'supervisor' | 'dueño' | 'mozo' | 'bartender' | 'cocinero' | 'repartidor';
   datos: any; 
 }
 
@@ -22,27 +22,46 @@ export class UserService {
 
   async loadCurrentUser(): Promise<UserData | null> {
     try {
+      console.log('🔍 [UserService] Cargando usuario actual...');
       // Obtener usuario autenticado
       const { data: { user } } = await this.auth.getCurrentUser();
-      if (!user) return null;
+      if (!user) {
+        console.log('❌ [UserService] No hay usuario autenticado');
+        return null;
+      }
 
-      // Buscar en ambas tablas
-      const [clienteData, empleadoData] = await Promise.all([
+      console.log('🔍 [UserService] Usuario autenticado:', user.email);
+
+      // Buscar en todas las tablas
+      const [clienteData, empleadoData, repartidorData] = await Promise.all([
         this.supabase.supabase
           .from('clientes')
           .select('*')
           .eq('correo', user.email)
-          .single(),
+          .maybeSingle(),
         
         this.supabase.supabase
           .from('empleados')
           .select('*')
           .eq('correo', user.email)
-          .single()
+          .maybeSingle(),
+        
+        this.supabase.supabase
+          .from('repartidores')
+          .select('*')
+          .eq('correo', user.email)
+          .maybeSingle()
       ]);
+
+      console.log('🔍 [UserService] Resultados búsqueda:', {
+        cliente: !!clienteData.data,
+        empleado: !!empleadoData.data,
+        repartidor: !!repartidorData.data
+      });
 
       // Determinar tipo de usuario
       if (clienteData.data) {
+        console.log('✅ [UserService] Usuario es cliente');
         this.currentUser = {
           id: user.id,
           email: clienteData.data.correo,
@@ -50,12 +69,23 @@ export class UserService {
           datos: clienteData.data
         };
       } else if (empleadoData.data) {
+        console.log('✅ [UserService] Usuario es empleado:', empleadoData.data.perfil);
         this.currentUser = {
           id: user.id,
           email: empleadoData.data.correo,
           tipo: empleadoData.data.perfil,
           datos: empleadoData.data
         };
+      } else if (repartidorData.data) {
+        console.log('✅ [UserService] Usuario es repartidor');
+        this.currentUser = {
+          id: user.id,
+          email: repartidorData.data.correo,
+          tipo: 'repartidor',
+          datos: repartidorData.data
+        };
+      } else {
+        console.log('❌ [UserService] Usuario no encontrado en ninguna tabla');
       }
 
       return this.currentUser;

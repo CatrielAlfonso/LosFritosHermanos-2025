@@ -35,7 +35,14 @@
     <ion-card class="summary-card asignados">
       <ion-card-content>
         <h3>{{ getCantidadAsignados() }}</h3>
-        <p>Asignados</p>
+        <p>Preparando</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card listos">
+      <ion-card-content>
+        <h3>{{ getCantidadListos() }}</h3>
+        <p>Listos</p>
       </ion-card-content>
     </ion-card>
 
@@ -50,7 +57,10 @@
   <!-- Filtro -->
   <ion-segment [(ngModel)]="filtroEstado" (ionChange)="aplicarFiltro()" class="filter-segment">
     <ion-segment-button value="asignados">
-      <ion-label>Asignados</ion-label>
+      <ion-label>Preparando</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="listos">
+      <ion-label>Listos</ion-label>
     </ion-segment-button>
     <ion-segment-button value="en_camino">
       <ion-label>En Camino</ion-label>
@@ -71,7 +81,7 @@
     <ion-card-content>
       <ion-icon name="bicycle-outline" class="empty-icon"></ion-icon>
       <h3>No hay pedidos</h3>
-      <p>No tienes pedidos {{ filtroEstado === 'asignados' ? 'asignados' : filtroEstado === 'en_camino' ? 'en camino' : '' }}</p>
+      <p>No tienes pedidos {{ filtroEstado === 'asignados' ? 'preparándose' : filtroEstado === 'listos' ? 'listos para entregar' : filtroEstado === 'en_camino' ? 'en camino' : '' }}</p>
     </ion-card-content>
   </ion-card>
 
@@ -122,25 +132,26 @@
 
       <!-- Botones de Acción -->
       <div class="actions-section">
-        <!-- Confirmar Recepción (solo si está confirmado/preparando) -->
+        <!-- Confirmar Recepción y Navegar (solo si está listo para entregar) -->
         <ion-button 
-          *ngIf="pedido.estado === 'confirmado' || pedido.estado === 'preparando'"
+          *ngIf="(pedido.estado === 'confirmado' || pedido.estado === 'preparando') && estaListoParaEntregar(pedido)"
           expand="block" 
           color="success" 
           (click)="confirmarRecepcion(pedido)">
           <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-          Confirmar Recepción
+          Confirmar Recepción y Navegar
         </ion-button>
 
-        <!-- Marcar En Camino -->
-        <ion-button 
-          *ngIf="pedido.estado === 'confirmado' || pedido.estado === 'preparando'"
-          expand="block" 
-          color="primary" 
-          (click)="marcarEnCamino(pedido)">
-          <ion-icon name="bicycle-outline" slot="start"></ion-icon>
-          Marcar En Camino
-        </ion-button>
+        <!-- Mensaje si no está listo -->
+        <ion-card 
+          *ngIf="(pedido.estado === 'confirmado' || pedido.estado === 'preparando') && !estaListoParaEntregar(pedido)"
+          color="warning" 
+          class="info-card">
+          <ion-card-content>
+            <ion-icon name="time-outline"></ion-icon>
+            <p>Esperando que cocina/bar termine la preparación...</p>
+          </ion-card-content>
+        </ion-card>
 
         <!-- Marcar Entregado -->
         <ion-button 

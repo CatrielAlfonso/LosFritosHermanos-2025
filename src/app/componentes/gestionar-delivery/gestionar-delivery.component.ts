@@ -243,62 +243,64 @@ export class GestionarDeliveryComponent implements OnInit {
     }
   }
 
-  async derivarACocinaYBar(pedido: PedidoDelivery) {
-    try {
-      const { data: { user } } = await this.authService.getCurrentUser();
-      
-      if (!user) {
-        throw new Error('Usuario no autenticado');
-      }
+  // En gestionar-delivery.component.ts
 
-      // Preparar datos del pedido para cocina/bar
-      const pedidoRestaurante = {
-        // CORRECCIÓN AQUÍ:
-        // No podemos poner pedido.cliente_id (que es 16) porque la tabla pedidos espera un UUID.
-        // Enviamos null. La cocina no necesita el ID de usuario, solo qué cocinar.
-        cliente_id: null, 
-
-        // Si tu tabla 'pedidos' tiene una columna 'nombre_cliente' o similar, úsala:
-        // nombre_cliente: pedido.cliente_nombre, 
-        
-        comidas: pedido.comidas || [],
-        bebidas: pedido.bebidas || [],
-        postres: pedido.postres || [],
-        precio: pedido.precio_productos,
-        tiempo_estimado: pedido.tiempo_estimado || 45,
-        confirmado: true,
-        mesa: 'DELIVERY', 
-        estado: 'en preparacion',
-        estado_comida: (pedido.comidas && pedido.comidas.length > 0) ? 'en preparacion' : 'pendiente',
-        estado_bebida: (pedido.bebidas && pedido.bebidas.length > 0) ? 'en preparacion' : 'pendiente',
-        estado_postre: (pedido.postres && pedido.postres.length > 0) ? 'en preparacion' : 'pendiente',
-        recepcion: true,
-        pagado: false, // Ojo: booleano suele ser mejor que 0/1 dependiendo de tu BD
-        cuenta: 0,
-        fecha_pedido: new Date().toISOString(),
-        // Aquí ya estás poniendo toda la info importante para el cocinero:
-        observaciones_generales: `CLIENTE: ${pedido.cliente_nombre} - DIR: ${pedido.direccion_completa} - OBS: ${pedido.observaciones_generales || ''}`
-      };
-
-      // Insertar en tabla pedidos
-      const { data: pedidoCreado, error } = await this.deliveryService.crearPedidoRestaurante(pedidoRestaurante);
-
-      if (error) {
-        console.error('Error al crear pedido en restaurante:', error);
-        // Esto nos mostrará el error exacto de Supabase si sigue fallando
-        throw new Error(`Error BD: ${error.message}`); 
-      }
-
-      // Notificar a cocina y bar
-      await this.notificarCocinaYBar(pedido, pedidoCreado);
-
-      console.log('✅ Pedido derivado a cocina y bar exitosamente');
-
-    } catch (error: any) {
-      console.error('Error al derivar a cocina y bar:', error);
-      throw error;
+async derivarACocinaYBar(pedido: PedidoDelivery) {
+  try {
+    const { data: { user } } = await this.authService.getCurrentUser();
+    
+    if (!user) {
+      throw new Error('Usuario no autenticado');
     }
+
+    // 1. BUSCAR EL UUID DEL CLIENTE REAL
+    let clienteUuid = null;
+    if (pedido.cliente_email) {
+      clienteUuid = await this.deliveryService.obtenerUuidClientePorEmail(pedido.cliente_email);
+    }
+
+    // Si no encontramos UUID, enviamos null para que no falle con error de sintaxis "16"
+    console.log(`Derivando pedido. ID Numérico: ${pedido.cliente_id} -> UUID encontrado: ${clienteUuid}`);
+
+    const pedidoRestaurante = {
+      // 2. USAMOS EL UUID ENCONTRADO (O NULL)
+      cliente_id: clienteUuid, 
+
+      comidas: pedido.comidas || [],
+      bebidas: pedido.bebidas || [],
+      postres: pedido.postres || [],
+      precio: pedido.precio_productos,
+      tiempo_estimado: pedido.tiempo_estimado || 45,
+      confirmado: true,
+      mesa: 'DELIVERY', 
+      estado: 'en preparacion',
+      estado_comida: (pedido.comidas && pedido.comidas.length > 0) ? 'en preparacion' : 'pendiente',
+      estado_bebida: (pedido.bebidas && pedido.bebidas.length > 0) ? 'en preparacion' : 'pendiente',
+      estado_postre: (pedido.postres && pedido.postres.length > 0) ? 'en preparacion' : 'pendiente',
+      recepcion: true,
+      pagado: 0, // Recordar usar 0 y no false
+      cuenta: 0,
+      fecha_pedido: new Date().toISOString(),
+      // Guardamos el ID numérico en observaciones por si acaso
+      observaciones_generales: `CLIENTE #${pedido.cliente_id}: ${pedido.cliente_nombre} - DIR: ${pedido.direccion_completa} - OBS: ${pedido.observaciones_generales || ''}`
+    };
+
+    const { data: pedidoCreado, error } = await this.deliveryService.crearPedidoRestaurante(pedidoRestaurante);
+
+    if (error) {
+      console.error('Error al crear pedido en restaurante:', error);
+      throw new Error(`Error BD: ${error.message}`); 
+    }
+
+    await this.notificarCocinaYBar(pedido, pedidoCreado);
+
+    console.log('✅ Pedido derivado a cocina y bar exitosamente');
+
+  } catch (error: any) {
+    console.error('Error al derivar a cocina y bar:', error);
+    throw error;
   }
+}
 
   async notificarCocinaYBar(pedidoDelivery: PedidoDelivery, pedidoRestaurante: any) {
     try {
