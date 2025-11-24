@@ -149,3 +149,7 @@ Mesa 9:
 Mesa 12:
 
 <img width="512" height="512" alt="mesa-12-qr" src="https://github.com/user-attachments/assets/45eff6de-0740-4bd5-9dad-fee8461e6d53" />
+
+Propina:
+
+<img width="2048" height="2048" alt="propina-qr" src="https://github.com/user-attachments/assets/aafb0590-0a03-41bf-a6e6-0ce8bad58439" />
