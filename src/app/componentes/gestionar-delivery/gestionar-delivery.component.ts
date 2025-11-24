@@ -245,8 +245,6 @@ export class GestionarDeliveryComponent implements OnInit {
 
   async derivarACocinaYBar(pedido: PedidoDelivery) {
     try {
-      // Crear pedido en la tabla pedidos para cocina/bar
-      // Usando el servicio de Supabase directamente
       const { data: { user } } = await this.authService.getCurrentUser();
       
       if (!user) {
@@ -255,23 +253,31 @@ export class GestionarDeliveryComponent implements OnInit {
 
       // Preparar datos del pedido para cocina/bar
       const pedidoRestaurante = {
-        cliente_id: pedido.cliente_id,
+        // CORRECCIÓN AQUÍ:
+        // No podemos poner pedido.cliente_id (que es 16) porque la tabla pedidos espera un UUID.
+        // Enviamos null. La cocina no necesita el ID de usuario, solo qué cocinar.
+        cliente_id: null, 
+
+        // Si tu tabla 'pedidos' tiene una columna 'nombre_cliente' o similar, úsala:
+        // nombre_cliente: pedido.cliente_nombre, 
+        
         comidas: pedido.comidas || [],
         bebidas: pedido.bebidas || [],
         postres: pedido.postres || [],
         precio: pedido.precio_productos,
         tiempo_estimado: pedido.tiempo_estimado || 45,
         confirmado: true,
-        mesa: 'DELIVERY', // Identificador especial para delivery
+        mesa: 'DELIVERY', 
         estado: 'en preparacion',
         estado_comida: (pedido.comidas && pedido.comidas.length > 0) ? 'en preparacion' : 'pendiente',
         estado_bebida: (pedido.bebidas && pedido.bebidas.length > 0) ? 'en preparacion' : 'pendiente',
         estado_postre: (pedido.postres && pedido.postres.length > 0) ? 'en preparacion' : 'pendiente',
         recepcion: true,
-        pagado: 0,
+        pagado: false, // Ojo: booleano suele ser mejor que 0/1 dependiendo de tu BD
         cuenta: 0,
         fecha_pedido: new Date().toISOString(),
-        observaciones_generales: `PEDIDO DELIVERY #${pedido.id} - ${pedido.direccion_completa}`
+        // Aquí ya estás poniendo toda la info importante para el cocinero:
+        observaciones_generales: `CLIENTE: ${pedido.cliente_nombre} - DIR: ${pedido.direccion_completa} - OBS: ${pedido.observaciones_generales || ''}`
       };
 
       // Insertar en tabla pedidos
@@ -279,7 +285,8 @@ export class GestionarDeliveryComponent implements OnInit {
 
       if (error) {
         console.error('Error al crear pedido en restaurante:', error);
-        throw new Error('Error al derivar a cocina/bar');
+        // Esto nos mostrará el error exacto de Supabase si sigue fallando
+        throw new Error(`Error BD: ${error.message}`); 
       }
 
       // Notificar a cocina y bar

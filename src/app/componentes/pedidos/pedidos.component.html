@@ -96,9 +96,9 @@
       }
       @if(pedido.cuenta_habilitada && !pedido.solicita_cuenta){
         <div class="pedido-actions">
-          <button class="btn-pedir-cuenta">
+          <button class="btn-pedir-cuenta" (click)="escanearQRPropina()">
             <ion-icon name="qr-code-outline"></ion-icon>
-            Escanee el QR para ver la cuenta
+            Escanear QR para pagar
           </button>
         </div>
       } 

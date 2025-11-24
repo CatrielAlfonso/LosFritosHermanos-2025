@@ -257,22 +257,36 @@ export class ReservasComponent implements OnInit {
   }
 
   async abrirSelectorHora() {
-    // Si no hay fecha seleccionada, pedir que seleccione primero
+    console.log('Intentando abrir selector de hora...');
+  
+    // 1. Validar fecha seleccionada
     if (!this.fechaSeleccionada) {
+      console.log('Falta fecha');
       this.mostrarMensaje('Por favor, selecciona primero una fecha', 'warning');
       return;
     }
-    
-    // Generar horas disponibles si no están generadas
-    if (this.horasDisponibles.length === 0) {
+  
+    // 2. Generar horas si está vacío
+    if (!this.horasDisponibles || this.horasDisponibles.length === 0) {
+      console.log('Generando horas...');
       this.generarHorasDisponibles();
     }
-    
+  
+    // 3. Verificación de seguridad: ¿Sigue vacío?
+    if (!this.horasDisponibles || this.horasDisponibles.length === 0) {
+      console.error('ERROR: No hay horas disponibles para mostrar.');
+      this.mostrarMensaje('No hay horarios disponibles para esta fecha.', 'warning');
+      return;
+    }
+  
+    console.log('Abriendo Alert con horas:', this.horasDisponibles);
+  
     const alert = await this.alertController.create({
       header: 'Selecciona una hora',
-      cssClass: 'hora-selector-alert',
+      // ASEGÚRATE de que este nombre coincide con el de tu global.scss
+      cssClass: 'hora-selector-alert', 
       inputs: this.horasDisponibles.map(hora => ({
-        type: 'radio' as const,
+        type: 'radio',
         label: hora,
         value: hora,
         checked: hora === this.horaSeleccionada
@@ -287,13 +301,14 @@ export class ReservasComponent implements OnInit {
           handler: (hora: string) => {
             if (hora) {
               this.horaSeleccionada = hora;
+              // Actualizamos el formulario también
               this.reservaForm.patchValue({ hora_reserva: hora });
             }
           }
         }
       ]
     });
-    
+  
     await alert.present();
   }
 

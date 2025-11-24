@@ -274,21 +274,51 @@ export class DeliveryService {
    * Obtiene información del cliente autenticado
    */
   async obtenerInfoCliente(): Promise<{ id: number; nombre: string; apellido: string; email: string; telefono?: string } | null> {
+    console.log('🕵️ [DEBUG] Iniciando obtenerInfoCliente...');
     try {
-      const { data: { user } } = await this.supabase.supabase.auth.getUser();
-      if (!user || !user.email) {
+      // 1. Verificar Auth
+      const { data: authData, error: authError } = await this.supabase.supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('❌ [DEBUG] Error en Auth:', authError);
         return null;
       }
 
-      const { data: cliente } = await this.supabase.supabase
+      if (!authData.user || !authData.user.email) {
+        console.warn('⚠️ [DEBUG] No hay usuario logueado o no tiene email en Auth.');
+        return null;
+      }
+
+      const emailBuscado = authData.user.email;
+      console.log(`🔎 [DEBUG] Buscando en tabla 'clientes' el correo exacto: "${emailBuscado}"`);
+
+      // 2. Consulta DIRECTA sin .single() para ver qué devuelve realmente
+      const { data: clientesEncontrados, error: dbError } = await this.supabase.supabase
         .from('clientes')
-        .select('id, nombre, apellido, correo, telefono')
-        .eq('correo', user.email)
-        .single();
+        .select('*') // Traemos todo para inspeccionar
+        .eq('correo', emailBuscado);
 
-      if (!cliente) {
+      // 3. Análisis de errores de Base de Datos
+      if (dbError) {
+        console.error('❌ [DEBUG] Error fatal consultando tabla clientes:', dbError);
+        // Tip común: Si el error dice "relation not found", la tabla no existe o te equivocaste de esquema.
+        // Si dice "permission denied", son las políticas RLS.
         return null;
       }
+
+      console.log('📦 [DEBUG] Resultado RAW de la base de datos:', clientesEncontrados);
+
+      // 4. Verificación de resultados
+      if (!clientesEncontrados || clientesEncontrados.length === 0) {
+        console.error('⛔ [DEBUG] La consulta fue exitosa pero devolvió un ARRAY VACÍO.');
+        console.error('   POSIBLES CAUSAS:');
+        console.error('   1. Row Level Security (RLS) está activo y no hay política "SELECT" para el usuario.');
+        console.error('   2. El correo en la tabla tiene un espacio extra o mayúscula diferente.');
+        return null;
+      }
+
+      const cliente = clientesEncontrados[0];
+      console.log('✅ [DEBUG] Cliente encontrado:', cliente);
 
       return {
         id: cliente.id,
@@ -297,8 +327,9 @@ export class DeliveryService {
         email: cliente.correo,
         telefono: cliente.telefono
       };
+
     } catch (error) {
-      console.error('Error obteniendo info del cliente:', error);
+      console.error('💥 [DEBUG] Excepción no controlada en obtenerInfoCliente:', error);
       return null;
     }
   }

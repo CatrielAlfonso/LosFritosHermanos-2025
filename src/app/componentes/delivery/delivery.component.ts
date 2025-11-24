@@ -384,16 +384,34 @@ export class DeliveryComponent implements OnInit {
     try {
       this.customLoader.show();
 
+      // 1. RE-VERIFICACIÓN DE SEGURIDAD
+      // Si por alguna razón clienteInfo es null, intentamos cargarlo de nuevo
+      if (!this.clienteInfo) {
+        console.warn('⚠️ clienteInfo era null, intentando recargar...');
+        await this.cargarInfoCliente();
+      }
+
+      // 2. FRENO DE EMERGENCIA
+      // Si sigue siendo null, significa que el usuario está logueado pero 
+      // NO existe en la tabla 'clientes' de tu base de datos.
+      if (!this.clienteInfo || !this.clienteInfo.id) {
+        this.customLoader.hide();
+        await this.mostrarToast('Error crítico: No se encontró tu perfil de cliente en la base de datos.', 'danger');
+        console.error('El usuario tiene Auth pero no tiene registro en la tabla clientes.');
+        return; // Detenemos todo aquí para que no explote
+      }
+
       const formValue = this.direccionForm.value;
       const direccionCompleta = `${formValue.calle} ${formValue.numero}${formValue.piso ? ', Piso ' + formValue.piso : ''}${formValue.depto ? ' Dpto ' + formValue.depto : ''}`;
 
-      // Separar productos por tipo
+      // Filtros de productos
       const comidas = this.cartItems.filter(item => item.tipo === 'comida');
       const bebidas = this.cartItems.filter(item => item.tipo === 'bebida');
       const postres = this.cartItems.filter(item => item.tipo === 'postre');
 
+      // 3. ARMADO DEL OBJETO (Ahora es seguro usar clienteInfo.id)
       const pedido = {
-        cliente_id: this.clienteInfo.id,
+        cliente_id: this.clienteInfo.id, // Esto es un NUMBER, como pide tu interfaz
         cliente_email: this.clienteInfo.email,
         cliente_nombre: `${this.clienteInfo.nombre} ${this.clienteInfo.apellido}`,
         cliente_telefono: formValue.telefono,
@@ -433,6 +451,7 @@ export class DeliveryComponent implements OnInit {
         
         metodo_pago: this.metodoPago,
         estado: 'pendiente',
+        // Asignamos estados individuales solo si hay productos de ese tipo
         estado_comida: comidas.length > 0 ? 'pendiente' : undefined,
         estado_bebida: bebidas.length > 0 ? 'pendiente' : undefined,
         estado_postre: postres.length > 0 ? 'pendiente' : undefined
@@ -440,13 +459,10 @@ export class DeliveryComponent implements OnInit {
 
       await this.deliveryService.crearPedidoDelivery(pedido);
 
-      // Limpiar carrito
+      // Limpieza y éxito
       this.carritoService.limpiarCarrito();
-
       this.customLoader.hide();
-
       await this.mostrarToast('¡Pedido realizado con éxito! Te llegará en 45 minutos aproximadamente', 'success');
-      
       this.router.navigate(['/home']);
 
     } catch (error: any) {
