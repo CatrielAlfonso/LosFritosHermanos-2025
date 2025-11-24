@@ -2113,6 +2113,143 @@ app.post("/generar-boleta-delivery", async (req, res) => {
   }
 });
 
+// Notificar a TODOS los mozos sobre un nuevo pedido del cliente
+app.post("/notify-mozo-new-order", async (req, res) => {
+  const { mozoEmail, mesa, clienteNombre, productos, total } = req.body;
+  
+  try {
+    const title = "Nuevo pedido";
+    const productosTexto = productos.slice(0, 2).join(', ');
+    const masProductos = productos.length > 2 ? `... +${productos.length - 2}` : '';
+    const body = `Mesa ${mesa}: ${clienteNombre} - ${productosTexto}${masProductos} ($${total})`;
+    
+    const { data: mozos, error } = await supabase
+      .from("empleados")
+      .select("fcm_token")
+      .eq("perfil", "mozo")
+      .not("fcm_token", "is", null);
+
+    if (error || !mozos?.length) {
+      return res.status(200).send({ message: "No mozos found" });
+    }
+
+    const tokens = mozos.map(m => m.fcm_token).filter(t => t);
+    
+    if (tokens.length === 0) {
+      return res.status(200).send({ message: "No valid FCM tokens found." });
+    }
+
+    const message = {
+      notification: { title, body },
+      tokens: tokens,
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    res.status(200).send({ message: "Notification sent successfully.", response });
+  } catch (error) {
+    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+  }
+});
+
+// Notificar al cliente cuando el mozo confirma su pedido
+app.post("/notify-client-order-confirmed", async (req, res) => {
+  const { clienteEmail, mesa, tiempoEstimado } = req.body;
+  
+  try {
+    const title = "Pedido confirmado";
+    const body = `Tu pedido de Mesa ${mesa} fue confirmado. Tiempo estimado: ${tiempoEstimado} min`;
+    
+    const { data: cliente, error } = await supabase
+      .from("clientes")
+      .select("fcm_token")
+      .eq("correo", clienteEmail)
+      .not("fcm_token", "is", null)
+      .single();
+
+    if (error || !cliente?.fcm_token) {
+      return res.status(200).send({ message: "Cliente not found or no FCM token" });
+    }
+
+    const message = {
+      notification: { title, body },
+      token: cliente.fcm_token
+    };
+
+    const response = await admin.messaging().send(message);
+    res.status(200).send({ message: "Notification sent successfully.", response });
+  } catch (error) {
+    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+  }
+});
+
+// Notificar al cliente cuando el mozo rechaza su pedido
+app.post("/notify-client-order-rejected", async (req, res) => {
+  const { clienteEmail, mesa, motivo } = req.body;
+  
+  try {
+    const title = "Pedido rechazado";
+    const body = `Tu pedido de Mesa ${mesa} fue rechazado. Motivo: ${motivo}`;
+    
+    const { data: cliente, error } = await supabase
+      .from("clientes")
+      .select("fcm_token")
+      .eq("correo", clienteEmail)
+      .not("fcm_token", "is", null)
+      .single();
+
+    if (error || !cliente?.fcm_token) {
+      return res.status(200).send({ message: "Cliente not found or no FCM token" });
+    }
+
+    const message = {
+      notification: { title, body },
+      token: cliente.fcm_token
+    };
+
+    const response = await admin.messaging().send(message);
+    res.status(200).send({ message: "Notification sent successfully.", response });
+  } catch (error) {
+    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+  }
+});
+
+// Notificar a dueños y supervisores cuando el mozo confirma un pago
+app.post("/notify-payment-confirmed", async (req, res) => {
+  const { mesa, montoTotal, mozoNombre } = req.body;
+  
+  try {
+    const title = "Pago confirmado";
+    const body = `${mozoNombre} confirmó el pago de Mesa ${mesa} por $${montoTotal}. Mesa liberada.`;
+    
+    // Obtener tokens de dueños y supervisores
+    const { data: supervisores, error } = await supabase
+      .from("supervisores")
+      .select("fcm_token")
+      .in("perfil", ["dueño", "supervisor"])
+      .not("fcm_token", "is", null);
+
+    if (error || !supervisores?.length) {
+      return res.status(200).send({ message: "No supervisors found" });
+    }
+
+    const tokens = supervisores.map(s => s.fcm_token).filter(t => t);
+    
+    if (tokens.length === 0) {
+      return res.status(200).send({ message: "No valid FCM tokens found." });
+    }
+
+    const message = {
+      notification: { title, body },
+      tokens: tokens,
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    res.status(200).send({ message: "Notification sent successfully.", response });
+  } catch (error) {
+    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
