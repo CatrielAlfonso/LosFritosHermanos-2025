@@ -116,3 +116,36 @@ Permite gestionar mesas, pedidos, clientes registrados o anónimos, juegos con d
 - 26/09/2025: Punto 7 (rechazo-cliente) pasó de Catriel → Tomas.
 - 26/09/2025: Punto 8 (aceptacion-cliente) pasó de Catriel → Tomas.
 ---
+QRS:
+
+ENTRADA AL LOCAL:
+
+<img width="300" height="300" alt="qrentradalocal" src="https://github.com/user-attachments/assets/3a6858f4-8130-44a5-b4a2-e4854becea0a" />
+
+Mesa 2:
+
+<img width="512" height="512" alt="mesa-2-qr (2)" src="https://github.com/user-attachments/assets/b2037e73-d1da-497b-bd4d-46db5300816a" />
+
+Mesa 3:
+
+<img width="512" height="512" alt="mesa-3-qr" src="https://github.com/user-attachments/assets/fcd73332-77b1-4d7c-b8fc-31ee24390dec" />
+
+Mesa 5:
+
+<img width="512" height="512" alt="mesa-5-qr" src="https://github.com/user-attachments/assets/8adb6fc6-24cd-417e-ba17-3ec344b714b0" />
+
+Mesa 6:
+
+<img width="512" height="512" alt="mesa-6-qr" src="https://github.com/user-attachments/assets/a14eee8b-e7ec-4b13-b10d-460b5c6db67c" />
+
+Mesa 7:
+
+<img width="512" height="512" alt="mesa-7-qr" src="https://github.com/user-attachments/assets/919bc18d-6a7d-41d2-9edd-13c9e2c9b9bb" />
+
+Mesa 9:
+
+<img width="512" height="512" alt="mesa-9-qr" src="https://github.com/user-attachments/assets/0576abfb-86fd-4938-ad93-920eb58dda00" />
+
+Mesa 12:
+
+<img width="512" height="512" alt="mesa-12-qr" src="https://github.com/user-attachments/assets/45eff6de-0740-4bd5-9dad-fee8461e6d53" />
