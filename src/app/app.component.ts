@@ -37,6 +37,7 @@ export class AppComponent implements OnInit {
     // y que los elementos debajo no la cubran (aunque Ionic lo maneja por defecto).
     try {
       await StatusBar.setStyle({ style: Style.Default });
+      await StatusBar.setOverlaysWebView({ overlay: false });
       this.pushNotificationService.inicializarListeners();
       
       // Opcional: Si quieres que el fondo de la barra sea transparente, 
