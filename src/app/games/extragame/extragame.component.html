@@ -1,0 +1,42 @@
+<div class="game-wrap" [class.paused]="stopped || !running">
+  <div class="hud">
+    <button mat-flat-button color="primary" (click)="startGame()" *ngIf="!running">Iniciar juego</button>
+    <button mat-flat-button color="warn" (click)="resetGame()" *ngIf="running">Reiniciar</button>
+    <div class="status" *ngIf="running && !stopped">Objetivo: Llevar la bandeja a la mesa</div>
+  </div>
+
+  <!-- game area -->
+  <div #arena class="arena" (click)="focusArena()">
+    <!-- target table -->
+    <div class="table" [ngStyle]="{ left: target.x + 'px', top: target.y + 'px' }">
+      <img src="./../../../assets/imgs/mesa.png" alt="mesa" />
+    </div>
+
+    <!-- obstacles -->  
+    <div class="obstacle" *ngFor="let o of obstacles"
+         [ngStyle]="{ left: o.x + 'px', top: o.y + 'px', width: o.size + 'px', height: o.size + 'px' }">
+      <img [src]="o.img" alt="obst" />
+    </div>
+
+    <!-- waiter (player) -->
+    <div class="waiter" [ngStyle]="{ left: player.x + 'px', top: player.y + 'px' }">
+      <img src="./../../../assets/imgs/mozo.png" alt="mozo" />
+    </div>
+
+    <!-- overlays -->
+    <div class="overlay lose" *ngIf="stopped && !won">
+      <h2>Perdiste</h2>
+      <button mat-flat-button (click)="resetGame()">Volver a intentar</button>
+    </div>
+
+    <div class="overlay win" *ngIf="won">
+      <h2>¡Llegaste a la mesa! 🎉</h2>
+      <button mat-flat-button (click)="resetGame()">Jugar de nuevo</button>
+    </div>
+  </div>
+
+  <!-- hidden audio elements -->
+  <audio #startSound src="../../../assets/sounds/start_sound.mp3"></audio>
+  <audio #endSound src="../../../assets/sounds/winner.mp3"></audio>
+  <audio #errorSound src="../../../assets/sounds/error.mp3"></audio>
+</div>

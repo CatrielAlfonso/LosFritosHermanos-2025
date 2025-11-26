@@ -1,0 +1,5 @@
+/* Estilos específicos para el mozo, para que las transiciones de movimiento se vean suaves */
+.player {
+  /* Transición crucial para que el movimiento de aceleración se sienta fluido */
+  transition: left 0.05s linear, top 0.05s linear;
+}

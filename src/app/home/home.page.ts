@@ -1056,7 +1056,7 @@ export class HomePage implements OnInit {
   
   irAJuegos()
   {
-    this.router.navigate(['/atrapa-el-pollo']);
+    this.router.navigate(['/game-selector']);
   }
 
   irAEncuestas()

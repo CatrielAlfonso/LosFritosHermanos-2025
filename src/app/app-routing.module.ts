@@ -113,9 +113,22 @@ const routes: Routes = [
     loadComponent: () => import('./componentes/lista-espera/lista-espera.component').then(m => m.ListaEsperaComponent)
   },
   {
+    path:'game-selector',
+    loadComponent: () => import('./game-selector/game-selector.component').then(m => m.GameSelectorComponent)
+  },
+  {
     path: 'atrapa-el-pollo',
     loadComponent: () => import('./games/atrapa-el-pollo/atrapa-el-pollo.component').then(m => m.AtrapaElPolloComponent)
   },
+  {
+    path: 'memoria-de-sabores',
+    loadComponent: () => import('./games/memoria-de-sabores/memoria-de-sabores.component').then(m => m.MemoriaDeSaboresComponent)
+  },
+  {
+    path:'mozo-equilibrio',
+    loadComponent: () => import('./games/extragame/extragame.component').then(m => m.ExtraGameComponent)
+  }
+  ,
   {
     path: 'cocina',
     loadComponent: () => import('./componentes/cocina/cocina.component').then(m => m.CocinaComponent)
@@ -176,6 +189,13 @@ const routes: Routes = [
     path: 'mis-pedidos-delivery',
     loadComponent: () => import('./componentes/mis-pedidos-delivery/mis-pedidos-delivery.component').then(m => m.MisPedidosDeliveryComponent)
   },
+  {
+    path: 'extra-game',
+    loadComponent: () => import('./games/extragame/extragame.component').then(m => m.ExtraGameComponent)
+  },
+ 
+
+
 
 ];
 
