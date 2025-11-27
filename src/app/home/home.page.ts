@@ -44,6 +44,8 @@ export class HomePage implements OnInit {
   clienteSentado: boolean = false;
   mostrarBotonVerEstadoPedido: boolean = false;
   pedidoActualCliente: any = null;
+  clienteEsperandoPedido: boolean = false;
+
   qrEnProceso: boolean = false;
   esClienteAnonimo: boolean = false;
   clienteAnonimo: any = null;
@@ -682,6 +684,9 @@ export class HomePage implements OnInit {
     
     if (!error && data && data.length > 0) {
       const pedido = data[0];
+      console.log('Pedido existente encontrado para la mesa:', this.mesaAsignada);
+      console.log('Datos del pedido:', pedido);
+      
       // Mostrar botón de estado si el pedido existe (pendiente o confirmado)
       this.mostrarBotonVerEstadoPedido = true;
       this.pedidoActualCliente = pedido;
@@ -1557,7 +1562,7 @@ export class HomePage implements OnInit {
   
   irAJuegos()
   {
-    this.router.navigate(['/atrapa-el-pollo']);
+    this.router.navigate(['/game-selector']);
   }
 
   irAEncuestas()

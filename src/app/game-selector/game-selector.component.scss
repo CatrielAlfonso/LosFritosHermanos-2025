@@ -1,0 +1,97 @@
+.selector-container {
+  max-width: 900px;
+  margin: auto;
+  margin-top: 2rem;
+  padding: 2rem;
+  border-radius: 15px;
+  background: #dc2234;
+  text-align: center;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: #dc2234;
+  border-bottom: 2px solid #f1f1f1;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 700;
+  color: #efbf2d; // un naranja "frito"
+  letter-spacing: 1px;
+}
+
+
+
+.header-spacer {
+  width: 40px;  // para balancear el “Volver”
+}
+
+.titulo {
+  color: #e7ef0d;
+  margin-bottom: .5rem;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.subtitulo {
+  color: #ffffff;
+  margin-bottom: 2rem;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.descuento-box {
+  background: #dc2234;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  border: 2px solid #2ecc71;
+}
+
+.grid-juegos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.card-juego {
+ padding: 1rem;
+  border-radius: 1.2rem;
+  background: #f1d60f;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  transition: transform .25s ease, box-shadow .25s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.18);
+  }
+
+  button {
+    margin-top: 1rem;
+    background-color: #e69006;
+  }
+}
+
+.descripcion {
+  color: #444;
+  font-size: 1rem;
+  margin-top: .5rem;
+}
+
+* {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.juego-img {
+ width: 100%;
+  max-width: 450px;  // Ajustá a gusto
+  margin: 0 auto;
+  display: block;
+  border-radius: 1rem;
+}
