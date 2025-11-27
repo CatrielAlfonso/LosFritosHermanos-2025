@@ -622,6 +622,35 @@ export class PushNotificationService {
     }
   }
 
+  /**
+   * Notifica al repartidor y dueño/supervisor cuando el cliente confirma la recepción del delivery
+   */
+  async notificarConfirmacionDelivery(pedidoId: number, clienteNombre: string, montoTotal: number) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-delivery-confirmed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pedidoId,
+          clienteNombre,
+          montoTotal
+        })
+      });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Notificacion de confirmacion delivery enviada');
+      return result;
+      
+    } catch (error) {
+      console.error('Error al notificar confirmacion delivery:', error);
+      throw error;
+    }
+  }
 
 }

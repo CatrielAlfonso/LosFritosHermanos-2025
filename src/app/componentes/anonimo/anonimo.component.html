@@ -40,43 +40,11 @@
 
     </div>
     
-    <div class="qr-panel ion-padding">
-      
-      <p class="qr-subtitle">O escanea tu **QR de Ingreso** o de **Mesa**.</p>
-      
-      <ion-button 
-        expand="block" 
-        (click)="startScan()" 
-        [disabled]="isScanning" 
-        class="scan-button"
-        color="secondary"
-      >
-        <ion-icon slot="start" [name]="isScanning ? 'stop-circle-outline' : 'qr-code-outline'"></ion-icon>
-        {{ isScanning ? 'DETENER ESCANEO' : 'ESCANEAR CÓDIGO QR' }}
-      </ion-button>
-
-      <div *ngIf="scanResult" class="scan-result-card">
-        <ion-label class="ion-text-wrap">
-          <small>Resultado Reciente:</small>
-          <h3>{{ scanResult }}</h3>
-        </ion-label>
-        
-        <div class="action-buttons-group">
-          <ion-button fill="clear" size="small" (click)="copyToClipboard()">
-            <ion-icon slot="icon-only" name="clipboard-outline"></ion-icon>
-          </ion-button>
-          
-          <ion-button fill="clear" size="small" *ngIf="isURL(scanResult)" (click)="showUrlConfirmation(scanResult!)">
-            <ion-icon slot="icon-only" name="open-outline"></ion-icon>
-          </ion-button>
-        </div>
-      </div>
-      
+    <div class="volver-panel ion-padding">
       <ion-button expand="block" fill="clear" color="light" class="ion-margin-top" (click)="volverBienvenida()">
         <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
         Volver
       </ion-button>
-      
     </div>
     
   </div>

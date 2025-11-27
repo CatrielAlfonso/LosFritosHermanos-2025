@@ -454,7 +454,10 @@ export class DeliveryComponent implements OnInit {
         // Asignamos estados individuales solo si hay productos de ese tipo
         estado_comida: comidas.length > 0 ? 'pendiente' : undefined,
         estado_bebida: bebidas.length > 0 ? 'pendiente' : undefined,
-        estado_postre: postres.length > 0 ? 'pendiente' : undefined
+        estado_postre: postres.length > 0 ? 'pendiente' : undefined,
+        // Asignar automáticamente al repartidor único
+        repartidor_id: 1,
+        repartidor_nombre: 'Carlos Ramírez'
       };
 
       await this.deliveryService.crearPedidoDelivery(pedido);

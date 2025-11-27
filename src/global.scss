@@ -239,6 +239,45 @@ ion-button {
   --border-color: var(--ion-color-fritos-yellow);
 }
 
+/* Estilos globales para toolbars y títulos - Asegurar visibilidad */
+ion-toolbar {
+  --color: var(--ion-color-fritos-red-contrast, #ffffff) !important;
+  
+  ion-title {
+    color: var(--ion-color-fritos-red-contrast, #ffffff) !important;
+    font-weight: 600;
+  }
+  
+  ion-button {
+    --color: var(--ion-color-fritos-red-contrast, #ffffff) !important;
+  }
+}
+
+/* Para toolbars con color personalizado */
+ion-toolbar[color] {
+  ion-title {
+    color: var(--ion-color-contrast, #ffffff) !important;
+  }
+  
+  ion-button {
+    --color: var(--ion-color-contrast, #ffffff) !important;
+  }
+}
+
+/* Específicamente para toolbars rojos (fritos-red) */
+ion-toolbar[color="fritos-red"],
+ion-toolbar.color-fritos-red {
+  --color: #ffffff !important;
+  
+  ion-title {
+    color: #ffffff !important;
+  }
+  
+  ion-button {
+    --color: #ffffff !important;
+  }
+}
+
 /* Animaciones personalizadas */
 @keyframes fritos-bounce {
   0%, 20%, 50%, 80%, 100% {

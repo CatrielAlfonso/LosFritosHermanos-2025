@@ -45,6 +45,9 @@ export class HomePage implements OnInit {
   mostrarBotonVerEstadoPedido: boolean = false;
   pedidoActualCliente: any = null;
   qrEnProceso: boolean = false;
+  esClienteAnonimo: boolean = false;
+  clienteAnonimo: any = null;
+  mostrarMensajeListaEspera: boolean = true; // Control para mostrar/ocultar el mensaje
 
   mesaSeleccionada='12';
 
@@ -64,6 +67,7 @@ export class HomePage implements OnInit {
   consultaClienteTexto: string = '';
   errorConsultaCliente: string = '';
   intervaloConsultasMozo: any = null;
+  intervaloVerificarMesa: any = null;
 
 
   pedidoHecho: boolean = true;
@@ -115,6 +119,9 @@ export class HomePage implements OnInit {
     });
 
     this.loadUserData(); // lo podés dejar después
+    
+    // Iniciar verificación periódica de mesa asignada para clientes
+    this.iniciarVerificacionMesaAsignada();
 
     console.log('Perfil usuario en HomePage:', this.perfilUsuario);
 
@@ -148,13 +155,67 @@ export class HomePage implements OnInit {
    async loadUserData() {
     this.isLoading = true;
     
+    // PRIMERO: Verificar si hay un usuario autenticado
     const user = await this.userService.loadCurrentUser();
+    
+    // Si hay usuario autenticado, limpiar cliente anónimo del localStorage y usar el usuario autenticado
+    if (user) {
+      // Limpiar cliente anónimo si existe
+      localStorage.removeItem('clienteAnonimo');
+      this.esClienteAnonimo = false;
+      this.clienteAnonimo = null;
+      
     this.tipoUsuario = user?.tipo || null;
     this.userData = user || null;
-    this.nombreUsuario = user?.datos.nombre
-    this.perfilUsuario = user?.tipo || null
-    console.log('user: ', user)
-    console.log('userData: ', this.userData)
+      this.nombreUsuario = user?.datos.nombre;
+      this.perfilUsuario = user?.tipo || null;
+      console.log('user: ', user);
+      console.log('userData: ', this.userData);
+      
+      // Si es cliente autenticado, cargar this.usuario y verificar mesa asignada
+      if (this.perfilUsuario === 'cliente') {
+        // Cargar this.usuario desde authService para que verificarMesaAsignada() funcione
+        const { data: authData } = await this.authService.getCurrentUser();
+        if (authData?.user) {
+          this.usuario = authData.user;
+          console.log('👤 [loadUserData] Usuario autenticado cargado:', this.usuario.email);
+          // Verificar si tiene mesa asignada
+          await this.verificarMesaAsignada();
+          await this.cargarClienteInfo();
+        }
+      }
+      
+      this.isLoading = false;
+      return;
+    }
+    
+    // SEGUNDO: Solo si NO hay usuario autenticado, verificar si es cliente anónimo
+    const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
+    if (clienteAnonimoStr) {
+      try {
+        this.clienteAnonimo = JSON.parse(clienteAnonimoStr);
+        this.esClienteAnonimo = true;
+        this.tipoUsuario = 'cliente';
+        this.perfilUsuario = 'cliente';
+        this.nombreUsuario = this.clienteAnonimo.nombre;
+        this.clienteInfo = this.clienteAnonimo;
+        
+        // Verificar si tiene mesa asignada o está en lista de espera
+        await this.verificarEstadoClienteAnonimo();
+        
+        this.isLoading = false;
+        return;
+      } catch (error) {
+        console.error('Error al parsear cliente anónimo:', error);
+        // Si hay error, limpiar el localStorage corrupto
+        localStorage.removeItem('clienteAnonimo');
+      }
+    }
+    
+    // Si no hay ni usuario autenticado ni cliente anónimo
+    this.tipoUsuario = null;
+    this.userData = null;
+    this.perfilUsuario = null;
     this.isLoading = false;
   }
 
@@ -225,6 +286,197 @@ export class HomePage implements OnInit {
     }
   }
 
+  async verificarEstadoClienteAnonimo() {
+    if (!this.clienteAnonimo || !this.esClienteAnonimo) return;
+
+    try {
+      // Verificar si está en lista de espera
+      const correoAnonimo = `anonimo-${this.clienteAnonimo.id}@fritos.com`;
+      
+      const { data: listaEspera } = await this.supabase.supabase
+        .from('lista_espera')
+        .select('mesa_asignada')
+        .eq('correo', correoAnonimo)
+        .maybeSingle();
+
+      if (listaEspera?.mesa_asignada) {
+        this.mesaAsignada = listaEspera.mesa_asignada;
+        this.mostrarBotonEscanearMesa = true;
+        this.yaEnListaEspera = false; // Ya tiene mesa, no necesita mostrar mensaje
+        this.mostrarMensajeListaEspera = false;
+        // Detener verificación periódica ya que encontró la mesa
+        if (this.intervaloVerificarMesa) {
+          clearInterval(this.intervaloVerificarMesa);
+          this.intervaloVerificarMesa = null;
+          console.log('✅ [verificarEstadoClienteAnonimo] Verificación periódica detenida, mesa encontrada');
+        }
+        await this.verificarClienteSentado();
+        if (this.clienteSentado) {
+          await this.verificarPedidoExistente();
+        }
+      } else {
+        // Verificar si está en lista de espera sin mesa
+        const { data: enLista } = await this.supabase.supabase
+          .from('lista_espera')
+          .select('id')
+          .eq('correo', correoAnonimo)
+          .maybeSingle();
+        
+        this.yaEnListaEspera = !!enLista;
+        
+        // Si está en lista de espera, mostrar el mensaje inicialmente
+        if (this.yaEnListaEspera) {
+          this.mostrarMensajeListaEspera = true;
+          // Ocultar el mensaje automáticamente después de 5 segundos
+          setTimeout(() => {
+            this.mostrarMensajeListaEspera = false;
+          }, 5000);
+        }
+      }
+    } catch (error) {
+      console.error('Error al verificar estado cliente anónimo:', error);
+    }
+  }
+
+  ocultarMensajeListaEspera() {
+    this.mostrarMensajeListaEspera = false;
+  }
+
+  async escanearQRParaVerEncuestas() {
+    try {
+      this.customLoader.show();
+      const { barcodes } = await BarcodeScanner.scan();
+      
+      if (barcodes.length > 0) {
+        const codigoEscaneado = barcodes[0].rawValue || barcodes[0].displayValue;
+        
+        // Verificar si es el QR de entrada al local
+        if (codigoEscaneado.startsWith('ENTRADA:') || 
+            codigoEscaneado.startsWith('RESTAURANT_CHECKIN_') ||
+            codigoEscaneado === 'verEncuestas') {
+          // Navegar a la pantalla de encuestas en modo visualización
+          await this.router.navigate(['/encuestas'], { queryParams: { modo: 'ver' } });
+        } else {
+          await this.swal.showTemporaryAlert('Error', 'QR inválido. Escaneá el código QR de entrada al local.', 'error');
+        }
+      } else {
+        await this.swal.showTemporaryAlert('Error', 'No se detectó ningún código QR', 'error');
+      }
+    } catch (error: any) {
+      console.error('Error al escanear QR:', error);
+      if (!error.message?.includes('cancelled') && !error.message?.includes('cancelado')) {
+        await this.swal.showTemporaryAlert('Error', 'Error al escanear el código QR', 'error');
+      }
+    } finally {
+      this.customLoader.hide();
+    }
+  }
+
+  async procesarQRMesaAnonimo(codigoEscaneado: string) {
+    try {
+      let datosQR: any = {};
+      
+      try {
+        datosQR = JSON.parse(codigoEscaneado);
+      } catch {
+        // Si no es JSON, intentar otros formatos
+        if (codigoEscaneado.includes('mesa') || codigoEscaneado.includes('MESA')) {
+          const match = codigoEscaneado.match(/(\d+)/);
+          if (match) {
+            datosQR.numeroMesa = match[1];
+          }
+        } else {
+          throw new Error('QR no válido');
+        }
+      }
+
+      const correoAnonimo = `anonimo-${this.clienteAnonimo.id}@fritos.com`;
+
+      // Si el QR tiene número de mesa, asignar directamente
+      if (datosQR.numeroMesa) {
+        const numeroMesa = parseInt(datosQR.numeroMesa);
+        
+        // Verificar si ya está en lista de espera
+        const { data: enLista } = await this.supabase.supabase
+          .from('lista_espera')
+          .select('id')
+          .eq('correo', correoAnonimo)
+          .maybeSingle();
+
+        if (!enLista) {
+          // Agregar a lista de espera
+          await this.supabase.supabase.from('lista_espera').insert([
+            {
+              correo: correoAnonimo,
+              nombre: this.clienteAnonimo.nombre,
+              fecha_ingreso: new Date(),
+              mesa_asignada: numeroMesa
+            }
+          ]);
+
+          // Notificar al maître
+          try {
+            await this.pushNotificationService.notificarMaitreNuevoCliente(
+              this.clienteAnonimo.nombre,
+              ''
+            );
+          } catch (error) {
+            console.error('Error al notificar maître:', error);
+          }
+        } else {
+          // Actualizar mesa asignada
+          await this.supabase.supabase
+            .from('lista_espera')
+            .update({ mesa_asignada: numeroMesa })
+            .eq('correo', correoAnonimo);
+        }
+
+        this.mesaAsignada = numeroMesa;
+        this.mostrarBotonEscanearMesa = true;
+        await this.swal.showTemporaryAlert('Éxito', `Mesa ${numeroMesa} asignada. Ahora podés escanear el QR de la mesa para sentarte`, 'success');
+        
+      } else {
+        // Si no tiene mesa, agregar a lista de espera
+        const { data: enLista } = await this.supabase.supabase
+          .from('lista_espera')
+          .select('id')
+          .eq('correo', correoAnonimo)
+          .maybeSingle();
+
+        if (!enLista) {
+          await this.supabase.supabase.from('lista_espera').insert([
+            {
+              correo: correoAnonimo,
+              nombre: this.clienteAnonimo.nombre,
+              fecha_ingreso: new Date()
+            }
+          ]);
+
+          // Notificar al maître
+          try {
+            await this.pushNotificationService.notificarMaitreNuevoCliente(
+              this.clienteAnonimo.nombre,
+              ''
+            );
+          } catch (error) {
+            console.error('Error al notificar maître:', error);
+          }
+
+          await this.swal.showTemporaryAlert('Éxito', 'Te agregamos a la lista de espera. El maître te asignará una mesa pronto', 'success');
+          this.yaEnListaEspera = true;
+        } else {
+          await this.swal.showTemporaryAlert('Info', 'Ya estás en la lista de espera. El maître te asignará una mesa pronto', 'info');
+        }
+      }
+
+      await this.verificarEstadoClienteAnonimo();
+      
+    } catch (error: any) {
+      console.error('Error al procesar QR:', error);
+      await this.swal.showTemporaryAlert('Error', error.message || 'Error al procesar el código QR', 'error');
+    }
+  }
+
 
 
   
@@ -256,11 +508,29 @@ export class HomePage implements OnInit {
 
     async verificarMesaAsignada() {
     try {
+      // Verificar que this.usuario esté disponible
+      if (!this.usuario || !this.usuario.email) {
+        console.log('⚠️ [verificarMesaAsignada] this.usuario no está disponible');
+        // Intentar cargar desde authService
+        const { data: authData } = await this.authService.getCurrentUser();
+        if (authData?.user) {
+          this.usuario = authData.user;
+          console.log('✅ [verificarMesaAsignada] Usuario cargado desde authService:', this.usuario.email);
+        } else {
+          console.log('❌ [verificarMesaAsignada] No se pudo obtener usuario');
+          return;
+        }
+      }
+
+      console.log('🔍 [verificarMesaAsignada] Verificando mesa para:', this.usuario.email);
+
       const { data: lista, error: errorLista } = await this.supabase.supabase
         .from('lista_espera')
         .select('*')
         .eq('correo', this.usuario.email);
+      
       this.yaEnListaEspera = Array.isArray(lista) && lista.length > 0;
+      console.log('📋 [verificarMesaAsignada] Ya en lista de espera:', this.yaEnListaEspera);
 
       const { data: clienteEnLista, error } = await this.supabase.supabase
         .from('lista_espera')
@@ -269,11 +539,16 @@ export class HomePage implements OnInit {
         .not('mesa_asignada', 'is', null)
         .single();
 
+      console.log('🔍 [verificarMesaAsignada] Cliente en lista:', clienteEnLista);
+      console.log('🔍 [verificarMesaAsignada] Error (si existe):', error);
+
       if (error && error.code !== 'PGRST116') {
+        console.log('⚠️ [verificarMesaAsignada] Error al buscar cliente:', error);
         return;
       }
 
       const nuevaMesaAsignada = clienteEnLista?.mesa_asignada || null;
+      console.log('🪑 [verificarMesaAsignada] Mesa asignada encontrada:', nuevaMesaAsignada);
 
       if (nuevaMesaAsignada !== this.mesaAsignadaAnterior) {
         //this.loadingService.show();
@@ -287,21 +562,86 @@ export class HomePage implements OnInit {
       this.mostrarBotonEscanearMesa = !!nuevaMesaAsignada;
       this.mesaAsignadaAnterior = nuevaMesaAsignada;
 
+      console.log('🔘 [verificarMesaAsignada] mostrarBotonEscanearMesa:', this.mostrarBotonEscanearMesa);
+
       if (nuevaMesaAsignada) {
+        // Detener la verificación periódica ya que encontró la mesa
+        if (this.intervaloVerificarMesa) {
+          clearInterval(this.intervaloVerificarMesa);
+          this.intervaloVerificarMesa = null;
+          console.log('✅ [verificarMesaAsignada] Verificación periódica detenida, mesa encontrada');
+        }
         await this.verificarClienteSentado();
         await this.verificarPedidoExistente();
       } else {
+        // Si no hay mesa asignada, asegurarse de que la verificación periódica esté activa
+        this.iniciarVerificacionMesaAsignada();
         this.clienteSentado = false;
         this.mostrarBotonHacerPedido = false;
         this.mostrarBotonVerEstadoPedido = false;
       }
     } catch (error) {
+      console.error('💥 [verificarMesaAsignada] Error inesperado:', error);
       return;
+    }
+  }
+
+  iniciarVerificacionMesaAsignada() {
+    // Limpiar intervalo anterior si existe
+    if (this.intervaloVerificarMesa) {
+      clearInterval(this.intervaloVerificarMesa);
+      this.intervaloVerificarMesa = null;
+    }
+
+    // Solo verificar periódicamente si es cliente (autenticado o anónimo) y no tiene mesa asignada aún
+    const esCliente = this.perfilUsuario === 'cliente' || this.tipoUsuario === 'cliente';
+    const debeVerificar = esCliente && !this.mesaAsignada && !this.clienteSentado;
+    
+    if (debeVerificar) {
+      console.log('🔄 [iniciarVerificacionMesaAsignada] Iniciando verificación periódica de mesa');
+      this.intervaloVerificarMesa = setInterval(async () => {
+        const sigueSiendoCliente = this.perfilUsuario === 'cliente' || this.tipoUsuario === 'cliente';
+        const sigueSinMesa = !this.mesaAsignada && !this.clienteSentado;
+        
+        // Solo verificar si sigue siendo cliente y no tiene mesa asignada
+        if (sigueSiendoCliente && sigueSinMesa) {
+          // Verificar mesa según tipo de cliente
+          if (this.esClienteAnonimo) {
+            await this.verificarEstadoClienteAnonimo();
+          } else {
+            await this.verificarMesaAsignada();
+          }
+        } else {
+          // Si ya tiene mesa o está sentado, detener la verificación
+          if (this.intervaloVerificarMesa) {
+            clearInterval(this.intervaloVerificarMesa);
+            this.intervaloVerificarMesa = null;
+            console.log('🛑 [iniciarVerificacionMesaAsignada] Verificación periódica detenida');
+          }
+        }
+      }, 3000); // Verificar cada 3 segundos
     }
   }
 
   async verificarClienteSentado() {
     try {
+      let sentado = false;
+
+      if (this.esClienteAnonimo && this.clienteAnonimo) {
+        // Para cliente anónimo, buscar por ID
+        const { data: clienteEnLista, error } = await this.supabase.supabase
+          .from('clientes')
+          .select('sentado')
+          .eq('id', this.clienteAnonimo.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          return;
+        }
+
+        sentado = clienteEnLista?.sentado || false;
+      } else if (this.usuario?.email) {
+        // Para cliente registrado, buscar por correo
       const { data: clienteEnLista, error } = await this.supabase.supabase
         .from('clientes')
         .select('sentado')
@@ -312,30 +652,47 @@ export class HomePage implements OnInit {
         return;
       }
 
-      const sentado = clienteEnLista?.sentado || false;
+        sentado = clienteEnLista?.sentado || false;
+      }
 
       this.clienteSentado = sentado;
+      if (sentado) {
+        this.mostrarBotonHacerPedido = true;
+      }
     } catch (error) {
       return;
     }
   }
 
    async verificarPedidoExistente() {
-    if (!this.mesaAsignada || this.perfilUsuario !== 'cliente') {
+    // También permitir para clientes anónimos
+    const esCliente = this.perfilUsuario === 'cliente' || this.esClienteAnonimo;
+    if (!this.mesaAsignada || !esCliente) {
       this.mostrarBotonVerEstadoPedido = false;
       this.pedidoActualCliente = null;
       return;
     }
+    
     const { data, error } = await this.supabase.supabase
       .from('pedidos')
       .select('*')
-      .eq('mesa', this.mesaAsignada)
+      .eq('mesa', String(this.mesaAsignada))
       .order('id', { ascending: false })
       .limit(1);
+    
     if (!error && data && data.length > 0) {
+      const pedido = data[0];
+      // Mostrar botón de estado si el pedido existe (pendiente o confirmado)
       this.mostrarBotonVerEstadoPedido = true;
-      this.pedidoActualCliente = data[0];
-      this.mostrarBotonHacerPedido = false;
+      this.pedidoActualCliente = pedido;
+      
+      // Solo ocultar botón de hacer pedido si el pedido está pendiente o en preparación
+      // Si está entregado o finalizado, permitir hacer nuevo pedido
+      if (pedido.estado === 'pendiente' || pedido.estado === 'en preparacion') {
+        this.mostrarBotonHacerPedido = false;
+      } else {
+        this.mostrarBotonHacerPedido = this.clienteSentado;
+      }
     } else {
       this.mostrarBotonVerEstadoPedido = false;
       this.pedidoActualCliente = null;
@@ -486,12 +843,16 @@ export class HomePage implements OnInit {
   async cerrarSesion() {
     this.customLoader.show();
     await this.authService.signOut();
-    //this.swal.showTemporaryAlert('Éxito', 'Has cerrado sesión correctamente.', 'success');
+    
+    // Limpiar cliente anónimo del localStorage al cerrar sesión
+    localStorage.removeItem('clienteAnonimo');
+    this.esClienteAnonimo = false;
+    this.clienteAnonimo = null;
+    
     this.customLoader.hide();
     this.nombreUsuario = '';
     this.usuario = null;
     this.router.navigate(['/login']);
-    //this.swal.showTemporaryAlert('Éxito', 'Has cerrado sesión correctamente.', 'success');
     this.feedback.showToast('exito', 'Has cerrado sesión correctamente.');
   }
 
@@ -717,6 +1078,21 @@ export class HomePage implements OnInit {
       })
       .eq('id', id);
     if (!error) {
+      // Enviar notificación push al cliente
+      if (consulta.correo && consulta.mesa && nombreMozo) {
+        try {
+          await this.pushNotificationService.notificarClienteRespuestaMozo(
+            consulta.correo,
+            nombreMozo,
+            parseInt(consulta.mesa)
+          );
+          console.log('✅ [enviarRespuestaMozo] Notificación enviada al cliente');
+        } catch (notifError) {
+          console.error('⚠️ [enviarRespuestaMozo] Error al enviar notificación:', notifError);
+          // No fallar la operación si falla la notificación
+        }
+      }
+      
       this.cargarConsultasMozo();
       this.respuestaMozoPorId[id] = '';
       this.errorRespuestaMozoPorId[id] = '';
@@ -831,42 +1207,86 @@ export class HomePage implements OnInit {
   async agregarAListaEspera() {
     console.log('🔍 [agregarAListaEspera] INICIANDO método');
     try {
-      console.log('👤 [agregarAListaEspera] Usuario actual:', this.usuario);
-      
-      if (!this.usuario) {
-        console.log('❌ [agregarAListaEspera] No hay usuario autenticado');
+      let cliente: any = null;
+      let correo: string = '';
+      let nombre: string = '';
+      let apellido: string | null = null;
+
+      // Verificar si es cliente anónimo
+      if (this.esClienteAnonimo && this.clienteAnonimo) {
+        console.log('👤 [agregarAListaEspera] Cliente anónimo detectado');
+        cliente = this.clienteAnonimo;
+        correo = `anonimo-${cliente.id}@fritos.com`;
+        nombre = cliente.nombre;
+        apellido = null; // Clientes anónimos no tienen apellido
+      } else {
+        // Obtener usuario autenticado si no está en this.usuario
+        let usuarioActual = this.usuario;
+        if (!usuarioActual || !usuarioActual.email) {
+          console.log('🔍 [agregarAListaEspera] Usuario no disponible en this.usuario, obteniendo desde authService...');
+          const { data, error } = await this.authService.getCurrentUser();
+          if (error || !data?.user) {
+            console.log('❌ [agregarAListaEspera] No se pudo obtener usuario autenticado');
         await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del usuario.', 'error');
         return;
       }
+          usuarioActual = data.user;
+          this.usuario = usuarioActual; // Actualizar this.usuario para futuras referencias
+        }
 
-      console.log('📧 [agregarAListaEspera] Buscando cliente en lista con email:', this.usuario.email);
+        if (!usuarioActual || !usuarioActual.email) {
+          console.log('❌ [agregarAListaEspera] No hay usuario autenticado ni cliente anónimo');
+          await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del usuario.', 'error');
+        return;
+      }
+
+        console.log('👤 [agregarAListaEspera] Usuario autenticado:', usuarioActual);
+        correo = usuarioActual.email;
+        
+        // Obtener datos del cliente desde tabla clientes
+      console.log('🔎 [agregarAListaEspera] Obteniendo datos del cliente desde tabla clientes');
+        const { data: clienteData, error: errorCliente } = await this.supabase.supabase
+        .from('clientes')
+          .select('nombre, apellido, correo, anonimo')
+          .eq('correo', correo)
+        .single();
+
+        if (errorCliente || !clienteData) {
+        console.log('❌ [agregarAListaEspera] No se pudo obtener información del cliente');
+        await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del cliente.', 'error');
+          return;
+        }
+
+        // Si es anónimo, usar información del localStorage si está disponible
+        if (clienteData.anonimo && this.clienteAnonimo) {
+          cliente = this.clienteAnonimo;
+          nombre = cliente.nombre;
+          apellido = null;
+        } else {
+          cliente = clienteData;
+          nombre = cliente.nombre;
+          apellido = cliente.apellido || null;
+        }
+      }
+
+      console.log('📧 [agregarAListaEspera] Buscando cliente en lista con correo:', correo);
       const { data: clienteEnLista } = await this.supabase.supabase
         .from('lista_espera')
         .select('*')
-        .eq('correo', this.usuario.email)
-        .single();
+        .eq('correo', correo)
+        .maybeSingle();
 
       console.log('📋 [agregarAListaEspera] Cliente ya en lista?:', clienteEnLista);
       
       if (clienteEnLista) {
         console.log('⚠️ [agregarAListaEspera] Cliente ya está en la lista de espera');
         await this.swal.showTemporaryAlert('Info', 'Ya te encuentras en la lista de espera.', 'info');
-        return;
-      }
-
-      console.log('🔎 [agregarAListaEspera] Obteniendo datos del cliente desde tabla clientes');
-      const { data: cliente, error: errorCliente } = await this.supabase.supabase
-        .from('clientes')
-        .select('nombre, apellido, correo')
-        .eq('correo', this.usuario.email)
-        .single();
-
-      console.log('👥 [agregarAListaEspera] Datos del cliente:', cliente);
-      console.log('❓ [agregarAListaEspera] Error al obtener cliente?:', errorCliente);
-
-      if (errorCliente || !cliente) {
-        console.log('❌ [agregarAListaEspera] No se pudo obtener información del cliente');
-        await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del cliente.', 'error');
+        this.yaEnListaEspera = true;
+        this.mostrarMensajeListaEspera = true; // Mostrar el mensaje
+        // Ocultar el mensaje automáticamente después de 5 segundos
+        setTimeout(() => {
+          this.mostrarMensajeListaEspera = false;
+        }, 5000);
         return;
       }
 
@@ -889,12 +1309,15 @@ export class HomePage implements OnInit {
       
       console.log('📅 [agregarAListaEspera] Fecha formateada final:', fechaFinal);
 
-      const datosAInsertar = {
-        nombre: cliente.nombre,
-        apellido: cliente.apellido,
-        correo: cliente.correo,
+      const datosAInsertar: any = {
+        nombre: nombre,
+        correo: correo,
         fecha_ingreso: fechaFinal
       };
+
+      if (apellido) {
+        datosAInsertar.apellido = apellido;
+      }
       
       console.log('💾 [agregarAListaEspera] Intentando insertar en lista_espera:', datosAInsertar);
 
@@ -911,12 +1334,19 @@ export class HomePage implements OnInit {
       }
 
       console.log('✅ [agregarAListaEspera] Cliente agregado exitosamente a la lista de espera');
+      this.yaEnListaEspera = true;
+      this.mostrarMensajeListaEspera = true; // Mostrar el mensaje cuando se agrega a la lista
+
+      // Ocultar el mensaje automáticamente después de 5 segundos
+      setTimeout(() => {
+        this.mostrarMensajeListaEspera = false;
+      }, 5000);
 
       try {
         console.log('🔔 [agregarAListaEspera] Enviando notificación al maître');
         await this.pushNotificationService.notificarMaitreNuevoCliente(
-          cliente.nombre,
-          cliente.apellido
+          nombre,
+          apellido || ''
         );
         console.log('✅ [agregarAListaEspera] Notificación enviada');
       } catch (error) {
@@ -985,7 +1415,21 @@ export class HomePage implements OnInit {
       qrValido = true;
     } else {
       // Verificar si el cliente tiene una reserva confirmada activa para esta mesa
-      if (this.usuario && this.usuario.email) {
+      if (this.esClienteAnonimo) {
+        // Para clientes anónimos, verificar en lista_espera
+        const correoAnonimo = `anonimo-${this.clienteAnonimo.id}@fritos.com`;
+        const { data: listaEspera } = await this.supabase.supabase
+          .from('lista_espera')
+          .select('mesa_asignada')
+          .eq('correo', correoAnonimo)
+          .eq('mesa_asignada', numeroMesa)
+          .maybeSingle();
+        
+        if (listaEspera) {
+          qrValido = true;
+          this.mesaAsignada = numeroMesa;
+        }
+      } else if (this.usuario && this.usuario.email) {
         const reservaActiva = await this.reservasService.obtenerReservaConfirmadaActiva(this.usuario.email);
         
         if (reservaActiva && reservaActiva.mesa_numero === numeroMesa) {
@@ -1002,33 +1446,86 @@ export class HomePage implements OnInit {
       this.customLoader.hide();
       this.swal.showTemporaryAlert('Error', 'QR inválido, escanea el QR de tu mesa asignada o reservada', 'error');
     } else {
-      await this.marcarClienteSentado();
+      // Si el cliente ya está sentado, solo verificar pedido existente
+      if (this.clienteSentado) {
+        await this.verificarPedidoExistente();
+        this.customLoader.hide();
+        this.swal.showTemporaryAlert('Éxito', 'Acceso actualizado', 'success');
+      } else {
+        // Si no está sentado, marcarlo como sentado primero
+        await this.marcarClienteSentado();
+      }
     }
   }
 
 
   async marcarClienteSentado() {
     try {
-      const { error } = await this.supabase.supabase
+      let error: any = null;
+      let clienteId: number | null = null;
+
+      // Primero obtener el ID del cliente y marcarlo como sentado
+      if (this.esClienteAnonimo && this.clienteAnonimo) {
+        // Para cliente anónimo, actualizar por ID
+        clienteId = this.clienteAnonimo.id;
+        const { error: updateError } = await this.supabase.supabase
         .from('clientes')
         .update({
           sentado: true
         })
-        .eq('correo', this.usuario.email);
+          .eq('id', clienteId);
+        error = updateError;
+      } else if (this.usuario?.email) {
+        // Para cliente registrado, obtener ID primero y luego actualizar
+        const { data: clienteData, error: clienteError } = await this.supabase.supabase
+          .from('clientes')
+          .select('id')
+          .eq('correo', this.usuario.email)
+          .single();
+        
+        if (clienteError || !clienteData) {
+          error = clienteError;
+        } else {
+          clienteId = clienteData.id;
+          const { error: updateError } = await this.supabase.supabase
+            .from('clientes')
+            .update({
+              sentado: true
+            })
+            .eq('id', clienteId);
+          error = updateError;
+        }
+      }
 
       if (error) {
-        //this.mostrarNotificacion('No se pudo marcar el cliente como sentado.', 'error');
         this.swal.showTemporaryAlert('Error', 'No se pudo marcar el cliente como sentado.', 'error');
-      } else {
+        return;
+      }
 
-        //this.mostrarNotificacion('¡Bienvenido!', 'exito');
+      // Actualizar la tabla mesas: marcar como ocupada y asignar cliente
+      if (this.mesaAsignada && clienteId) {
+        const { error: errorMesa } = await this.supabase.supabase
+          .from('mesas')
+          .update({
+            ocupada: true,
+            clienteAsignadoId: clienteId
+          })
+          .eq('numero', this.mesaAsignada);
+
+        if (errorMesa) {
+          console.error('⚠️ [marcarClienteSentado] Error al actualizar mesa:', errorMesa);
+          // No fallar la operación completa si solo falla la actualización de mesa
+      } else {
+          console.log(`✅ [marcarClienteSentado] Mesa ${this.mesaAsignada} marcada como ocupada y cliente ${clienteId} asignado`);
+        }
+      }
+
         this.swal.showTemporaryAlert('¡Bienvenido!', '¡Ya puedes hacer tu pedido!', 'success');
         this.clienteSentado = true;
-        this.mostrarBotonHacerPedido = false;
+      this.mostrarBotonHacerPedido = true;
         await this.verificarPedidoExistente();
-      }
     } catch (error) {
-      //this.mostrarNotificacion('Error al marcar el cliente como sentado.', 'error');
+      console.error('💥 [marcarClienteSentado] Error inesperado:', error);
       this.swal.showTemporaryAlert('Error', 'Error al marcar el cliente como sentado.', 'error');
     }
   }
@@ -1047,6 +1544,10 @@ export class HomePage implements OnInit {
 
   irAVerPedidosBar(){
     this.router.navigate(['/bar'])
+  }
+
+  irAVerEstadoPedido() {
+    this.router.navigate(['/pedidos']);
   }
 
   irAListaEspera()

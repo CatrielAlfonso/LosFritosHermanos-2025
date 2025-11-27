@@ -139,15 +139,10 @@ export class PanelRepartidorComponent implements OnInit {
   }
 
   aplicarFiltro() {
-    if (this.filtroEstado === 'asignados') {
-      // Mostrar pedidos confirmados/preparando que AÚN NO están listos para entregar
-      this.pedidosFiltrados = this.pedidos.filter(
-        p => (p.estado === 'confirmado' || p.estado === 'preparando') && !this.estaListoParaEntregar(p)
-      );
-    } else if (this.filtroEstado === 'listos') {
+    if (this.filtroEstado === 'listos') {
       // Mostrar solo pedidos que están completamente listos para entregar
       this.pedidosFiltrados = this.pedidos.filter(
-        p => (p.estado === 'confirmado' || p.estado === 'preparando') && this.estaListoParaEntregar(p)
+        p => p.estado === 'confirmado' && this.estaListoParaEntregar(p)
       );
     } else if (this.filtroEstado === 'en_camino') {
       this.pedidosFiltrados = this.pedidos.filter(p => p.estado === 'en_camino');

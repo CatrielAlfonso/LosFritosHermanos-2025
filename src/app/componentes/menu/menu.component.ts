@@ -42,6 +42,12 @@ export class MenuComponent  implements OnInit, OnDestroy {
   shakeCount = 0;
   lastShakeTime = Date.now();
   
+  // Para acumular muestras y detectar dirección real
+  motionSamples: { x: number, z: number, time: number }[] = [];
+  isGesturing: boolean = false;
+  gestureStartTime: number = 0;
+  lastGestureTime: number = 0; // Cooldown después de cada gesto
+  
   // Indicador visual
   showMotionIndicator: boolean = false;
   motionIndicatorText: string = '';
@@ -231,6 +237,7 @@ export class MenuComponent  implements OnInit, OnDestroy {
     const now = Date.now();
     const deltaTime = now - this.lastTime;
 
+
     // Calcular la diferencia de aceleración
     const deltaX = Math.abs(x - this.lastAcceleration.x);
     const deltaY = Math.abs(y - this.lastAcceleration.y);
@@ -238,13 +245,15 @@ export class MenuComponent  implements OnInit, OnDestroy {
 
     // Detectar shake (movimiento repetido izquierda-derecha)
     if (deltaX > this.shakeThreshold) {
+      console.log(`🔄 SHAKE detectado - deltaX: ${deltaX.toFixed(2)}`);
       const timeSinceLastShake = now - this.lastShakeTime;
       
       if (timeSinceLastShake < 500) {
         this.shakeCount++;
+        console.log(`📈 Shake count: ${this.shakeCount}`);
         
         if (this.shakeCount >= 3) {
-          // Shake detectado: volver al inicio
+          console.log(`🏠 VOLVIENDO AL INICIO por shake`);
           this.volverAlInicio();
           this.shakeCount = 0;
         }
@@ -255,29 +264,68 @@ export class MenuComponent  implements OnInit, OnDestroy {
       this.lastShakeTime = now;
     }
 
-    // Detectar movimientos direccionales (con throttle de 500ms)
-    if (deltaTime > 500) {
-      // Movimiento hacia la IZQUIERDA (foto anterior)
-      if (x < -2 && Math.abs(x) > Math.abs(y) && Math.abs(x) > Math.abs(z)) {
-        this.cambiarFoto('prev');
-      }
+    // Detectar inicio de gesto (aceleración significativa)
+    const umbralInicio = 1.5;
+    const cooldownTime = 600; // Ignorar movimientos por 600ms después de un gesto
+    const hayMovimientoSignificativo = Math.abs(x) > umbralInicio || Math.abs(z) > umbralInicio;
+    
+    // Solo iniciar nuevo gesto si pasó el cooldown
+    if (hayMovimientoSignificativo && !this.isGesturing && (now - this.lastGestureTime > cooldownTime)) {
+      // Iniciar captura de gesto
+      this.isGesturing = true;
+      this.gestureStartTime = now;
+      this.motionSamples = [];
+    }
+    
+    // Acumular muestras durante el gesto
+    if (this.isGesturing) {
+      this.motionSamples.push({ x, z, time: now });
       
-      // Movimiento hacia la DERECHA (foto siguiente)
-      else if (x > 2 && Math.abs(x) > Math.abs(y) && Math.abs(x) > Math.abs(z)) {
-        this.cambiarFoto('next');
+      // Después de 150ms, analizar el gesto completo
+      if (now - this.gestureStartTime > 150 && deltaTime > 300) {
+        // Calcular la aceleración promedio de las primeras muestras (inicio del movimiento)
+        const primerasMuestras = this.motionSamples.slice(0, Math.min(5, this.motionSamples.length));
+        const avgX = primerasMuestras.reduce((sum, s) => sum + s.x, 0) / primerasMuestras.length;
+        const avgZ = primerasMuestras.reduce((sum, s) => sum + s.z, 0) / primerasMuestras.length;
+        
+        console.log(`📊 Gesto analizado - avgX: ${avgX.toFixed(2)}, avgZ: ${avgZ.toFixed(2)}, muestras: ${this.motionSamples.length}`);
+        
+        // Determinar dirección basada en el promedio de las primeras muestras
+        const umbralDeteccion = 1.5;
+        
+        // Movimiento hacia la IZQUIERDA (foto SIGUIENTE)
+        if (avgX < -umbralDeteccion && Math.abs(avgX) > Math.abs(avgZ)) {
+          console.log(`⬅️ IZQUIERDA detectado - avgX: ${avgX.toFixed(2)} - Cambiando a foto SIGUIENTE`);
+          this.cambiarFoto('next');
+        }
+        // Movimiento hacia la DERECHA (foto ANTERIOR)
+        else if (avgX > umbralDeteccion && Math.abs(avgX) > Math.abs(avgZ)) {
+          console.log(`➡️ DERECHA detectado - avgX: ${avgX.toFixed(2)} - Cambiando a foto ANTERIOR`);
+          this.cambiarFoto('prev');
+        }
+        // Movimiento hacia ADELANTE (producto SIGUIENTE) - Z negativo
+        else if (avgZ < -umbralDeteccion && Math.abs(avgZ) > Math.abs(avgX)) {
+          console.log(`⬆️ ADELANTE detectado - avgZ: ${avgZ.toFixed(2)} - Cambiando a producto SIGUIENTE`);
+          this.cambiarProducto('next');
+        }
+        // Movimiento hacia ATRÁS (producto ANTERIOR) - Z positivo
+        else if (avgZ > umbralDeteccion && Math.abs(avgZ) > Math.abs(avgX)) {
+          console.log(`⬇️ ATRÁS detectado - avgZ: ${avgZ.toFixed(2)} - Cambiando a producto ANTERIOR`);
+          this.cambiarProducto('prev');
+        }
+        
+        // Resetear gesto y activar cooldown
+        this.isGesturing = false;
+        this.motionSamples = [];
+        this.lastTime = now;
+        this.lastGestureTime = now; // Activar cooldown para ignorar el rebote
       }
-      
-      // Movimiento hacia ADELANTE (producto siguiente)
-      else if (y > 2 && Math.abs(y) > Math.abs(x)) {
-        this.cambiarProducto('next');
-      }
-      
-      // Movimiento hacia ATRÁS (producto anterior)
-      else if (y < -2 && Math.abs(y) > Math.abs(x)) {
-        this.cambiarProducto('prev');
-      }
-
-      this.lastTime = now;
+    }
+    
+    // Timeout para gestos que no completan
+    if (this.isGesturing && now - this.gestureStartTime > 500) {
+      this.isGesturing = false;
+      this.motionSamples = [];
     }
 
     // Actualizar última aceleración
@@ -312,10 +360,10 @@ export class MenuComponent  implements OnInit, OnDestroy {
 
     if (direction === 'next') {
       this.productoActualIndex = (this.productoActualIndex + 1) % totalProductos;
-      this.mostrarIndicador('🍽️ Producto siguiente ↓', 1000);
+      this.mostrarIndicador('🍽️ Producto siguiente (atrás)', 1000);
     } else {
       this.productoActualIndex = (this.productoActualIndex - 1 + totalProductos) % totalProductos;
-      this.mostrarIndicador('🍽️ ↑ Producto anterior', 1000);
+      this.mostrarIndicador('🍽️ Producto anterior (adelante)', 1000);
     }
 
     // Scroll al producto actual
