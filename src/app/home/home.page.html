@@ -193,10 +193,7 @@
           Encuestas
         </ion-button>
   
-        <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
-          <ion-icon name="game-controller-outline" slot="start"></ion-icon>
-          Juegos
-        </ion-button>
+        
       }
 
       @if(perfilUsuario === 'cliente' && !yaEnListaEspera && !clienteSentado)
@@ -212,7 +209,10 @@
           </div>
         </ion-button>
 
-
+        <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
+          <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+          Juegos
+        </ion-button>
       }
 
 

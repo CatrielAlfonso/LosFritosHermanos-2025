@@ -44,6 +44,8 @@ export class HomePage implements OnInit {
   clienteSentado: boolean = false;
   mostrarBotonVerEstadoPedido: boolean = false;
   pedidoActualCliente: any = null;
+  clienteEsperandoPedido: boolean = false;
+
   qrEnProceso: boolean = false;
 
   mesaSeleccionada='12';
@@ -333,8 +335,11 @@ export class HomePage implements OnInit {
       .order('id', { ascending: false })
       .limit(1);
     if (!error && data && data.length > 0) {
+      console.log('Pedido existente encontrado para la mesa:', this.mesaAsignada);
+      console.log('Datos del pedido:', data[0]);
       this.mostrarBotonVerEstadoPedido = true;
       this.pedidoActualCliente = data[0];
+
       this.mostrarBotonHacerPedido = false;
     } else {
       this.mostrarBotonVerEstadoPedido = false;
