@@ -1255,14 +1255,32 @@ export class HomePage implements OnInit, ViewWillEnter {
 
   async agregarAListaEspera() {
     console.log('🔍 [agregarAListaEspera] INICIANDO método');
+    console.log('🔍 [agregarAListaEspera] esClienteAnonimo:', this.esClienteAnonimo);
+    console.log('🔍 [agregarAListaEspera] clienteAnonimo:', this.clienteAnonimo);
+    
     try {
       let cliente: any = null;
       let correo: string = '';
       let nombre: string = '';
       let apellido: string | null = null;
 
-      // Verificar si es cliente anónimo
-      if (this.esClienteAnonimo && this.clienteAnonimo) {
+      // Verificar si es cliente anónimo (también verificar localStorage por si acaso)
+      let esAnonimo = this.esClienteAnonimo && this.clienteAnonimo;
+      if (!esAnonimo) {
+        const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
+        if (clienteAnonimoStr) {
+          try {
+            this.clienteAnonimo = JSON.parse(clienteAnonimoStr);
+            this.esClienteAnonimo = true;
+            esAnonimo = true;
+            console.log('🔍 [agregarAListaEspera] Cliente anónimo recuperado de localStorage');
+          } catch (e) {
+            console.log('🔍 [agregarAListaEspera] Error al parsear clienteAnonimo de localStorage');
+          }
+        }
+      }
+
+      if (esAnonimo) {
         console.log('👤 [agregarAListaEspera] Cliente anónimo detectado');
         cliente = this.clienteAnonimo;
         correo = `anonimo-${cliente.id}@fritos.com`;
@@ -1276,9 +1294,9 @@ export class HomePage implements OnInit, ViewWillEnter {
           const { data, error } = await this.authService.getCurrentUser();
           if (error || !data?.user) {
             console.log('❌ [agregarAListaEspera] No se pudo obtener usuario autenticado');
-        await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del usuario.', 'error');
-        return;
-      }
+            await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del usuario.', 'error');
+            return;
+          }
           usuarioActual = data.user;
           this.usuario = usuarioActual; // Actualizar this.usuario para futuras referencias
         }
@@ -1286,8 +1304,8 @@ export class HomePage implements OnInit, ViewWillEnter {
         if (!usuarioActual || !usuarioActual.email) {
           console.log('❌ [agregarAListaEspera] No hay usuario autenticado ni cliente anónimo');
           await this.swal.showTemporaryAlert('Error', 'No se pudo obtener la información del usuario.', 'error');
-        return;
-      }
+          return;
+        }
 
         console.log('👤 [agregarAListaEspera] Usuario autenticado:', usuarioActual);
         correo = usuarioActual.email;
