@@ -146,22 +146,47 @@
     <div *ngIf="tipoUsuario === 'cliente'" class="cliente-options">
       <h3 class="fritos-subtitle">Panel de Cliente</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']">
+      <!-- Botón para clientes anónimos: Escanear QR para Ver Encuestas -->
+      @if (esClienteAnonimo)
+      {
+        <ion-button
+          expand="block" 
+          color="fritos-red" 
+          class="fritos-button" 
+          (click)="ocultarMensajeListaEspera(); escanearQRParaVerEncuestas()">
+          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+          Escanear QR para Ver Encuestas
+        </ion-button>
+      }
+      
+      @if (esClienteAnonimo && yaEnListaEspera && !mesaAsignada && mostrarMensajeListaEspera)
+      {
+        <ion-card color="warning">
+          <ion-card-content>
+            <p>✅ Ya estás en la lista de espera. El maître te asignará una mesa pronto.</p>
+            <ion-button fill="clear" size="small" (click)="ocultarMensajeListaEspera()">
+              Cerrar
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      }
+      
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Ver Menú
       </ion-button>
 
-      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/reservas']">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/reservas']" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="calendar-outline" slot="start"></ion-icon>
         Mis Reservas
       </ion-button>
 
-      <ion-button expand="block" color="fritos-green" class="fritos-button" [routerLink]="['/menu']" [queryParams]="{tipo: 'delivery'}">
+      <ion-button expand="block" color="fritos-green" class="fritos-button" [routerLink]="['/menu']" [queryParams]="{tipo: 'delivery'}" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="bicycle-outline" slot="start"></ion-icon>
         Pedir Delivery
       </ion-button>
 
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/mis-pedidos-delivery">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/mis-pedidos-delivery" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="receipt-outline" slot="start"></ion-icon>
         Mis Pedidos Delivery
       </ion-button>
@@ -186,33 +211,44 @@
       </div>
       </ion-button>
 
-      @if (perfilUsuario === 'cliente' && pedidoActualCliente?.recepcion && pedidoActualCliente?.cuenta === 'pedida' && !clienteInfo?.encuesta)
+      <!-- Botón Ver Estado del Pedido - visible cuando hay un pedido (pendiente o confirmado) -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && mostrarBotonVerEstadoPedido && pedidoActualCliente)
       {
-        <ion-button expand="block" color="fritos-red" class="fritos-button" (click)="irAEncuestas()">
-          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
-          Encuestas
+        <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irAVerEstadoPedido()">
+          <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+          Ver Estado del Pedido
         </ion-button>
-  
+      }
+
+      <!-- Juegos - solo visible cuando el pedido está confirmado -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente && pedidoActualCliente.confirmado && (pedidoActualCliente.estado === 'en preparacion' || pedidoActualCliente.estado === 'listo'))
+      {
         <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
           <ion-icon name="game-controller-outline" slot="start"></ion-icon>
           Juegos
         </ion-button>
       }
 
-      @if(perfilUsuario === 'cliente' && !yaEnListaEspera && !clienteSentado)
+      <!-- Encuestas - solo después de recibir el pedido y pedir la cuenta -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.recepcion && pedidoActualCliente?.cuenta === 'pedida' && !clienteInfo?.encuesta)
+      {
+        <ion-button expand="block" color="fritos-red" class="fritos-button" (click)="irAEncuestas()">
+          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+          Encuestas
+        </ion-button>
+      }
+
+      @if((perfilUsuario === 'cliente' || esClienteAnonimo) && !yaEnListaEspera && !clienteSentado)
       {
         <ion-button 
-          *ngIf="perfilUsuario === 'cliente' && !yaEnListaEspera && !clienteSentado" 
           expand="block" 
           class="btn-pedidos btn-solicitar-mesa"
-          (click)="escanearQR()">
+          (click)="ocultarMensajeListaEspera(); escanearQR()">
           <div class="boton-contenido-columna">
             <ion-icon name="qr-code-outline"></ion-icon>
             <span class="boton-texto">SOLICITAR MESA</span>
           </div>
         </ion-button>
-
-
       }
 
 

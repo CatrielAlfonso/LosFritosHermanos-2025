@@ -150,7 +150,7 @@ export class LoginPage implements OnInit {
     const control = this.loginForm.get(campo);
     if (!control) return;
 
-    this.errorMessage = '';
+    this.errorMessage = ''; 
 
     if (campo === 'correo') {
       this.correoError = '';

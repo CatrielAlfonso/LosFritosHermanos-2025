@@ -289,8 +289,59 @@ app.post("/notify-mozos-client-query", async (req, res) => {
     const title = "Consulta de cliente";
     const body = `${clienteNombre} ${clienteApellido} (Mesa ${mesaNumero}): ${consulta}`;
     
-    const result = await sendNotificationToRole('empleados', title, body);
-    res.status(200).send(result);
+    // Obtener solo los mozos, no todos los empleados
+    const { data: mozos, error } = await supabase
+      .from("empleados")
+      .select("fcm_token")
+      .eq("perfil", "mozo")
+      .not("fcm_token", "is", null);
+
+    if (error || !mozos?.length) {
+      return res.status(200).send({ message: "No mozos found" });
+    }
+
+    const tokens = mozos.map(m => m.fcm_token).filter(t => t);
+    
+    if (tokens.length === 0) {
+      return res.status(200).send({ message: "No valid FCM tokens found." });
+    }
+
+    const message = {
+      notification: { title, body },
+      tokens: tokens,
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    res.status(200).send({ message: "Notification sent successfully.", response });
+  } catch (error) {
+    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+  }
+});
+
+app.post("/notify-client-mozo-response", async (req, res) => {
+  const { clienteEmail, mozoNombre, mesa } = req.body;
+  
+  try {
+    const { data: cliente, error } = await supabase
+      .from("clientes")
+      .select("fcm_token")
+      .eq("correo", clienteEmail)
+      .single();
+
+    if (error || !cliente?.fcm_token) {
+      return res.status(200).send({ message: "Cliente not found or no FCM token" });
+    }
+
+    const title = "Respuesta del mozo";
+    const body = `${mozoNombre} respondió tu consulta (Mesa ${mesa})`;
+
+    const message = {
+      notification: { title, body },
+      token: cliente.fcm_token,
+    };
+
+    const response = await admin.messaging().send(message);
+    res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
@@ -2234,6 +2285,63 @@ app.post("/notify-payment-confirmed", async (req, res) => {
 
     const tokens = supervisores.map(s => s.fcm_token).filter(t => t);
     
+    if (tokens.length === 0) {
+      return res.status(200).send({ message: "No valid FCM tokens found." });
+    }
+
+    const message = {
+      notification: { title, body },
+      tokens: tokens,
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    res.status(200).send({ message: "Notification sent successfully.", response });
+  } catch (error) {
+    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+  }
+});
+
+// Notificar al repartidor y dueños/supervisores cuando el cliente confirma recepción del delivery
+app.post("/notify-delivery-confirmed", async (req, res) => {
+  const { pedidoId, clienteNombre, montoTotal } = req.body;
+  
+  try {
+    const title = "Entrega confirmada";
+    const body = `${clienteNombre} confirmo la recepcion del pedido #${pedidoId} ($${montoTotal})`;
+    
+    // Obtener el repartidor del pedido
+    const { data: pedido, error: pedidoError } = await supabase
+      .from("pedidos_delivery")
+      .select("repartidor_id")
+      .eq("id", pedidoId)
+      .single();
+
+    const tokens = [];
+
+    // Obtener token del repartidor
+    if (pedido?.repartidor_id) {
+      const { data: repartidor } = await supabase
+        .from("repartidores")
+        .select("fcm_token")
+        .eq("id", pedido.repartidor_id)
+        .single();
+      
+      if (repartidor?.fcm_token) {
+        tokens.push(repartidor.fcm_token);
+      }
+    }
+
+    // Obtener tokens de dueños y supervisores
+    const { data: supervisores } = await supabase
+      .from("supervisores")
+      .select("fcm_token")
+      .in("perfil", ["dueño", "supervisor"])
+      .not("fcm_token", "is", null);
+
+    if (supervisores?.length) {
+      tokens.push(...supervisores.map(s => s.fcm_token).filter(t => t));
+    }
+
     if (tokens.length === 0) {
       return res.status(200).send({ message: "No valid FCM tokens found." });
     }

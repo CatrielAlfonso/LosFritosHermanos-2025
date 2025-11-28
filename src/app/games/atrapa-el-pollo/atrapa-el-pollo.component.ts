@@ -2,9 +2,12 @@ import { Component, OnInit, Output, EventEmitter, HostListener, OnDestroy } from
 import { CommonModule,DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonButton, IonIcon} from '@ionic/angular/standalone';
-import { AlertController } from '@ionic/angular';
+import { AlertController, ToastController } from '@ionic/angular';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { DeliveryService } from '../../servicios/delivery.service';
+import { JuegosService } from '../../servicios/juegos.service';
+import { AuthService } from '../../servicios/auth.service';
 
 // Enum para los estados del juego
 type GameState = 'inicio' | 'jugando' | 'terminado';
@@ -35,7 +38,15 @@ export class AtrapaElPolloComponent  implements OnInit, OnDestroy {
 @Output() juegoTerminado = new EventEmitter<ResultadoJuego>();
 @Output() volverHome = new EventEmitter<void>(); // Evento para volver al Home (padre)
 
-private alertCtrl = inject(AlertController); 
+private alertCtrl = inject(AlertController);
+private toastCtrl = inject(ToastController);
+private deliveryService = inject(DeliveryService);
+private juegosService = inject(JuegosService);
+private authService = inject(AuthService);
+
+// Para delivery
+esDelivery: boolean = false;
+pedidoDeliveryId: number | null = null; 
 
   // Variables de Estado
   gameState: GameState = 'inicio';
@@ -83,7 +94,13 @@ private alertCtrl = inject(AlertController);
   constructor(private router:Router) { }
 
   ngOnInit() {
-    // Es buena práctica inicializar la posición y el estado
+    // Verificar si viene de un pedido delivery
+    const pedidoIdStr = localStorage.getItem('pedidoDeliveryActual');
+    if (pedidoIdStr) {
+      this.esDelivery = true;
+      this.pedidoDeliveryId = parseInt(pedidoIdStr);
+      console.log('🎮 Juego iniciado desde delivery, pedido:', this.pedidoDeliveryId);
+    }
   }
 
   ngOnDestroy() {
@@ -155,7 +172,7 @@ private alertCtrl = inject(AlertController);
   //   return 15; 
   // }
 
-  terminarJuego() {
+  async terminarJuego() {
     this.detenerJuego();
     this.gameState = 'terminado'; 
 
@@ -167,7 +184,34 @@ private alertCtrl = inject(AlertController);
       distancia: this.distanciaRecorrida
     };
 
+    // Si es delivery, guardar el descuento en el pedido
+    if (this.esDelivery && this.pedidoDeliveryId) {
+      await this.guardarDescuentoDelivery(porcentaje);
+    }
+
     this.juegoTerminado.emit(this.resultadoFinal);
+  }
+
+  async guardarDescuentoDelivery(porcentaje: number) {
+    try {
+      // Guardar el descuento en el pedido delivery
+      await this.deliveryService.actualizarDescuentoDelivery(this.pedidoDeliveryId!, porcentaje);
+      
+      // Limpiar el localStorage
+      localStorage.removeItem('pedidoDeliveryActual');
+      
+      const toast = await this.toastCtrl.create({
+        message: porcentaje > 0 
+          ? `🎉 ¡Ganaste ${porcentaje}% de descuento en tu pedido!` 
+          : '¡Buen intento! Sigue practicando.',
+        duration: 3000,
+        color: porcentaje > 0 ? 'success' : 'warning',
+        position: 'top'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error al guardar descuento delivery:', error);
+    }
   }
 
   // Helper para el template
@@ -262,7 +306,14 @@ checkCollision(obstaculo: Obstaculo): boolean {
 
   volverAlHome()
   {
-    this.router.navigate(['/home']);
+    // Limpiar localStorage si existe
+    localStorage.removeItem('pedidoDeliveryActual');
+    
+    if (this.esDelivery) {
+      this.router.navigate(['/mis-pedidos-delivery']);
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
 }

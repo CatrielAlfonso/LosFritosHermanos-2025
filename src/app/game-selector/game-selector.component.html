@@ -1,0 +1,37 @@
+
+<header class="header">
+
+  <h1 class="header-title">Juegos Fritos</h1>
+
+  
+</header>
+
+<div class="selector-container mat-elevation-z8">
+
+  <h1 class="titulo">Jugá Mientras Esperás</h1>
+  <h3 class="subtitulo">Obtené hasta <b>15% de descuento</b></h3>
+
+  <!-- <div class="descuento-box" *ngIf="descuento > 0">
+    <h2>Descuento obtenido: <b>{{ descuento }}%</b></h2>
+  </div> -->
+
+  <div class="grid-juegos">
+    <div class="card-juego" *ngFor="let juego of juegos">
+
+      <img [src]="juego.imagen" class="juego-img" />
+
+      <!-- <h2>{{ juego.nombre }}</h2> -->
+      <p class="descripcion">{{ juego.descripcion }}</p>
+
+      <button mat-raised-button 
+              [color]="juego.jugado ? 'warn' : 'accent'"
+              (click)="jugar(juego)"
+              [disabled]="juego.jugado">
+
+        {{ juego.jugado ? 'Jugado ✔' : 'Jugar' }}
+      </button>
+
+    </div>
+  </div>
+
+</div>

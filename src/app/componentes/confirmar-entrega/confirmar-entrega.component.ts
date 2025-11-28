@@ -26,6 +26,7 @@ import {
 } from '@ionic/angular/standalone';
 import { DeliveryService, PedidoDelivery } from '../../servicios/delivery.service';
 import { AuthService } from '../../servicios/auth.service';
+import { PushNotificationService } from '../../servicios/push-notification.service';
 import { addIcons } from 'ionicons';
 import { 
   arrowBackOutline, 
@@ -90,7 +91,8 @@ export class ConfirmarEntregaComponent implements OnInit {
     private deliveryService: DeliveryService,
     private auth: AuthService,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private pushNotificationService: PushNotificationService
   ) {
     addIcons({ 
       arrowBackOutline, 
@@ -188,8 +190,24 @@ export class ConfirmarEntregaComponent implements OnInit {
     await alert.present();
   }
 
-  avanzarAPropina() {
+  async avanzarAPropina() {
+    // Notificar al repartidor y dueño/supervisor que el cliente está confirmando
+    await this.notificarConfirmacionDelivery();
     this.pasoActual = 2;
+  }
+
+  async notificarConfirmacionDelivery() {
+    if (!this.pedido) return;
+    
+    try {
+      await this.pushNotificationService.notificarConfirmacionDelivery(
+        this.pedido.id!,
+        this.pedido.cliente_nombre,
+        this.pedido.precio_total
+      );
+    } catch (error) {
+      console.error('Error al enviar notificación de confirmación delivery:', error);
+    }
   }
 
   calcularPropina(): number {

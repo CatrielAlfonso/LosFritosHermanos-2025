@@ -32,13 +32,6 @@
 
   <!-- Resumen -->
   <div class="summary-cards">
-    <ion-card class="summary-card asignados">
-      <ion-card-content>
-        <h3>{{ getCantidadAsignados() }}</h3>
-        <p>Preparando</p>
-      </ion-card-content>
-    </ion-card>
-
     <ion-card class="summary-card listos">
       <ion-card-content>
         <h3>{{ getCantidadListos() }}</h3>
@@ -56,9 +49,6 @@
 
   <!-- Filtro -->
   <ion-segment [(ngModel)]="filtroEstado" (ionChange)="aplicarFiltro()" class="filter-segment">
-    <ion-segment-button value="asignados">
-      <ion-label>Preparando</ion-label>
-    </ion-segment-button>
     <ion-segment-button value="listos">
       <ion-label>Listos</ion-label>
     </ion-segment-button>
@@ -81,7 +71,7 @@
     <ion-card-content>
       <ion-icon name="bicycle-outline" class="empty-icon"></ion-icon>
       <h3>No hay pedidos</h3>
-      <p>No tienes pedidos {{ filtroEstado === 'asignados' ? 'preparándose' : filtroEstado === 'listos' ? 'listos para entregar' : filtroEstado === 'en_camino' ? 'en camino' : '' }}</p>
+      <p>No tienes pedidos {{ filtroEstado === 'listos' ? 'listos para entregar' : filtroEstado === 'en_camino' ? 'en camino' : '' }}</p>
     </ion-card-content>
   </ion-card>
 
@@ -134,7 +124,7 @@
       <div class="actions-section">
         <!-- Confirmar Recepción y Navegar (solo si está listo para entregar) -->
         <ion-button 
-          *ngIf="(pedido.estado === 'confirmado' || pedido.estado === 'preparando') && estaListoParaEntregar(pedido)"
+          *ngIf="pedido.estado === 'confirmado' && estaListoParaEntregar(pedido)"
           expand="block" 
           color="success" 
           (click)="confirmarRecepcion(pedido)">
@@ -144,7 +134,7 @@
 
         <!-- Mensaje si no está listo -->
         <ion-card 
-          *ngIf="(pedido.estado === 'confirmado' || pedido.estado === 'preparando') && !estaListoParaEntregar(pedido)"
+          *ngIf="pedido.estado === 'confirmado' && !estaListoParaEntregar(pedido)"
           color="warning" 
           class="info-card">
           <ion-card-content>
