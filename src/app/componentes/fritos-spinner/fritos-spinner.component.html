@@ -1,0 +1,8 @@
+<div class="fritos-spinner-wrapper" [class.inline]="inline" [class]="'size-' + size">
+  <div class="fritos-spinner-container">
+    <div class="fritos-spinner-ring"></div>
+    <div class="fritos-spinner-ring fritos-spinner-ring-2"></div>
+    <img [src]="LOGO_URL" alt="Cargando..." class="fritos-spinner-logo" />
+  </div>
+  <p *ngIf="showText" class="fritos-spinner-text">{{ mensaje }}</p>
+</div>

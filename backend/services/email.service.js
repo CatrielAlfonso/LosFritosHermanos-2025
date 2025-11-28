@@ -2,7 +2,7 @@ const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
 // Configurar API Key de SendGrid
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
 sgMail.setApiKey(SENDGRID_API_KEY);
 
 const sendEmail = async ({ to, subject, text, html }) => {

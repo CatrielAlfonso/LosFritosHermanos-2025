@@ -21,13 +21,13 @@ import {
   IonNote,
   IonSegment,
   IonSegmentButton,
-  IonSpinner,
   AlertController,
   ToastController
 } from '@ionic/angular/standalone';
 import { DeliveryService, PedidoDelivery } from '../../servicios/delivery.service';
 import { AuthService } from '../../servicios/auth.service';
 import { CustomLoader } from '../../servicios/custom-loader.service';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 import { addIcons } from 'ionicons';
 import {
   arrowBackOutline,
@@ -67,7 +67,8 @@ import {
     IonLabel,
     IonNote,
     IonSegment,
-    IonSegmentButton
+    IonSegmentButton,
+    FritosSpinnerComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
