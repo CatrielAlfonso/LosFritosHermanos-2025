@@ -109,10 +109,7 @@ export class EncuestasComponent  implements OnInit {
       this.mostrarFormulario = false;
       this.cargarEncuestas().then(() => {
         this.mostrarGraficos = true;
-        // Dar más tiempo para que el DOM se renderice
-        setTimeout(() => {
-          this.crearGraficos();
-        }, 500);
+        this.crearGraficos();
       });
     } else if (modoParam === 'hacer') {
       this.modo = 'hacer';
@@ -126,77 +123,36 @@ export class EncuestasComponent  implements OnInit {
 
   async cargarUsuario() {
     try {
-      // Primero verificar si hay usuario autenticado
       const { data } = await this.supabase.supabase.auth.getUser();
       this.user = data?.user;
       
-      if (this.user) {
-        // Usuario autenticado - buscar en tabla clientes
-        const { data: clientData, error: clientError } = await this.supabase.supabase
-          .from('clientes')
-          .select('*')
-          .eq('correo', this.user.email)
-          .single();
-
-        if (clientError) {
-          console.error('Error al obtener cliente:', clientError);
-          await this.feedback.showToast('error', 'No se pudo obtener la información del cliente.');
-          this.router.navigate(['/login']);
-          return;
-        }
-
-        if (clientData) {
-          this.clientInfo = clientData;
-        } else {
-          await this.feedback.showToast('error', 'No se encontró información del cliente.');
-          this.router.navigate(['/login']);
-          return;
-        }
+      if (!this.user) {
+        await this.mostrarAlerta('Error', 'No se pudo obtener la información del usuario. Por favor, inicie sesión nuevamente.');
+        this.router.navigate(['/login']);
         return;
       }
-      
-      // Si no hay usuario autenticado, verificar si es cliente anónimo
-      const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
-      if (clienteAnonimoStr) {
-        try {
-          const clienteAnonimo = JSON.parse(clienteAnonimoStr);
-          console.log('👤 [cargarUsuario] Cliente anónimo detectado:', clienteAnonimo);
-          
-          // Buscar cliente anónimo en la base de datos
-          const correoAnonimo = `anonimo-${clienteAnonimo.id}@fritos.com`;
-          const { data: clientData, error: clientError } = await this.supabase.supabase
-            .from('clientes')
-            .select('*')
-            .eq('correo', correoAnonimo)
-            .single();
-          
-          if (clientData) {
-            this.clientInfo = clientData;
-            // Crear un objeto user simulado para el cliente anónimo
-            this.user = { email: correoAnonimo, id: clienteAnonimo.id } as any;
-            console.log('✅ [cargarUsuario] Cliente anónimo cargado correctamente');
-            return;
-          }
-          
-          // Si no existe en la base de datos, usar la info del localStorage
-          this.clientInfo = clienteAnonimo;
-          this.user = { email: correoAnonimo, id: clienteAnonimo.id } as any;
-          console.log('✅ [cargarUsuario] Usando info de localStorage para cliente anónimo');
-          return;
-        } catch (e) {
-          console.error('Error al parsear cliente anónimo:', e);
-        }
-      }
-      
-      // Si llegamos aquí, no hay usuario ni cliente anónimo
-      // Solo redirigir si no estamos en modo 'ver' (ver encuestas no requiere login)
-      if (this.modo !== 'ver') {
-        await this.feedback.showToast('error', 'No se pudo obtener la información del usuario. Por favor, inicie sesión nuevamente.');
+
+      const { data: clientData, error: clientError } = await this.supabase.supabase
+        .from('clientes')
+        .select('*')
+        .eq('correo', this.user.email)
+        .single();
+
+      if (clientError) {
+        await this.mostrarAlerta('Error', 'No se pudo obtener la información del cliente.');
         this.router.navigate(['/login']);
+        return;
+      }
+
+      if (clientData) {
+        this.clientInfo = clientData;
+      } else {
+        await this.mostrarAlerta('Error', 'No se encontró información del cliente.');
+        this.router.navigate(['/login']);
+        return;
       }
     } catch (error) {
-      console.error('Error en cargarUsuario:', error);
-      await this.feedback.showToast('error', 'Error al cargar la información del usuario.');
+      await this.mostrarAlerta('Error', 'Error al cargar la información del usuario.');
     }
   }
 
@@ -378,34 +334,17 @@ export class EncuestasComponent  implements OnInit {
 
   crearGraficos() {
     if (this.encuestas.length === 0) {
-      console.log('No hay encuestas para mostrar gráficos');
       return;
     }
 
-    // Intentar crear los gráficos con reintentos si el DOM no está listo
-    const intentarCrearGraficos = (intentos: number = 0) => {
-      const maxIntentos = 5;
-      const delay = 300;
-      
-      setTimeout(() => {
-        const canvasExiste = document.getElementById('satisfaccionChart');
-        
-        if (canvasExiste || intentos >= maxIntentos) {
-          console.log(`Creando gráficos (intento ${intentos + 1})`);
-          this.crearGraficoSatisfaccion();
-          this.crearGraficoCalidadComida();
-          this.crearGraficoCalidadServicio();
-          this.crearGraficoAmbiente();
-          this.crearGraficoRecomendacion();
-          this.crearGraficoVolveria();
-        } else {
-          console.log(`Canvas no encontrado, reintentando... (${intentos + 1}/${maxIntentos})`);
-          intentarCrearGraficos(intentos + 1);
-        }
-      }, delay);
-    };
-    
-    intentarCrearGraficos();
+    setTimeout(() => {
+      this.crearGraficoSatisfaccion();
+      this.crearGraficoCalidadComida();
+      this.crearGraficoCalidadServicio();
+      this.crearGraficoAmbiente();
+      this.crearGraficoRecomendacion();
+      this.crearGraficoVolveria();
+    }, 200);
   }
 
   crearGraficoSatisfaccion() {
