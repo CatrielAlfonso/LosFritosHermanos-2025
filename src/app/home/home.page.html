@@ -191,7 +191,8 @@
         Mis Pedidos Delivery
       </ion-button>
 
-      @if (tipoUsuario === 'cliente' && mostrarBotonEscanearMesa && !clienteSentado)
+      <!-- Botón Escanear QR Mesa - siempre visible mientras tenga mesa asignada -->
+      @if (tipoUsuario === 'cliente' && mostrarBotonEscanearMesa)
       {
         <ion-button
         expand="block" color="fritos-orange" class="fritos-button" (click)="escanearMesaAsignada()">
@@ -200,19 +201,8 @@
         </ion-button>
       }
       
-      <ion-button 
-      *ngIf="perfilUsuario === 'cliente' && mostrarBotonHacerPedido" 
-      expand="block" 
-      class="btn-pedidos btn-solicitar-mesa"
-      (click)="escanearQRParaMenu()">
-      <div class="boton-contenido-columna">
-        <ion-icon name="qr-code-outline"></ion-icon>
-        <span class="boton-texto">HACER PEDIDO</span>
-      </div>
-      </ion-button>
-
-      <!-- Botón Ver Estado del Pedido - visible cuando hay un pedido (pendiente o confirmado) -->
-      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && mostrarBotonVerEstadoPedido && pedidoActualCliente)
+      <!-- Botón Ver Estado del Pedido - visible después de escanear QR y tener pedido -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && mostrarBotonVerEstadoPedido && pedidoActualCliente && qrMesaEscaneado)
       {
         <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irAVerEstadoPedido()">
           <ion-icon name="clipboard-outline" slot="start"></ion-icon>
@@ -220,8 +210,11 @@
         </ion-button>
       }
 
-      <!-- Juegos - solo visible cuando el pedido está confirmado -->
-      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente && pedidoActualCliente.confirmado && (pedidoActualCliente.estado === 'en preparacion' || pedidoActualCliente.estado === 'listo'))
+      <!-- Juegos - visible después de escanear QR y cuando el pedido está confirmado O después de confirmar recepción -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente && qrMesaEscaneado && (
+        (pedidoActualCliente.confirmado && (pedidoActualCliente.estado === 'en preparacion' || pedidoActualCliente.estado === 'listo')) ||
+        (pedidoActualCliente.estado === 'entregado' && pedidoActualCliente.recepcion)
+      ))
       {
         <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
           <ion-icon name="game-controller-outline" slot="start"></ion-icon>
@@ -229,12 +222,21 @@
         </ion-button>
       }
 
-      <!-- Encuestas - solo después de recibir el pedido y pedir la cuenta -->
-      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.recepcion && pedidoActualCliente?.cuenta === 'pedida' && !clienteInfo?.encuesta)
+      <!-- Encuestas - visible después de confirmar recepción del pedido (si no completó encuesta) -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.recepcion && pedidoActualCliente?.estado === 'entregado' && !clienteInfo?.encuesta && qrMesaEscaneado)
       {
         <ion-button expand="block" color="fritos-red" class="fritos-button" (click)="irAEncuestas()">
           <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
           Encuestas
+        </ion-button>
+      }
+
+      <!-- Ver Resultados de Encuestas - visible si ya completó la encuesta -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && clienteInfo?.encuesta && qrMesaEscaneado)
+      {
+        <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="verResultadosEncuestas()">
+          <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
+          Ver Resultados de Encuestas
         </ion-button>
       }
 

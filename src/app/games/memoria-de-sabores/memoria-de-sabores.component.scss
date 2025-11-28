@@ -1,0 +1,231 @@
+.component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+/* Game Overlay */
+.game-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.titulo-juego {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.estado-mensaje {
+  padding: 15px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  width: 100%;
+  
+  &.puede-ganar {
+    background: rgba(46, 204, 113, 0.2);
+    border: 2px solid #2ecc71;
+    color: #27ae60;
+  }
+  
+  &.sin-descuento {
+    background: rgba(0, 0, 0, 0.05);
+    color: #666;
+  }
+}
+
+.instrucciones {
+  color: #666;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+/* Game Header */
+.game-header {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 350px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #333;
+  
+  &.warning {
+    color: #e74c3c;
+  }
+  
+  &.success {
+    color: #2ecc71;
+  }
+}
+
+/* Tablero */
+.tablero {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-width: 350px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+}
+
+/* Cartas */
+.carta {
+  width: 70px;
+  height: 90px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.carta-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+
+.carta.volteada .carta-inner {
+  transform: rotateY(180deg);
+}
+
+.carta-front, .carta-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.carta-front {
+  background: linear-gradient(135deg, #f39c12, #e74c3c);
+  
+  ion-icon {
+    font-size: 2rem;
+    color: white;
+  }
+}
+
+.carta-back {
+  background: white;
+  transform: rotateY(180deg);
+  
+  img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+  }
+}
+
+.carta.encontrada {
+  .carta-back {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    
+    img {
+      filter: brightness(1.1);
+    }
+  }
+}
+
+/* Resultado */
+.resultado {
+  .score-card {
+    margin: 20px 0;
+    width: 100%;
+  }
+  
+  .stat-final {
+    font-size: 1.1rem;
+    color: #333;
+    margin: 10px 0;
+  }
+  
+  .descuento-ganado {
+    font-size: 1.8rem;
+    color: #2ecc71;
+    font-weight: 800;
+    margin-top: 15px;
+  }
+  
+  .mensaje-resultado {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+    width: 100%;
+    
+    p {
+      margin: 0;
+      color: #666;
+    }
+  }
+}
+
+ion-button {
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  .tablero {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .carta {
+    width: 80px;
+    height: 100px;
+  }
+}
+
+@media (min-width: 500px) {
+  .carta {
+    width: 80px;
+    height: 100px;
+  }
+  
+  .carta-back img {
+    width: 60px;
+    height: 60px;
+  }
+}
+

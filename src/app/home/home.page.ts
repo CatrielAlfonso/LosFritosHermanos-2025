@@ -1,4 +1,5 @@
-import { Component, computed, OnInit } from '@angular/core';
+import { Component, computed, OnInit, OnDestroy } from '@angular/core';
+import { ViewWillEnter } from '@ionic/angular';
 import { AuthService } from '../servicios/auth.service';
 import { Router,RouterLink } from '@angular/router';
 import { UserService } from '../servicios/user';
@@ -23,7 +24,7 @@ import { ReservasService } from '../servicios/reservas.service';
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
-export class HomePage implements OnInit {
+export class HomePage implements OnInit, ViewWillEnter {
   esAdmin: boolean = false;
   esMaitre: boolean = false;
   usuario: any = null;
@@ -50,6 +51,7 @@ export class HomePage implements OnInit {
   esClienteAnonimo: boolean = false;
   clienteAnonimo: any = null;
   mostrarMensajeListaEspera: boolean = true; // Control para mostrar/ocultar el mensaje
+  qrMesaEscaneado: boolean = false; // Se activa cuando el cliente escanea el QR de su mesa
 
   mesaSeleccionada='12';
 
@@ -104,7 +106,6 @@ export class HomePage implements OnInit {
 
   async ngOnInit() 
   {
-
       this.authService.perfilUsuario$.subscribe(perfil => {
       console.log('Perfil usuario en HomePage:', perfil);
       this.perfilUsuario = perfil ?? '';
@@ -153,6 +154,16 @@ export class HomePage implements OnInit {
     //   console.log('se ejecuta el on init')
     }
 
+  /**
+   * Se ejecuta cada vez que la vista está por mostrarse
+   * Recarga la info del cliente para reflejar cambios (ej: encuesta completada)
+   */
+  async ionViewWillEnter() {
+    // Recargar info del cliente para detectar cambios (ej: encuesta completada)
+    if (this.perfilUsuario === 'cliente' && this.usuario) {
+      await this.cargarClienteInfo();
+    }
+  }
 
    async loadUserData() {
     this.isLoading = true;
@@ -695,7 +706,7 @@ export class HomePage implements OnInit {
       // Si está entregado o finalizado, permitir hacer nuevo pedido
       if (pedido.estado === 'pendiente' || pedido.estado === 'en preparacion') {
         this.mostrarBotonHacerPedido = false;
-      } else {
+      } else {                                                                                   
         this.mostrarBotonHacerPedido = this.clienteSentado;
       }
     } else {
@@ -1368,46 +1379,61 @@ export class HomePage implements OnInit {
   }
 
    async escanearMesaAsignada() {
-    //this.loadingService.show();
+    console.log('🎯 [escanearMesaAsignada] INICIANDO ESCANEO DE MESA');
+    console.log('🎯 [escanearMesaAsignada] Estado actual:');
+    console.log('   - usuario:', this.usuario);
+    console.log('   - usuario.email:', this.usuario?.email);
+    console.log('   - esClienteAnonimo:', this.esClienteAnonimo);
+    console.log('   - clienteAnonimo:', this.clienteAnonimo);
+    console.log('   - mesaAsignada:', this.mesaAsignada);
+    console.log('   - clienteSentado:', this.clienteSentado);
+    
     this.customLoader.show();
 
     try {
       const { barcodes } = await BarcodeScanner.scan();
+      console.log('🎯 [escanearMesaAsignada] Barcodes escaneados:', barcodes);
       
       if (barcodes.length > 0) {
         const codigoEscaneado = barcodes[0].displayValue;
+        console.log('🎯 [escanearMesaAsignada] Código escaneado:', codigoEscaneado);
         await this.validarMesaEscaneada(codigoEscaneado);
       } else {
-        //this.mostrarMensajeError('QR inválido, escanea el QR de tu mesa');
+        console.log('❌ [escanearMesaAsignada] No se detectó ningún código');
         this.swal.showTemporaryAlert('Error', 'QR inválido, escanea el QR de tu mesa', 'error');
       }
     } catch (error) {
-    //  this.mostrarMensajeError('QR inválido, escanea el QR de tu mesa');
+      console.error('💥 [escanearMesaAsignada] Error al escanear:', error);
         this.swal.showTemporaryAlert('Error', 'QR inválido, escanea el QR de tu mesa', 'error');
 
     } finally {
-      //this.loadingService.hide();
       this.customLoader.hide();
     }
   }
 
   async validarMesaEscaneada(codigoEscaneado: string) {
+    console.log('🔍 [validarMesaEscaneada] INICIANDO VALIDACIÓN');
+    console.log('🔍 [validarMesaEscaneada] Código escaneado RAW:', codigoEscaneado);
     
     let qrValido = false;
     let numeroMesaQR: string | null = null;
     
     try {
       const datosQR = JSON.parse(codigoEscaneado);
+      console.log('🔍 [validarMesaEscaneada] Datos QR parseados:', datosQR);
       numeroMesaQR = String(datosQR.numeroMesa);
     } catch (e) {
+      console.log('🔍 [validarMesaEscaneada] No es JSON, intentando regex...');
       // Intentar extraer el número de mesa del formato alternativo
       const match = codigoEscaneado.match(/numeroMesa[:\s]+(\d+)/);
       if (match) {
         numeroMesaQR = match[1];
+        console.log('🔍 [validarMesaEscaneada] Número extraído por regex:', numeroMesaQR);
       }
     }
 
     if (!numeroMesaQR) {
+      console.log('❌ [validarMesaEscaneada] No se pudo extraer número de mesa del QR');
       this.customLoader.hide();
       this.swal.showTemporaryAlert('Error', 'QR inválido, escanea el QR de tu mesa', 'error');
       return;
@@ -1415,49 +1441,107 @@ export class HomePage implements OnInit {
 
     const numeroMesa = parseInt(numeroMesaQR, 10);
     
+    console.log('🔍 [validarMesaEscaneada] Validando mesa:', numeroMesa);
+    console.log('🔍 [validarMesaEscaneada] mesaAsignada actual:', this.mesaAsignada);
+    console.log('🔍 [validarMesaEscaneada] esClienteAnonimo:', this.esClienteAnonimo);
+    console.log('🔍 [validarMesaEscaneada] usuario:', this.usuario?.email);
+
     // Verificar si el cliente tiene una mesa asignada en lista de espera
     if (this.mesaAsignada && numeroMesa === this.mesaAsignada) {
       qrValido = true;
+      console.log('✅ [validarMesaEscaneada] QR válido por mesaAsignada');
     } else {
+      console.log('🔍 [validarMesaEscaneada] mesaAsignada no coincide o es null, verificando en BD...');
       // Verificar si el cliente tiene una reserva confirmada activa para esta mesa
       if (this.esClienteAnonimo) {
         // Para clientes anónimos, verificar en lista_espera
         const correoAnonimo = `anonimo-${this.clienteAnonimo.id}@fritos.com`;
-        const { data: listaEspera } = await this.supabase.supabase
+        console.log('🔍 [validarMesaEscaneada] Buscando cliente anónimo con correo:', correoAnonimo);
+        const { data: listaEspera, error: errorLista } = await this.supabase.supabase
           .from('lista_espera')
           .select('mesa_asignada')
           .eq('correo', correoAnonimo)
           .eq('mesa_asignada', numeroMesa)
           .maybeSingle();
         
+        console.log('🔍 [validarMesaEscaneada] Resultado lista_espera (anónimo):', listaEspera, 'Error:', errorLista);
+        
         if (listaEspera) {
           qrValido = true;
           this.mesaAsignada = numeroMesa;
+          console.log('✅ [validarMesaEscaneada] QR válido por lista_espera (anónimo)');
         }
       } else if (this.usuario && this.usuario.email) {
-        const reservaActiva = await this.reservasService.obtenerReservaConfirmadaActiva(this.usuario.email);
+        // Primero verificar en lista_espera para clientes registrados
+        console.log('🔍 [validarMesaEscaneada] Buscando cliente registrado con correo:', this.usuario.email);
         
-        if (reservaActiva && reservaActiva.mesa_numero === numeroMesa) {
+        // Primero veamos TODOS los registros en lista_espera para este usuario
+        const { data: todosRegistros, error: errorTodos } = await this.supabase.supabase
+          .from('lista_espera')
+          .select('*')
+          .eq('correo', this.usuario.email);
+        console.log('🔍 [validarMesaEscaneada] TODOS los registros en lista_espera para este email:', todosRegistros, 'Error:', errorTodos);
+        
+        const { data: listaEspera, error: errorLista } = await this.supabase.supabase
+          .from('lista_espera')
+          .select('mesa_asignada')
+          .eq('correo', this.usuario.email)
+          .eq('mesa_asignada', numeroMesa)
+          .maybeSingle();
+        
+        console.log('🔍 [validarMesaEscaneada] Resultado lista_espera (registrado):', listaEspera, 'Error:', errorLista);
+        
+        if (listaEspera) {
           qrValido = true;
-          // Asignar la mesa al cliente si no estaba asignada
-          if (!this.mesaAsignada) {
-            this.mesaAsignada = numeroMesa;
+          this.mesaAsignada = numeroMesa;
+          console.log('✅ [validarMesaEscaneada] QR válido por lista_espera (registrado)');
+        } else {
+          // Si no está en lista_espera, verificar reservas
+          console.log('🔍 [validarMesaEscaneada] No encontrado en lista_espera, verificando reservas...');
+          const reservaActiva = await this.reservasService.obtenerReservaConfirmadaActiva(this.usuario.email);
+          console.log('🔍 [validarMesaEscaneada] Reserva activa encontrada:', reservaActiva);
+          
+          if (reservaActiva && reservaActiva.mesa_numero === numeroMesa) {
+            qrValido = true;
+            // Asignar la mesa al cliente si no estaba asignada
+            if (!this.mesaAsignada) {
+              this.mesaAsignada = numeroMesa;
+            }
+            console.log('✅ [validarMesaEscaneada] QR válido por reserva activa');
           }
         }
+      } else {
+        console.log('❌ [validarMesaEscaneada] No hay usuario ni cliente anónimo definido');
       }
     }
     
+    console.log('🔍 [validarMesaEscaneada] qrValido final:', qrValido);
+    
     if (!qrValido) {
+      console.log('❌ [validarMesaEscaneada] QR NO VÁLIDO - mostrando error');
+      this.qrMesaEscaneado = false;
       this.customLoader.hide();
-      this.swal.showTemporaryAlert('Error', 'QR inválido, escanea el QR de tu mesa asignada o reservada', 'error');
+      
+      // Mostrar mensaje con la mesa correcta si tiene una asignada
+      if (this.mesaAsignada) {
+        this.feedback.showToast('error', `❌ Mesa incorrecta. Tu mesa asignada es la N° ${this.mesaAsignada}`);
     } else {
-      // Si el cliente ya está sentado, solo verificar pedido existente
+        this.feedback.showToast('error', '❌ No tenés una mesa asignada. Esperá a que el maître te asigne una.');
+      }
+    } else {
+      console.log('✅ [validarMesaEscaneada] QR VÁLIDO - procediendo...');
+      // Activar flag de QR escaneado para mostrar botones
+      this.qrMesaEscaneado = true;
+      console.log('🔍 [validarMesaEscaneada] qrMesaEscaneado activado:', this.qrMesaEscaneado);
+      
+      // Si el cliente ya está sentado, solo verificar pedido existente y mostrar botones
       if (this.clienteSentado) {
+        console.log('🔍 [validarMesaEscaneada] Cliente ya sentado, verificando pedido y mostrando opciones');
         await this.verificarPedidoExistente();
         this.customLoader.hide();
-        this.swal.showTemporaryAlert('Éxito', 'Acceso actualizado', 'success');
+        this.swal.showTemporaryAlert('Éxito', '¡Opciones actualizadas!', 'success');
       } else {
-        // Si no está sentado, marcarlo como sentado primero
+        console.log('🔍 [validarMesaEscaneada] Cliente NO sentado, llamando a marcarClienteSentado...');
         await this.marcarClienteSentado();
       }
     }
@@ -1465,6 +1549,12 @@ export class HomePage implements OnInit {
 
 
   async marcarClienteSentado() {
+    console.log('🚀 [marcarClienteSentado] Iniciando...');
+    console.log('🚀 [marcarClienteSentado] esClienteAnonimo:', this.esClienteAnonimo);
+    console.log('🚀 [marcarClienteSentado] clienteAnonimo:', this.clienteAnonimo);
+    console.log('🚀 [marcarClienteSentado] usuario email:', this.usuario?.email);
+    console.log('🚀 [marcarClienteSentado] mesaAsignada:', this.mesaAsignada);
+    
     try {
       let error: any = null;
       let clienteId: number | null = null;
@@ -1473,6 +1563,7 @@ export class HomePage implements OnInit {
       if (this.esClienteAnonimo && this.clienteAnonimo) {
         // Para cliente anónimo, actualizar por ID
         clienteId = this.clienteAnonimo.id;
+        console.log('📝 [marcarClienteSentado] Actualizando cliente anónimo ID:', clienteId);
         const { error: updateError } = await this.supabase.supabase
         .from('clientes')
         .update({
@@ -1480,18 +1571,24 @@ export class HomePage implements OnInit {
         })
           .eq('id', clienteId);
         error = updateError;
+        if (updateError) console.error('❌ [marcarClienteSentado] Error actualizando cliente anónimo:', updateError);
       } else if (this.usuario?.email) {
         // Para cliente registrado, obtener ID primero y luego actualizar
+        console.log('📝 [marcarClienteSentado] Buscando cliente registrado por correo:', this.usuario.email);
         const { data: clienteData, error: clienteError } = await this.supabase.supabase
           .from('clientes')
           .select('id')
           .eq('correo', this.usuario.email)
           .single();
         
+        console.log('📝 [marcarClienteSentado] Resultado búsqueda cliente:', clienteData, clienteError);
+        
         if (clienteError || !clienteData) {
           error = clienteError;
+          console.error('❌ [marcarClienteSentado] Cliente no encontrado en tabla clientes');
         } else {
           clienteId = clienteData.id;
+          console.log('📝 [marcarClienteSentado] Cliente encontrado, ID:', clienteId);
           const { error: updateError } = await this.supabase.supabase
             .from('clientes')
             .update({
@@ -1499,11 +1596,17 @@ export class HomePage implements OnInit {
             })
             .eq('id', clienteId);
           error = updateError;
+          if (updateError) console.error('❌ [marcarClienteSentado] Error actualizando sentado:', updateError);
+          else console.log('✅ [marcarClienteSentado] Cliente marcado como sentado');
         }
+      } else {
+        console.error('❌ [marcarClienteSentado] No hay usuario ni cliente anónimo definido');
       }
 
       if (error) {
+        console.error('❌ [marcarClienteSentado] Error final:', error);
         this.swal.showTemporaryAlert('Error', 'No se pudo marcar el cliente como sentado.', 'error');
+        this.customLoader.hide();
         return;
       }
 
@@ -1525,13 +1628,16 @@ export class HomePage implements OnInit {
         }
       }
 
-        this.swal.showTemporaryAlert('¡Bienvenido!', '¡Ya puedes hacer tu pedido!', 'success');
-        this.clienteSentado = true;
+      this.swal.showTemporaryAlert('¡Bienvenido!', '¡Ya puedes hacer tu pedido!', 'success');
+      this.clienteSentado = true;
       this.mostrarBotonHacerPedido = true;
-        await this.verificarPedidoExistente();
+      await this.verificarPedidoExistente();
+      console.log('✅ [marcarClienteSentado] Proceso completado exitosamente');
     } catch (error) {
       console.error('💥 [marcarClienteSentado] Error inesperado:', error);
       this.swal.showTemporaryAlert('Error', 'Error al marcar el cliente como sentado.', 'error');
+    } finally {
+      this.customLoader.hide();
     }
   }
 
@@ -1570,6 +1676,11 @@ export class HomePage implements OnInit {
     this.router.navigate(['/encuestas']);
   }
 
+  verResultadosEncuestas()
+  {
+    this.router.navigate(['/encuestas'], { queryParams: { modo: 'ver' } });
+  }
+
   irAPedidosMozo()
   {
     this.router.navigate(['/pedidos-mozo']);
@@ -1581,16 +1692,8 @@ export class HomePage implements OnInit {
   }
 
   //**JUEGOS */
-
-  manejarResultadoDescuento(resultado: ResultadoJuego) {
-  // 1. Mostrar mensaje de descuento
-  this.feedback.showToast('exito', `¡Ganaste un ${resultado.porcentaje}% de descuento!`);
-
-  // 2. Llamar al servicio para actualizar Supabase y marcar descuento_ganado = true
-  this.juegosService.registrarResultadoDescuento(this.userData.id, resultado.porcentaje, 'atrapa_pollo');
-
-  // 3. Redirigir o cambiar la vista para desbloquear los otros juegos.
-  }
+  // La lógica de descuentos ahora se maneja directamente en cada juego
+  // usando juegosService.registrarResultadoJuego()
 
 
 }

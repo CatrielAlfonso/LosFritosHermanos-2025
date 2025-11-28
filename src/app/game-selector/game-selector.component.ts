@@ -1,19 +1,18 @@
-import { Component, OnInit,inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFabButton } from '@angular/material/button';
-import { MatIcon, MatIconModule } from '@angular/material/icon'; 
+import { IonicModule } from '@ionic/angular';
 import { LoadingService } from '../servicios/loading.service';
-
+import { JuegosService, JUEGOS_CONFIG, JuegoId } from '../servicios/juegos.service';
+import { FeedbackService } from '../servicios/feedback-service.service';
 
 interface Game {
-  id: string;
+  id: JuegoId;
   nombre: string;
   descripcion: string;
   ruta: string;
   imagen: string;
-  jugado: boolean;
+  descuento: number;
 }
 
 @Component({
@@ -21,85 +20,112 @@ interface Game {
   standalone: true,
   templateUrl: './game-selector.component.html',
   styleUrls: ['./game-selector.component.scss'],
-  imports: [CommonModule, 
-    MatButtonModule,
-    MatIconModule,
-  ],
+  imports: [CommonModule, IonicModule],
 })
-export class GameSelectorComponent  implements OnInit {
-
- // boton : MatButtonModule;
+export class GameSelectorComponent implements OnInit {
 
   loadingService = inject(LoadingService);
+  juegosService = inject(JuegosService);
+  feedback = inject(FeedbackService);
 
-  ngOnInit(): void {
-    
-  }
+  // Estado del cliente
+  puedeJugarPorDescuento: boolean = false;
+  yaUsoIntento: boolean = false;
+  esAnonimo: boolean = false;
+  descuentoObtenido: number = 0;
+  cargando: boolean = true;
 
-   juegos: Game[] = [
+  juegos: Game[] = [
     {
-      id: 'atrapa',
+      id: 'atrapa-el-pollo',
       nombre: 'Atrapa el Pollo',
       descripcion: 'Tocá el pollo para ganar antes de que escape.',
       ruta: '/atrapa-el-pollo',
       imagen: '../../assets/imgs/atrapaElPollo.png',
-      jugado: false
+      descuento: JUEGOS_CONFIG['atrapa-el-pollo'].descuento
     },
     {
-      id: 'extra',
-      nombre: 'Mozo Equilibrio',
-      descripcion: 'Evitá los obstáculos usando el giroscopio.',
-      ruta: '/mozo-quilibrio',
-      imagen: '../../assets/imgs/mozoEquilibrio.png',
-      jugado: false
-    },
-    {
-      id: 'mayor',
+      id: 'mayor-menor',
       nombre: 'Mayor o Menor',
       descripcion: 'Adiviná si la próxima carta es mayor o menor.',
       ruta: '/mayor-menor',
       imagen: '../../assets/imgs/mozoEquilibrio.png',
-      jugado: false
+      descuento: JUEGOS_CONFIG['mayor-menor'].descuento
     },
     {
-      id: 'memoria',
+      id: 'memoria-de-sabores',
       nombre: 'Memoria de Sabores',
       descripcion: 'Memorizá las cartas y encontrá las parejas.',
       ruta: '/memoria-de-sabores',
       imagen: '../../assets/imgs/memoriaSabores.png',
-      jugado: false
+      descuento: JUEGOS_CONFIG['memoria-de-sabores'].descuento
     },
   ];
 
-  descuento = 0;
-
   constructor(private router: Router) {}
 
-  async jugar(juego: Game) {
-    console.log(`Navegando a ${juego.ruta}`);
-    this.loadingService.show();
-    await this.router.navigateByUrl(juego.ruta);
-
-    this.loadingService.hide();
-
+  async ngOnInit() {
+    await this.verificarEstadoDescuento();
   }
 
-  volver() {
-    this.router.navigateByUrl('/home'); // ajustá la ruta según tu menú principal
-  }
+  async verificarEstadoDescuento() {
+    this.cargando = true;
+    try {
+      const elegibilidad = await this.juegosService.verificarElegibilidadDescuento();
+      
+      this.puedeJugarPorDescuento = elegibilidad.puedeJugarPorDescuento;
+      this.yaUsoIntento = elegibilidad.yaUsoIntento;
+      this.esAnonimo = elegibilidad.esAnonimo;
+      this.descuentoObtenido = elegibilidad.descuentoActual;
 
-  marcarJugado(id: string) {
-    const juego = this.juegos.find(j => j.id === id);
-
-    if (juego) {
-      juego.jugado = true;
-      this.calcularDescuento();
+      console.log('📊 Estado de elegibilidad:', elegibilidad);
+    } catch (error) {
+      console.error('Error al verificar elegibilidad:', error);
+    } finally {
+      this.cargando = false;
     }
   }
 
-  calcularDescuento() {
-    const jugados = this.juegos.filter(j => j.jugado).length;
-    this.descuento = jugados * 3.75; // 4 juegos → 15%
+  async jugar(juego: Game) {
+    console.log(`🎮 Navegando a ${juego.ruta}`);
+    
+    // Guardar el juego seleccionado para que el juego sepa cuál es
+    localStorage.setItem('juegoSeleccionado', juego.id);
+    localStorage.setItem('puedeJugarPorDescuento', String(this.puedeJugarPorDescuento));
+    
+    this.loadingService.show();
+    await this.router.navigateByUrl(juego.ruta);
+    this.loadingService.hide();
   }
 
+  volver() {
+    this.router.navigateByUrl('/home');
+  }
+
+  getMensajeEstado(): string {
+    if (this.esAnonimo) {
+      return '🎮 Jugá libremente. Los descuentos son solo para clientes registrados.';
+    }
+    if (this.yaUsoIntento) {
+      if (this.descuentoObtenido > 0) {
+        return `🎉 ¡Ya tenés ${this.descuentoObtenido}% de descuento! Podés seguir jugando por diversión.`;
+      }
+      return '🎮 Ya usaste tu intento de descuento. ¡Seguí jugando por diversión!';
+    }
+    return '🎯 ¡Ganando en el PRIMER intento obtenés descuento!';
+  }
+
+  getColorBoton(juego: Game): string {
+    if (this.puedeJugarPorDescuento) {
+      return 'success'; // Verde - puede ganar descuento
+    }
+    return 'secondary'; // Gris - juega por diversión
+  }
+
+  getTextoBoton(juego: Game): string {
+    if (this.puedeJugarPorDescuento) {
+      return `Jugar por ${juego.descuento}%`;
+    }
+    return 'Jugar';
+  }
 }

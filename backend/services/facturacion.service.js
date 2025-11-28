@@ -13,12 +13,12 @@ const path = require('path');
 
 async function generarYEnviarFactura(pedidoId) {
   try {
-    // --- 1. Obtener Datos (Simulado por ahora) ---
-    // En un caso real, harías las consultas a Supabase
+    // --- 1. Obtener Datos del Pedido ---
     console.log('en el metodo generarYEnviarFactura del facturacion.service, pedidoId: ', pedidoId)
     const pedido = await obtenerDatosDelPedido(pedidoId);
 
-    const esAnonimo = false; // O la lógica que uses para anónimos (falta esta logica)
+    // Determinar si es cliente anónimo (no tiene email o es cliente anónimo)
+    const esAnonimo = !pedido.cliente?.correo || pedido.cliente?.correo?.includes('anonimo');
     const clienteEmail = pedido.cliente?.correo;
     
     // --- 2. Generar el PDF en memoria ---
@@ -83,8 +83,8 @@ async function generarYEnviarFactura(pedidoId) {
 }
 
 /**
- * Dibuja la factura usando PDFKit.
- * @param {object} pedido - El objeto del pedido con los items, cliente, etc.
+ * Dibuja la factura usando PDFKit con todos los datos requeridos.
+ * @param {object} pedido - El objeto del pedido con los items, cliente, descuento, propina, etc.
  * @returns {Promise<Buffer>} Un Buffer del PDF generado.
  */
 function generarPDFFactura(pedido) {
@@ -100,61 +100,160 @@ function generarPDFFactura(pedido) {
 
       // --- Constantes de Posición ---
       const pageMargin = 50;
-      const pageWidth = doc.page.width - pageMargin * 2; // Ancho útil: 512
-      const tableTop = 220; // Posición Y donde empieza la tabla
+      const pageWidth = doc.page.width - pageMargin * 2;
       
-      // --- 1. Encabezado (Logo y Título) ---
-      // Esto queda igual que antes
+      // ============================================
+      // 1. ENCABEZADO - Logo, Nombre y Dirección
+      // ============================================
       const logoPath = path.join(__dirname, '..', 'assets', 'crispy2.png');
-      doc.image(logoPath, pageMargin, 45, { width: 80 }); 
-      doc.fontSize(20).text('Los Pollos Hermanos', 140, 50);
-      doc.fontSize(10).text('Av. Mitre 750', 140, 75);
+      try {
+        doc.image(logoPath, pageMargin, 35, { width: 70 }); 
+      } catch (e) {
+        console.log('Logo no encontrado, continuando sin logo');
+      }
       
-      doc.fontSize(10)
-         .text(`Factura #: 001-${pedido.id}`, pageMargin, 50, { align: 'right' })
-         .text(`Fecha: ${new Date(pedido.fecha).toLocaleDateString()}`, pageMargin, 65, { align: 'right' });
+      doc.fontSize(22).font('Helvetica-Bold')
+         .fillColor('#E53E3E')
+         .text('Los Fritos Hermanos', 130, 40);
       
-      // --- 2. Información del Cliente ---
-      // Esto queda igual
-      let y_cliente = 150;
-      doc.fontSize(12).text('Facturado a:', pageMargin, y_cliente);
-      doc.fontSize(10).text(pedido.cliente.nombre);
+      doc.fontSize(10).font('Helvetica')
+         .fillColor('#666')
+         .text('Av. Mitre 750, Buenos Aires', 130, 65)
+         .text('Tel: (011) 1234-5678', 130, 78)
+         .text('www.fritoshermanos.com', 130, 91);
       
-      // --- 3. Tabla de Items (Cabecera) ---
-      // El borde de la tabla se mantiene en su lugar
-      doc.rect(pageMargin, tableTop - 5, pageWidth, 20).stroke();
-
-      // ✅ AÑADIMOS PADDING A LAS COLUMNAS
+      // ============================================
+      // 2. DATOS DE FACTURA (derecha)
+      // ============================================
+      doc.fontSize(12).font('Helvetica-Bold')
+         .fillColor('#333')
+         .text(`FACTURA`, pageMargin, 40, { align: 'right' });
+      
+      doc.fontSize(10).font('Helvetica')
+         .fillColor('#666')
+         .text(`N°: 0001-${String(pedido.id).padStart(8, '0')}`, pageMargin, 55, { align: 'right' })
+         .text(`Fecha: ${new Date(pedido.fecha).toLocaleDateString('es-AR')}`, pageMargin, 68, { align: 'right' })
+         .text(`Pedido #: ${pedido.id}`, pageMargin, 81, { align: 'right' })
+         .text(`Mesa: ${pedido.mesa}`, pageMargin, 94, { align: 'right' });
+      
+      // Línea separadora
+      doc.moveTo(pageMargin, 115).lineTo(pageMargin + pageWidth, 115).stroke('#E53E3E');
+      
+      // ============================================
+      // 3. DATOS DEL CLIENTE
+      // ============================================
+      let y_cliente = 130;
+      doc.fontSize(11).font('Helvetica-Bold')
+         .fillColor('#E53E3E')
+         .text('DATOS DEL CLIENTE', pageMargin, y_cliente);
+      
+      y_cliente += 18;
+      doc.fontSize(10).font('Helvetica')
+         .fillColor('#333')
+         .text(`Nombre: ${pedido.cliente?.nombre || 'Cliente'} ${pedido.cliente?.apellido || ''}`, pageMargin, y_cliente);
+      
+      if (pedido.cliente?.correo && !pedido.cliente.correo.includes('anonimo')) {
+        y_cliente += 15;
+        doc.text(`Email: ${pedido.cliente.correo}`, pageMargin, y_cliente);
+      }
+      
+      // ============================================
+      // 4. TABLA DE PRODUCTOS
+      // ============================================
+      const tableTop = y_cliente + 35;
+      
+      // Cabecera de tabla
+      doc.rect(pageMargin, tableTop - 5, pageWidth, 22).fill('#E53E3E');
+      
       const col1_x = pageMargin + 10;      // Cant.
-      const col2_x = pageMargin + 60;      // Descripción
-      const col3_x = pageMargin + 310;     // P. Unitario
-      const col4_x = pageMargin + 410;     // Total
+      const col2_x = pageMargin + 50;      // Descripción
+      const col3_x = pageMargin + 320;     // P. Unitario
+      const col4_x = pageMargin + 420;     // Importe
       
-      doc.fontSize(10)
-         .text('Cant.', col1_x, tableTop, { width: 40 })
-         .text('Descripción', col2_x, tableTop, { width: 250 })
-         .text('P. Unitario', col3_x, tableTop, { width: 100, align: 'right' })
-         .text('Total', col4_x, tableTop, { width: 100, align: 'right' });
+      doc.fontSize(10).font('Helvetica-Bold')
+         .fillColor('#FFF')
+         .text('Cant.', col1_x, tableTop, { width: 35 })
+         .text('Descripción', col2_x, tableTop, { width: 260 })
+         .text('P. Unit.', col3_x, tableTop, { width: 90, align: 'right' })
+         .text('Importe', col4_x, tableTop, { width: 80, align: 'right' });
       
-      // 4. Items del Pedido (Bucle)
-      let y = tableTop + 25;
+      // Items del Pedido
+      let y = tableTop + 28;
+      doc.font('Helvetica').fillColor('#333');
+      
       for (const item of pedido.items) {
-        doc.fontSize(10)
-           .text(item.cantidad, col1_x, y, { width: 40 })
-           .text(item.nombre, col2_x, y, { width: 250 })
-           .text(`$${item.precioUnitario.toFixed(2)}`, col3_x, y, { width: 100, align: 'right' })
-           .text(`$${(item.cantidad * item.precioUnitario).toFixed(2)}`, col4_x, y, { width: 100, align: 'right' });
+        // Alternar color de fondo
+        if ((pedido.items.indexOf(item) % 2) === 0) {
+          doc.rect(pageMargin, y - 5, pageWidth, 20).fill('#f9f9f9');
+        }
+        
+        doc.fillColor('#333')
+           .fontSize(10)
+           .text(item.cantidad, col1_x, y, { width: 35 })
+           .text(item.nombre, col2_x, y, { width: 260 })
+           .text(`$${item.precioUnitario.toFixed(2)}`, col3_x, y, { width: 90, align: 'right' })
+           .text(`$${(item.cantidad * item.precioUnitario).toFixed(2)}`, col4_x, y, { width: 80, align: 'right' });
         y += 20;
       }
-
-      // 5. Total
-      // ✅ AÑADIMOS MÁS ESPACIO VERTICAL
-      // Incrementamos 'y' 20px extra antes de dibujar el total
-      y += 20; 
       
+      // Línea separadora
+      y += 10;
+      doc.moveTo(pageMargin + 250, y).lineTo(pageMargin + pageWidth, y).stroke('#ccc');
+      y += 15;
+      
+      // ============================================
+      // 5. SUBTOTAL, DESCUENTO, PROPINA Y TOTAL
+      // ============================================
+      const labelX = pageMargin + 320;
+      const valueX = pageMargin + 420;
+      
+      // Subtotal
+      doc.fontSize(10).font('Helvetica')
+         .fillColor('#666')
+         .text('Subtotal:', labelX, y, { width: 90, align: 'right' })
+         .text(`$${pedido.subtotal.toFixed(2)}`, valueX, y, { width: 80, align: 'right' });
+      y += 18;
+      
+      // Descuento por juegos (si aplica)
+      if (pedido.descuentoPorcentaje > 0) {
+        doc.fillColor('#2E7D32')
+           .text(`Descuento Juegos (${pedido.descuentoPorcentaje}%):`, labelX - 30, y, { width: 120, align: 'right' })
+           .text(`-$${pedido.descuentoMonto.toFixed(2)}`, valueX, y, { width: 80, align: 'right' });
+        y += 18;
+      }
+      
+      // Propina (grado de satisfacción)
+      if (pedido.propinaPorcentaje > 0) {
+        doc.fillColor('#1565C0')
+           .text(`Propina (${pedido.propinaPorcentaje}%):`, labelX, y, { width: 90, align: 'right' })
+           .text(`$${pedido.propinaMonto.toFixed(2)}`, valueX, y, { width: 80, align: 'right' });
+        y += 18;
+      }
+      
+      // Línea antes del total
+      y += 5;
+      doc.moveTo(pageMargin + 320, y).lineTo(pageMargin + pageWidth, y).stroke('#E53E3E');
+      y += 12;
+      
+      // TOTAL GRANDE
       doc.fontSize(14).font('Helvetica-Bold')
-         // Usamos las coordenadas de la última columna para alinear el total
-         .text(`Total: $${pedido.total.toFixed(2)}`, col3_x, y, { width: 200, align: 'right' });
+         .fillColor('#E53E3E')
+         .text('TOTAL:', labelX, y, { width: 90, align: 'right' })
+         .text(`$${pedido.total.toFixed(2)}`, valueX, y, { width: 80, align: 'right' });
+      
+      // ============================================
+      // 6. PIE DE PÁGINA
+      // ============================================
+      const footerY = doc.page.height - 80;
+      
+      doc.fontSize(10).font('Helvetica')
+         .fillColor('#666')
+         .text('¡Gracias por su visita!', pageMargin, footerY, { align: 'center', width: pageWidth });
+      
+      doc.fontSize(8)
+         .fillColor('#999')
+         .text('Los Fritos Hermanos - Documento no válido como factura fiscal', pageMargin, footerY + 15, { align: 'center', width: pageWidth })
+         .text(`Generado el ${new Date().toLocaleString('es-AR')}`, pageMargin, footerY + 28, { align: 'center', width: pageWidth });
 
       // --- Fin del Dibujo ---
       doc.end();
@@ -168,27 +267,118 @@ function generarPDFFactura(pedido) {
 async function enviarFacturaPorEmail(clienteEmail, pdfUrl, pedido) {
   console.log(`Enviando factura por email a: ${clienteEmail}`);
   try {
+    const nombreCliente = pedido.cliente?.nombre || 'Cliente';
+    const fechaFormateada = new Date(pedido.fecha).toLocaleDateString('es-AR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-        <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Los Pollos Hermanos" style="width: 150px; margin: 20px auto; display: block;">
-        <h2>¡Gracias por tu visita, ${pedido.cliente.nombre}!</h2>
-        <p>Adjuntamos el enlace para descargar tu factura correspondiente al pedido #${pedido.id}.</p>
-        <p>Total pagado: <strong>$${pedido.total.toFixed(2)}</strong></p>
-        <div style="text-align: center; margin: 30px;">
-          <a href="${pdfUrl}" style="background-color: #ffc107; color: #333; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-            Descargar Factura (PDF)
-          </a>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Factura - Los Fritos Hermanos</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #E53E3E 0%, #C53030 100%); padding: 30px; text-align: center;">
+            <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" 
+                 alt="Los Fritos Hermanos" 
+                 style="width: 120px; border-radius: 10px; margin-bottom: 15px;">
+            <h1 style="color: #FFD700; margin: 0; font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+              Los Fritos Hermanos
+            </h1>
+            <p style="color: #fff; margin: 10px 0 0 0; font-size: 14px;">
+              Av. Mitre 750, Buenos Aires
+            </p>
+          </div>
+          
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #333; margin-top: 0;">
+              ¡Gracias por tu visita, ${nombreCliente}! 🌮
+            </h2>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.6;">
+              Te enviamos la factura correspondiente a tu pedido. Fue un placer atenderte.
+            </p>
+            
+            <!-- Detalles del pedido -->
+            <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 25px 0; border-left: 4px solid #E53E3E;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; color: #666;">Pedido N°:</td>
+                  <td style="padding: 8px 0; color: #333; font-weight: bold; text-align: right;">#${pedido.id}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #666;">Fecha:</td>
+                  <td style="padding: 8px 0; color: #333; text-align: right;">${fechaFormateada}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #666;">Mesa:</td>
+                  <td style="padding: 8px 0; color: #333; text-align: right;">${pedido.mesa}</td>
+                </tr>
+                ${pedido.descuentoPorcentaje > 0 ? `
+                <tr>
+                  <td style="padding: 8px 0; color: #2E7D32;">🎮 Descuento Juegos:</td>
+                  <td style="padding: 8px 0; color: #2E7D32; font-weight: bold; text-align: right;">-$${pedido.descuentoMonto.toFixed(2)} (${pedido.descuentoPorcentaje}%)</td>
+                </tr>
+                ` : ''}
+                ${pedido.propinaPorcentaje > 0 ? `
+                <tr>
+                  <td style="padding: 8px 0; color: #1565C0;">❤️ Propina:</td>
+                  <td style="padding: 8px 0; color: #1565C0; font-weight: bold; text-align: right;">$${pedido.propinaMonto.toFixed(2)} (${pedido.propinaPorcentaje}%)</td>
+                </tr>
+                ` : ''}
+                <tr style="border-top: 2px solid #E53E3E;">
+                  <td style="padding: 15px 0 8px 0; color: #E53E3E; font-size: 18px; font-weight: bold;">TOTAL:</td>
+                  <td style="padding: 15px 0 8px 0; color: #E53E3E; font-size: 22px; font-weight: bold; text-align: right;">$${pedido.total.toFixed(2)}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <!-- Botón de descarga -->
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${pdfUrl}" 
+                 style="display: inline-block; background: linear-gradient(135deg, #E53E3E 0%, #C53030 100%); 
+                        color: #fff; padding: 15px 40px; text-decoration: none; border-radius: 25px; 
+                        font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4);">
+                📄 Descargar Factura (PDF)
+              </a>
+            </div>
+            
+            <p style="color: #888; font-size: 14px; text-align: center; margin-top: 30px;">
+              ¿Tenés alguna consulta? Respondé a este correo o contactanos.
+            </p>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background: #333; padding: 20px; text-align: center;">
+            <p style="color: #FFD700; margin: 0 0 10px 0; font-weight: bold;">
+              🌮 Los Fritos Hermanos 🌮
+            </p>
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              © 2025 Los Fritos Hermanos. Todos los derechos reservados.
+            </p>
+            <p style="color: #777; font-size: 11px; margin: 10px 0 0 0;">
+              Este es un correo automático. Por favor no responder directamente.
+            </p>
+          </div>
+          
         </div>
-        <p style="color: #777; font-size: 12px; text-align: center;">
-          Los Pollos Hermanos - Av. Ficticia 1234
-        </p>
-      </div>
+      </body>
+      </html>
     `;
 
     await sendEmail({
         to: clienteEmail,
-        subject: `Tu factura del pedido #${pedido.id} de Los Fritos Hermanos`,
-        text: `¡Gracias por tu visita! Aquí puedes descargar tu factura: ${pdfUrl}`,
+        subject: `📋 Tu factura del pedido #${pedido.id} - Los Fritos Hermanos`,
+        text: `¡Gracias por tu visita, ${nombreCliente}! Aquí puedes descargar tu factura del pedido #${pedido.id}: ${pdfUrl}. Total: $${pedido.total.toFixed(2)}`,
         html: htmlBody
     });
     console.log('Email de factura enviado.');
@@ -208,17 +398,19 @@ async function notificarClienteAnonimo(fcmToken, pdfUrl, pedidoId) {
   try {
     const message = {
       notification: {
-        title: '¡Tu factura está lista!',
-        body: 'El pago se completó. Toca aquí para descargar tu factura.'
+        title: '🧾 ¡Tu factura está lista!',
+        body: '¡Gracias por tu visita a Los Fritos Hermanos! Tocá aquí para descargar tu factura en PDF.'
       },
       data: {
         link: pdfUrl,
+        pedidoId: pedidoId.toString(),
+        tipo: 'factura'
       },
       token: fcmToken
     };
 
     await admin.messaging().send(message);
-    console.log('Notificación push con factura enviada.');
+    console.log('Notificación push con factura enviada al cliente anónimo.');
 
   } catch (error) {
     console.error('Error al enviar la notificación push de la factura:', error);
@@ -239,6 +431,8 @@ async function obtenerDatosDelPedido(pedidoId) {
       bebidas,
       postres,
       mesa,
+      descuento,
+      propina,
       cliente:clientes (
         id,
         nombre,
@@ -274,16 +468,36 @@ async function obtenerDatosDelPedido(pedidoId) {
 
   const itemsCombinados = [...itemsComidas, ...itemsBebidas, ...itemsPostres];
 
+  // Calcular subtotal
+  const subtotal = itemsCombinados.reduce((sum, item) => sum + (item.cantidad * item.precioUnitario), 0);
+  
+  // Calcular descuento
+  const descuentoPorcentaje = pedidoData.descuento || 0;
+  const descuentoMonto = (subtotal * descuentoPorcentaje) / 100;
+  
+  // Calcular propina
+  const propinaPorcentaje = pedidoData.propina || 0;
+  const baseParaPropina = subtotal - descuentoMonto;
+  const propinaMonto = (baseParaPropina * propinaPorcentaje) / 100;
+  
+  // Total final
+  const totalFinal = subtotal - descuentoMonto + propinaMonto;
+
   const resultado = {
     id: pedidoData.id,
     fecha: pedidoData.fecha_pedido, 
-    total: pedidoData.precio,        
+    subtotal: subtotal,
+    descuentoPorcentaje: descuentoPorcentaje,
+    descuentoMonto: descuentoMonto,
+    propinaPorcentaje: propinaPorcentaje,
+    propinaMonto: propinaMonto,
+    total: totalFinal,
     cliente: pedidoData.cliente,     
     mesa: pedidoData.mesa,
     items: itemsCombinados           
   };
 
-  console.log('Datos del pedido encontrados y formateados (nueva estructura).');
+  console.log('Datos del pedido encontrados y formateados (con descuento y propina).');
   return resultado;
 }
 

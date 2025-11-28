@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonTitle, IonItem, IonLabel, IonInput, IonRange, IonRadioGroup, IonRadio, IonCheckbox, IonSelect, IonSelectOption, IonTextarea, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonGrid, IonRow, IonCol, IonImg, IonAlert, IonBackButton, IonButtons, IonSpinner, AlertController } from '@ionic/angular/standalone';
 import { SupabaseService } from '../../servicios/supabase.service';
 import { LoadingService } from '../../servicios/loading.service';
+import { FeedbackService } from '../../servicios/feedback-service.service';
 import { Router } from '@angular/router';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Chart, registerables } from 'chart.js';
@@ -81,7 +82,8 @@ export class EncuestasComponent  implements OnInit {
     private supabase: SupabaseService,
     private loadingService: LoadingService,
     private router: Router,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private feedback: FeedbackService
   ) {
     this.encuestaForm = this.fb.group({
       satisfaccion_general: [5, [Validators.required, Validators.min(1), Validators.max(10)]],
@@ -288,15 +290,12 @@ export class EncuestasComponent  implements OnInit {
             .eq('correo', this.clientInfo.correo);
           
           if (errorCliente) {
+            console.error('Error al actualizar estado de encuesta en cliente:', errorCliente);
           }
           
-          await this.cargarEncuestas();
-          this.mostrarGraficos = true;
-          this.crearGraficos();
-          
-          setTimeout(() => {
-            this.mostrarMensajeExito = false;
-          }, 3000);
+          // Mostrar toast de éxito y volver al home
+          this.feedback.showToast('exito', '¡Gracias! Tu encuesta fue enviada. Podés ver los resultados escaneando el QR de tu mesa.');
+          this.router.navigate(['/home']);
         }
       } catch (error) {
         await this.mostrarAlerta('Error', `Error inesperado al enviar la encuesta: ${error}`);

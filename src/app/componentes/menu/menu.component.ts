@@ -167,7 +167,12 @@ export class MenuComponent  implements OnInit, OnDestroy {
     if (this.esDelivery) {
       this.router.navigate(['/delivery']);
     } else {
-      this.router.navigate(['/carrito']);
+      // Pasar la mesa asignada como parámetro de ruta
+      if (this.mesaAsignada) {
+        this.router.navigate(['/carrito', this.mesaAsignada]);
+      } else {
+        this.router.navigate(['/carrito']);
+      }
     }
   }
 

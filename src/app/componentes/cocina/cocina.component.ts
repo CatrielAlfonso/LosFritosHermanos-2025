@@ -83,7 +83,8 @@ export class CocinaComponent  implements OnInit {
     return todosPedidos.filter(pedido => 
       pedido.estado === 'en preparacion' && 
       (pedido.comidas.length > 0 || pedido.postres.length > 0) &&
-      pedido.estado_comida !== 'listo'
+      pedido.estado_comida !== 'listo' &&
+      (pedido.estado_comida === 'derivado' || pedido.estado_comida === 'en preparacion')
     );
   });
 
@@ -114,10 +115,43 @@ export class CocinaComponent  implements OnInit {
   getEstadoTexto(estado: string): string {
     const estados: {[key: string]: string} = {
       'pendiente': 'Pendiente',
+      'derivado': 'Nuevo - Por recibir',
       'en preparacion': 'En Preparación',
       'listo': 'Listo'
     };
     return estados[estado] || estado;
+  }
+
+  async marcarComoRecibido(pedido: any) {
+    try {
+      await this.supabaseService.actualizarPedido(pedido.id, {
+        estado_comida: 'en preparacion'
+      });
+      
+      // Si es un pedido de delivery, sincronizar
+      if (pedido.mesa === 'DELIVERY') {
+        await this.sincronizarConPedidoDelivery(pedido, { estado_comida: 'en preparacion' });
+      }
+      
+      const toast = await this.toastController.create({
+        message: `✅ Pedido de Mesa ${pedido.mesa} recibido - En preparación`,
+        duration: 3000,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+      
+    } catch (error) {
+      console.error('Error marcando pedido como recibido:', error);
+      
+      const toast = await this.toastController.create({
+        message: '❌ Error al marcar como recibido',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
   }
 
   async marcarComoListo(pedido: any) {

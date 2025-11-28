@@ -1,37 +1,13 @@
+.juegos-content {
+  --background: #dc2234;
+}
+
 .selector-container {
   max-width: 900px;
   margin: auto;
-  margin-top: 2rem;
-  padding: 2rem;
-  border-radius: 15px;
-  background: #dc2234;
+  padding: 1.5rem;
   text-align: center;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 18px;
-  background: #dc2234;
-  border-bottom: 2px solid #f1f1f1;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-.header-title {
-  flex: 1;
-  text-align: center;
-  font-size: 1.8rem;
-  margin: 0;
-  font-weight: 700;
-  color: #efbf2d; // un naranja "frito"
-  letter-spacing: 1px;
-}
-
-
-
-.header-spacer {
-  width: 40px;  // para balancear el “Volver”
+  min-height: 100%;
 }
 
 .titulo {
@@ -42,16 +18,72 @@
 
 .subtitulo {
   color: #ffffff;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-family: 'Courier New', Courier, monospace;
 }
 
+.subtitulo-small {
+  color: #ffeb3b;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.estado-descuento {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  
+  p {
+    margin: 0;
+    color: #fff;
+    font-size: 1rem;
+  }
+
+  &.puede-ganar {
+    background: rgba(46, 204, 113, 0.3);
+    border: 2px solid #2ecc71;
+  }
+
+  &.ya-gano {
+    background: rgba(241, 196, 15, 0.3);
+    border: 2px solid #f1c40f;
+  }
+}
+
 .descuento-box {
-  background: #dc2234;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
   padding: 1rem;
   border-radius: 10px;
   margin-bottom: 2rem;
-  border: 2px solid #2ecc71;
+  
+  h2 {
+    color: #fff;
+    margin: 0;
+  }
+}
+
+.badge-descuento {
+  display: inline-block;
+  background: #2ecc71;
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.juego-info {
+  .juego-nombre {
+    color: #333;
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+  }
+}
+
+.btn-volver {
+  margin-top: 2rem;
 }
 
 .grid-juegos {

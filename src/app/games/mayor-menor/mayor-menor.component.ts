@@ -1,68 +1,141 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
+import { Router } from '@angular/router';
+import { JuegosService, JUEGOS_CONFIG } from '../../servicios/juegos.service';
+import { FeedbackService } from '../../servicios/feedback-service.service';
+
+type GameState = 'inicio' | 'jugando' | 'terminado';
 
 @Component({
   selector: 'app-mayor-menor',
   templateUrl: './mayor-menor.component.html',
   styleUrls: ['./mayor-menor.component.scss'],
+  imports: [CommonModule, IonicModule]
 })
-export class MayorMenorComponent  implements OnInit {
+export class MayorMenorComponent implements OnInit {
 
-  protected cartaAnterior : number = 0
-  protected carta : number = 0
-  protected numerosPosibles: number[] = [1,2,3,4,5,6,7,8,9,10,11,12]
-  protected puntos : number = 0
-  protected puntosBD : number = 0
-  protected record : number = 0;
-  protected mensaje : string = ''
-  private indiceAnterior : number = 0;
-  protected color  = 'red';
-  protected usuarioActual : any
-  isFlipping = false
+  private router = inject(Router);
+  private juegosService = inject(JuegosService);
+  private feedback = inject(FeedbackService);
+
+  // Estado del juego
+  gameState: GameState = 'inicio';
+  
+  // Cartas
+  cartaAnterior: number = 0;
+  carta: number = 0;
+  numerosPosibles: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  
+  // Puntuación
+  puntos: number = 0;
+  puntosParaGanar: number = 5; // Necesita 5 aciertos seguidos para ganar
+  
+  // Estado de elegibilidad
+  puedeJugarPorDescuento: boolean = false;
+  yaUsoIntento: boolean = false;
+  esAnonimo: boolean = false;
+  descuentoJuego: number = JUEGOS_CONFIG['mayor-menor'].descuento; // 15%
+  
+  // Resultado
+  gano: boolean = false;
+  mensajeResultado: string = '';
+  
+  // Animación
+  isFlipping: boolean = false;
+  private indiceAnterior: number = 0;
 
   constructor() { }
 
-  ngOnInit() {}
+  async ngOnInit() {
+    await this.verificarElegibilidad();
+  }
 
-  generarCarta(){
+  async verificarElegibilidad() {
+    const elegibilidad = await this.juegosService.verificarElegibilidadDescuento();
+    this.puedeJugarPorDescuento = elegibilidad.puedeJugarPorDescuento;
+    this.yaUsoIntento = elegibilidad.yaUsoIntento;
+    this.esAnonimo = elegibilidad.esAnonimo;
+    
+    console.log('🎮 Elegibilidad Mayor o Menor:', elegibilidad);
+  }
+
+  iniciarJuego() {
+    this.gameState = 'jugando';
+    this.puntos = 0;
+    this.gano = false;
+    this.generarCarta();
+  }
+
+  generarCarta() {
     let indice = Math.floor(Math.random() * 12);
-    while(indice === this.indiceAnterior){
+    while (indice === this.indiceAnterior) {
       indice = Math.floor(Math.random() * 12);
     }
     this.indiceAnterior = indice;
-    console.log('carta: ' + (indice + 1))
-    this.carta = this.numerosPosibles[indice]
+    this.carta = this.numerosPosibles[indice];
   }
 
   triggerFlip() {
     this.isFlipping = true;
-
     setTimeout(() => {
       this.isFlipping = false;
     }, 300);
   }
 
-
-  mayorMenor(condicion: string) {
+  async mayorMenor(condicion: string) {
     this.cartaAnterior = this.carta;
     this.generarCarta();
-  
-    if ((condicion === 'mayor' && this.carta >= this.cartaAnterior) || 
-        (condicion === 'menor' && this.carta <= this.cartaAnterior)) {
+
+    const acierto = (condicion === 'mayor' && this.carta >= this.cartaAnterior) ||
+                    (condicion === 'menor' && this.carta <= this.cartaAnterior);
+
+    if (acierto) {
       this.puntos += 1;
-      this.triggerFlip()
+      this.triggerFlip();
+
+      // Verificar si ganó
+      if (this.puntos >= this.puntosParaGanar) {
+        await this.terminarJuego(true);
+      }
     } else {
-      //this.mensaje = `Alcanzaste ${this.puntos} puntos! Inténtalo otra vez`;
-  
-      // Llamar al método para verificar y actualizar récord en segundo plano
-      // if (this.puntos > this.record) {
-      //   this.puntosBD = this.puntos
-      // }
-  
-  
-      this.puntos = 0;  
+      // Perdió
+      await this.terminarJuego(false);
     }
-  
-    console.log(this.carta);
   }
 
+  async terminarJuego(gano: boolean) {
+    this.gameState = 'terminado';
+    this.gano = gano;
+
+    // Registrar resultado usando el servicio de juegos
+    const resultado = await this.juegosService.registrarResultadoJuego('mayor-menor', gano);
+    this.mensajeResultado = resultado.mensaje;
+
+    // Actualizar estado después de jugar
+    await this.verificarElegibilidad();
+  }
+
+  getMensajeInicio(): string {
+    if (this.esAnonimo) {
+      return '🎮 ¡Jugá por diversión! Los descuentos son para clientes registrados.';
+    }
+    if (this.yaUsoIntento) {
+      return '🎮 ¡Jugá libremente! Ya usaste tu intento de descuento.';
+    }
+    return `🎯 ¡Acertá ${this.puntosParaGanar} veces seguidas y obtené ${this.descuentoJuego}% de descuento!`;
+  }
+
+  reiniciarJuego() {
+    this.gameState = 'inicio';
+    this.puntos = 0;
+    this.carta = 0;
+    this.cartaAnterior = 0;
+    this.gano = false;
+    this.mensajeResultado = '';
+  }
+
+  volverAlMenu() {
+    this.router.navigate(['/game-selector']);
+  }
 }

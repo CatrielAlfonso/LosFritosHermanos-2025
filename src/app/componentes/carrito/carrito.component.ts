@@ -36,9 +36,48 @@ export class CarritoComponent {
   ) {}
 
 
-  ngOnInit(){
-    this.user = this.authService.userActual
-    this.mesa = this.route.snapshot.paramMap.get('mesa') || ''
+  async ngOnInit(){
+    this.user = this.authService.userActual;
+    this.mesa = this.route.snapshot.paramMap.get('mesa') || '';
+    
+    console.log('🛒 [Carrito] Inicializando...');
+    console.log('🛒 [Carrito] Mesa desde parámetro de ruta:', this.mesa);
+    
+    // Si no hay mesa en la ruta, intentar obtenerla de lista_espera
+    if (!this.mesa && this.user) {
+      await this.obtenerMesaDelUsuario();
+    }
+    
+    console.log('🛒 [Carrito] Mesa final:', this.mesa);
+  }
+
+  async obtenerMesaDelUsuario() {
+    try {
+      const { data: authData } = await this.authService.getCurrentUser();
+      if (!authData?.user?.email) {
+        console.log('🛒 [Carrito] No hay usuario logueado');
+        return;
+      }
+
+      const email = authData.user.email;
+      console.log('🛒 [Carrito] Buscando mesa para email:', email);
+
+      const { data: clienteEnLista, error } = await this.supabase.supabase
+        .from('lista_espera')
+        .select('mesa_asignada')
+        .eq('correo', email)
+        .not('mesa_asignada', 'is', null)
+        .single();
+
+      if (!error && clienteEnLista?.mesa_asignada) {
+        this.mesa = String(clienteEnLista.mesa_asignada);
+        console.log('🛒 [Carrito] Mesa obtenida de lista_espera:', this.mesa);
+      } else {
+        console.log('🛒 [Carrito] No se encontró mesa asignada en lista_espera');
+      }
+    } catch (error) {
+      console.error('🛒 [Carrito] Error al obtener mesa:', error);
+    }
   }
 
   aumentarCantidad(item: CartItem) {
@@ -100,18 +139,33 @@ export class CarritoComponent {
   async realizarPedido() {
     try {
       if (!this.user) {
-      throw new Error('Usuario no autenticado');
-    }
-    console.log('user', this.user().id)
+        throw new Error('Usuario no autenticado');
+      }
+      
+      console.log('🛒 [realizarPedido] Iniciando pedido...');
+      console.log('🛒 [realizarPedido] User ID:', this.user().id);
+      console.log('🛒 [realizarPedido] Mesa:', this.mesa);
+      
+      // Si la mesa está vacía, intentar obtenerla nuevamente
+      if (!this.mesa) {
+        console.log('🛒 [realizarPedido] Mesa vacía, intentando obtener...');
+        await this.obtenerMesaDelUsuario();
+        console.log('🛒 [realizarPedido] Mesa después de obtener:', this.mesa);
+      }
+      
       const itemsCarrito = this.items();
       if (itemsCarrito.length === 0) {
         throw new Error('El carrito está vacío');
       }
+      
       const pedido = this.carritoService.generarPedidoParaConfirmacion(
         this.user().id,
         this.mesa,
         this.observaciones,
       );
+      
+      console.log('🛒 [realizarPedido] Pedido generado:', pedido);
+      console.log('🛒 [realizarPedido] Mesa en pedido:', pedido.mesa);
       const { data, error } = await this.supabase.supabase
       .from('pedidos')
       .insert([pedido])

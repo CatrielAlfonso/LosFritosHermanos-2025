@@ -31,22 +31,21 @@
 
 .mesas-panel {
   display: flex;
-  flex-direction: column; /* Apila el título, el grid y el panel de asignación */
-  flex: 1; /* CLAVE: Ocupa el espacio restante horizontalmente */
-  min-width: 50%; /* O lo que necesites para el layout de dos columnas */
-
-  .mesas-content-scroll { 
-    flex: 1; 
-    overflow-y: auto; /* ¡AQUÍ ESTÁ EL SCROLL! */
-    padding-bottom: 20px; /* Espacio extra al final */
-  }
+  flex-direction: column;
+  flex: 1;
+  min-width: 50%;
+  overflow: hidden; /* Evita que el panel se desborde */
 }
 
-/* Panel Derecho: Mesas (Aprox. 65% del ancho) */
-.mesas-panel ion-grid {
-    
-  flex: 1; /* CLAVE: Permite que el grid crezca y que el panel sea scrollable si la lista es grande */
-  overflow-y: auto; /* Permite el scroll solo en el grid si es necesario */
+/* Área scrolleable de las mesas */
+.mesas-scroll-area {
+  flex: 1;
+  overflow-y: auto; /* Permite scroll vertical */
+  padding-bottom: 100px; /* Espacio extra para que no tape el panel de asignación */
+  
+  ion-grid {
+    padding: 0;
+  }
 }
 
 .panel-title {
@@ -67,6 +66,16 @@
     
     ion-icon { color: #4666de; }
 
+    ion-label {
+        h2 { 
+            color: #333333; /* Color oscuro visible para el nombre */
+            font-weight: 600;
+        }
+        p { 
+            color: #666666; /* Color gris para la hora de ingreso */
+        }
+    }
+
     &.item-selected {
         --background: rgba(239, 191, 45, 0.15); /* Fondo amarillo tenue */
         border-left: 5px solid #efbf2d; /* Borde de color de marca */
@@ -78,17 +87,29 @@
 /* ESTILOS DE MESAS Y CARDS            */
 /* ----------------------------------- */
 ion-card {
-    height: 100%; // O una altura fija, ej: 120px
-  min-height: 120px; 
+  min-height: 90px; /* Más compacto para que quepan más mesas */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-    border-radius: 10px;
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-    border: 2px solid transparent;
+  border-radius: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  border: 2px solid transparent;
+  margin: 6px; /* Menos margen para más espacio */
+  
+  ion-card-header {
+    padding: 8px; /* Padding más compacto */
+  }
+  
+  ion-card-title {
+    font-size: 0.95rem;
+  }
+  
+  ion-card-subtitle {
+    font-size: 0.75rem;
+  }
 }
 
 /* Mesa Disponible */
