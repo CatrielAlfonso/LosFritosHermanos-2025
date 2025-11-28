@@ -75,7 +75,8 @@
   <ion-toolbar class="toolbar-resumen">
     <div class="resumen-pedido">
       <div class="resumen-info">
-        <span class="total-items">{{totalItems()}} productos</span>
+        @if(totalItems() == 1){<span class="total-items">{{totalItems()}} producto</span>}
+        @else{<span class="total-items">{{totalItems()}} productos</span>}
         <span class="total-pedido">{{total() | currency}}</span>
       </div>
       <ion-button 
