@@ -7,6 +7,7 @@ import { CarritoService, CartItem } from 'src/app/servicios/carrito.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
+import Swal from 'sweetalert2';
 
 
 
@@ -93,47 +94,85 @@ export class CarritoComponent {
   }
 
   async eliminarItem(item: CartItem) {
-    const alert = await this.alertController.create({
-      header: 'Eliminar producto',
-      message: `¿Estás seguro de que querés eliminar ${item.nombre} del carrito?`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Eliminar',
-          handler: () => {
-            this.carritoService.eliminarProducto(item.id);
-          }
-        }
-      ]
-    });
 
-    await alert.present();
+    Swal.fire({
+      title: 'Eliminar producto',
+      text: `¿Estás seguro de que querés eliminar ${item.nombre} del carrito?`,
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d32f2f', // Tu color --ion-color-primary (Rojo fuerte)
+      cancelButtonColor: '#ff9800',  // Tu color --ion-color-fritos-orange
+      heightAuto: false, // ⚠️ IMPORTANTE PARA IONIC: Evita que la pantalla "salte"
+      backdrop: true,    // Oscurece el fondo
+      allowOutsideClick: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.carritoService.eliminarProducto(item.id)
+      }
+    })
+
+
+    // const alert = await this.alertController.create({
+    //   header: 'Eliminar producto',
+    //   message: `¿Estás seguro de que querés eliminar ${item.nombre} del carrito?`,
+    //   buttons: [
+    //     {
+    //       text: 'Cancelar',
+    //       role: 'cancel'
+    //     },
+    //     {
+    //       text: 'Eliminar',
+    //       handler: () => {
+    //         this.carritoService.eliminarProducto(item.id);
+    //       }
+    //     }
+    //   ]
+    // });
+
+    // await alert.present();
   }
 
   async confirmarPedido() {
     if (this.items().length === 0) return;
 
-    const alert = await this.alertController.create({
-      header: 'Confirmar pedido',
-      message: `¿Confirmás tu pedido de ${this.totalItems()} productos por ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(this.total())}?`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Confirmar',
-          handler: () => {
-            this.realizarPedido();
-          }
-        }
-      ]
-    });
+    Swal.fire({
+      title: 'Confirmar pedido',
+      text: `¿Confirmás tu pedido de ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(this.total())}?`,
+      icon: 'question',
+      confirmButtonText: 'Confirmar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d32f2f', // Tu color --ion-color-primary (Rojo fuerte)
+      cancelButtonColor: '#ff9800',  // Tu color --ion-color-fritos-orange
+      heightAuto: false, // ⚠️ IMPORTANTE PARA IONIC: Evita que la pantalla "salte"
+      backdrop: true,    // Oscurece el fondo
+      allowOutsideClick: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.realizarPedido();
+      }
+    })
 
-    await alert.present();
+    // const alert = await this.alertController.create({
+    //   header: 'Confirmar pedido',
+    //   message: `¿Confirmás tu pedido de ${this.totalItems()} productos por ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(this.total())}?`,
+    //   buttons: [
+    //     {
+    //       text: 'Cancelar',
+    //       role: 'cancel'
+    //     },
+    //     {
+    //       text: 'Confirmar',
+    //       handler: () => {
+    //         this.realizarPedido();
+    //       }
+    //     }
+    //   ]
+    // });
+
+    // await alert.present();
   }
 
   async realizarPedido() {
