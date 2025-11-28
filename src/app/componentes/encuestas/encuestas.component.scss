@@ -5,15 +5,6 @@ html, body {
   height: 100%;
 }
 
-/* El fondo principal ahora es el Naranja de la marca */
-ion-content {
-  --background: var(--ion-color-fritos-orange) !important;
-  background: var(--ion-color-fritos-orange) !important;
-  min-height: 100vh;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
 .encuesta-container {
   padding: 0 20px;
   max-width: 500px;
@@ -26,24 +17,57 @@ ion-content {
   align-items: center;
 }
 
-/* === Título === */
-.titulo-encuesta {
-  /* Título en azul para contrastar con el fondo naranja */
-  color: var(--ion-color-fritos-blue); 
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.4);
-  background: none;
-  width: 100%;
-  text-align: center;
-  font-size: 1.8rem;
-  font-weight: 800;
-  margin-bottom: 24px;
-  letter-spacing: 1px;
+.graficos-section,
+.imagenes-section,
+.imagenes-grid,
+.imagenes-item,
+.no-encuestas {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
-/* === Formularios (Color Rojo solicitado) === */
+.img-ampliada-wrapper {
+  background: transparent;
+  padding: 0;             
+  border-radius: 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.img-ampliada-wrapper img {
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border: 4px solid #fff;
+  border-radius: 18px;
+  background: transparent;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.10);
+}
+
+/* === Título === */
+.titulo-encuesta {
+  color: var(--ion-color-fritos-blue, #1B3769);
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+  margin-bottom: 24px;
+  box-shadow: none;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+/* === Formularios === */
 form {
-  /* Fondo del formulario en ROJO (Primary) */
-  background: rgba(209, 79, 79, 0.849); 
+  background: rgba(209, 79, 79, 0.9);
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 5px;
@@ -53,37 +77,43 @@ form {
 
 form ion-item {
   width: 100%;
-  /* Items en BLANCO como pediste */
-  background: #ffffff; 
-  --background: #ffffff;
+  background: #fff !important;
+  --background: #fff !important;
   border-radius: 10px;
   margin-bottom: 18px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 5px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 8px 0;
   --border-color: transparent;
 }
 
-ion-item ion-label {
-  font-weight: 600;
-  color: #333 !important;
-}
+ion-item {
+  --background: transparent;
+  --border-color: #e0e0e0;
+  margin-bottom: 15px;
 
-ion-item ion-label[position="stacked"] {
-  font-size: 1.1rem !important;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #444 !important;
+  ion-label {
+    font-weight: 500;
+    color: #333 !important;
+  }
+
+  ion-label[position="stacked"] {
+    font-size: 1.25rem !important;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #444 !important;
+  }
 }
 
 /* === Ion Range === */
 ion-range {
-  /* Ajustamos los colores del slider para que combinen con el rojo/blanco */
   --bar-background: #ddd;
-  --bar-background-active: var(--ion-color-fritos-blue);
-  --knob-background: var(--ion-color-fritos-blue);
-  --pin-background: var(--ion-color-fritos-blue);
-  --bar-height: 6px;
-  --knob-size: 24px;
+  --bar-background-active: var(--ion-color-fritos-blue, #1B3769);
+  --knob-background: var(--ion-color-fritos-blue, #1B3769);
+  --pin-background: var(--ion-color-fritos-blue, #1B3769);
+  --bar-height: 8px;
+  --knob-size: 28px;
+  margin-top: 8px;
+  margin-bottom: 8px;
   padding-left: 10px;
   padding-right: 10px;
 }
@@ -91,86 +121,46 @@ ion-range {
 /* === Ion Radio === */
 ion-radio {
   --color: #666;
-  --color-checked: var(--ion-color-fritos-blue);
+  --color-checked: var(--ion-color-fritos-blue, #1B3769);
+  --border-color: var(--ion-color-fritos-blue, #1B3769);
+  --inner-border-color: var(--ion-color-fritos-blue, #1B3769);
+}
+
+ion-radio-group ion-item {
+  --background: transparent;
+  --border-color: transparent;
+  margin-bottom: 5px;
+
+  ion-label {
+    color: #333 !important;
+    font-weight: 500;
+  }
 }
 
 /* === Ion Select y Textarea === */
 ion-select {
+  --placeholder-color: #999;
+  --placeholder-opacity: 1;
+  --color: var(--ion-color-fritos-blue, #1B3769);
+  --icon-color: var(--ion-color-fritos-blue, #1B3769);
   color: #333 !important;
 }
 
 ion-textarea {
+  --placeholder-color: #999;
+  --placeholder-opacity: 1;
   color: #333 !important;
   background: #f9f9f9;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
-  margin-top: 5px;
-  padding: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  box-sizing: border-box;
 }
 
-/* === Sección de Fotos === */
-.fotos-section {
-  margin-top: 15px;
-  width: 100%;
-  
-  /* "La letra de la cantidad de fotos que hay" en AZUL */
-  h3 {
-    color: #fff; /* Título sobre fondo rojo, mejor blanco para lectura */
-    text-align: center;
-    font-size: 1.1rem;
-    margin-bottom: 12px;
-    font-weight: bold;
-  }
-}
-
-.fotos-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.foto-item {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 2px solid #fff;
-  background: #eee;
-  
-  ion-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  ion-button {
-    position: absolute;
-    top: 0; right: 0;
-    --padding-start: 0; --padding-end: 0;
-    height: 20px; width: 20px;
-    --background: rgba(255,255,255,0.8);
-    ion-icon { color: red; font-size: 16px; }
-  }
-}
-
-/* Botón Agregar Foto (Letra y borde AZUL) */
-.btn-foto {
-  --background: #fff;
-  --color: var(--ion-color-fritos-blue);
-  --border-color: var(--ion-color-fritos-blue);
-  --border-radius: 8px;
-  font-weight: bold;
-  margin: 0 auto;
-  display: block;
-}
-
-/* === Botón Enviar Encuesta === */
+/* === Botones === */
 .btn-enviar {
-  /* Fondo AZUL solicitado */
-  --background: var(--ion-color-fritos-blue);
+  --background: var(--ion-color-fritos-blue, #1B3769);
   --color: white;
   --border-radius: 10px;
   --padding-top: 16px;
@@ -180,6 +170,221 @@ ion-textarea {
   margin-top: 25px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   z-index: 3;
+
+  ion-spinner {
+    margin-right: 8px;
+  }
+}
+
+.btn-estadisticas {
+  --background: white;
+  --color: var(--ion-color-fritos-blue, #1B3769);
+  --border-color: var(--ion-color-fritos-blue, #1B3769);
+  --border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 18px;
+  margin-bottom: 10px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(27, 55, 105, 0.18);
+}
+
+.btn-nueva-encuesta {
+  --color: var(--ion-color-fritos-blue, #1B3769);
+  --border-radius: 10px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+/* === Mensaje de éxito === */
+.mensaje-exito {
+  background: #fff;
+  color: var(--ion-color-fritos-blue, #1B3769);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  ion-icon {
+    margin-right: 10px;
+    font-size: 24px;
+    color: #4CAF50;
+  }
+}
+
+/* === Títulos secundarios === */
+h2, h3 {
+  color: var(--ion-color-fritos-blue, #1B3769);
+  text-align: center;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+h2 {
+  font-size: 28px;
+  margin-bottom: 30px;
+}
+
+h3 {
+  font-size: 20px;
+  margin: 20px 0 15px 0;
+}
+
+/* === (botones de usuarios) === */
+.imagenes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  justify-items: center;
+  align-items: start;
+  margin-top: 16px;
+  margin-bottom: 0;
+}
+
+/* Botón de imagen */
+.btn-imagen {
+  width: 100%;
+  max-width: 180px;
+  --background: #fff;
+  --color: var(--ion-color-fritos-blue, #1B3769);
+  --border-color: var(--ion-color-fritos-blue, #1B3769);
+  --border-radius: 8px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* === Modal de imágenes de usuario === */
+.modal-imagenes {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(27, 55, 105, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px 0 32px 0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  width: 96vw;
+  max-width: 1100px;
+  max-height: 96vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  width: 100%;
+  position: relative;
+}
+.modal-header h4 {
+  color: var(--ion-color-fritos-blue, #1B3769);
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 auto;
+  text-align: center;
+  flex: 1;
+}
+.modal-header ion-button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.imagenes-modal-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  align-items: center;
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.imagen-modal-grande {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.imagen-modal-img-contenedor {
+  border-radius: 22px;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.imagen-modal-grande ion-img {
+  width: 320px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 4px solid #fff;
+  background: transparent;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.10);
+}
+
+.imagen-modal-grande p {
+  color: var(--ion-color-fritos-blue, #1B3769);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 18px 0 0 0;
+  text-align: center;
+  background: transparent;
+  width: 100%;
+}
+
+/* Para la imagen ampliada */
+.modal-imagen-content img {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 4px solid #fff;
+  background: transparent;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.10);
+}
+
+.modal-imagen-content {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 95vw;
+  max-height: 95vh;
 }
 
 /* === Botón Volver === */
@@ -193,54 +398,393 @@ ion-textarea {
 }
 
 .back-button {
-  --color: #fff; /* Blanco para que se vea sobre el fondo naranja */
+  --color: #fff;
   font-size: 1.1rem;
   font-weight: bold;
-  --background: rgba(26, 52, 93, 0.317); /* Un fondo sutil para mejorar lectura */
+  --background: rgba(26, 52, 93, 0.4);
+  --box-shadow: none;
   border-radius: 20px;
 }
 
-/* === Mensaje de éxito === */
-.mensaje-exito {
-  background: #fff;
-  color: var(--ion-color-fritos-blue);
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+/* === Responsive === */
+@media (max-width: 900px) {
+  .modal-content {
+    max-width: 99vw;
+    padding: 18px 0 18px 0;
+  }
+  .modal-header {
+    width: 98%;
+    max-width: 98vw;
+  }
+  .imagen-modal-grande {
+    max-width: 95vw;
+  }
+  .imagen-modal-grande ion-img {
+    max-width: 90vw;
+    aspect-ratio: 1/1;
+  }
+}
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 8vw 0 8vw 0;
+    min-width: 0;
+  }
+  .modal-header {
+    width: 98%;
+    max-width: 98vw;
+  }
+  .imagen-modal-grande {
+    max-width: 98vw;
+    padding: 0 0 18px 0;
+  }
+  .imagen-modal-grande ion-img {
+    width: 96vw;
+    max-width: 96vw;
+    height: auto;
+    aspect-ratio: 1/1;
+    margin-bottom: 12px;
+  }
 
-  ion-icon {
-    margin-right: 10px;
-    font-size: 24px;
-    color: #4CAF50;
+  .img-modal-real {
+    width: 90vw;
+    height: auto;
+    max-width: 96vw;
+    max-height: 60vw;
   }
 }
 
-/* === Estilos para la sección de Ver Estadísticas (Fondo blanco) === */
-.estadisticas-imagenes-container {
-  background: #fff;
-  border-radius: 24px 24px 0 0;
-  padding-top: 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
-  margin-top: 30px;
+/* Fondo naranja de la marca */
+ion-content {
+  --background: var(--ion-color-fritos-orange, #FF8C00) !important;
+  background: var(--ion-color-fritos-orange, #FF8C00) !important;
+  min-height: 100vh;
+  padding: 0 !important;
+  margin: 0 !important;
+  --padding-bottom: 0 !important;
+  --padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+}
+
+.no-encuestas {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  text-align: center;
+  padding: 40px 20px;
+  color: #fff;
+  
+  ion-icon {
+    font-size: 3rem;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 16px;
+  }
+  
+  h3 {
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  
+  p {
+    color: rgba(255,255,255,0.9);
+    margin: 0;
+  }
+}
+
+.estadisticas-header h3 {
+  font-size: 1.1rem !important;
+  margin: 10px 0 10px 0 !important;
+}
+
+.btn-foto {
+  --background: #fff;
+  --color: var(--ion-color-fritos-blue, #1B3769);
+  --border-color: var(--ion-color-fritos-blue, #1B3769);
+  --border-radius: 8px;
+  font-weight: bold;
+  margin: 0 auto;
+  display: block;
+  text-align: center;
+}
+
+.fotos-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+ion-card {
+  --background: #fff !important;
+  background: #fff !important;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  margin: 10px;
+  
+  ion-card-header {
+    --background: #f4f4f4;
+    padding: 10px;
+  }
+  
+  ion-card-title {
+    color: var(--ion-color-fritos-blue, #1B3769) !important;
+    font-size: 1rem;
+    text-align: center;
+  }
+}
+
+.fotos-section {
+  margin-top: 15px;
+  width: 100%;
+  
+  h3 {
+    color: #fff;
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    font-weight: bold;
+  }
+}
+
+.foto-item {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #fff;
+  background: #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+
+  ion-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+  }
+
+  ion-button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 10;
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+    min-width: 22px;
+    height: 22px;
+    --border-radius: 50%;
+    --background: rgba(255,255,255,0.8);
+
+    ion-icon {
+      font-size: 18px;
+      color: #e53935;
+    }
+  }
+}
+
+.img-modal-real {
+  width: 320px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 4px solid #111;
+  background: transparent;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.10);
+}
+
+.imagenes-section {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.imagenes-grid {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.imagenes-section,
+.imagenes-grid,
+.graficos-section,
+.encuesta-container,
+body,
+html {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.encuestas-previas-section {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.18);
+  padding: 30px 20px;
+  margin-top: 20px;
   width: 100%;
   max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  display: flex;
-  flex-direction: column;
+  margin: 0 auto;
+  
+  h3 {
+    color: var(--ion-color-fritos-blue, #1B3769);
+    text-align: center;
+    margin-bottom: 15px;
+  }
+}
+
+.encuestas-lista {
+  margin-bottom: 20px;
+  
+  h3 {
+    color: var(--ion-color-fritos-blue, #1B3769);
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+}
+
+.encuesta-item {
+  margin-bottom: 20px;
+  
+  ion-card {
+    background: #fff !important;
+    --background: #fff !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 0 0 15px 0;
+    border: 1px solid #eee;
+    
+    ion-card-header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      border-radius: 12px 12px 0 0;
+      
+      ion-card-title {
+        color: var(--ion-color-fritos-blue, #1B3769) !important;
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+      
+      ion-card-subtitle {
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+    }
+    
+    ion-card-content {
+      padding: 16px;
+    }
+  }
+}
+
+.encuesta-datos {
+  .encuesta-puntuaciones {
+    margin-bottom: 16px;
+    
+    .puntuacion-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .puntuacion-label {
+        font-weight: 500;
+        color: #333;
+      }
+      
+      .puntuacion-valor {
+        font-weight: bold;
+        color: var(--ion-color-fritos-blue, #1B3769);
+        background: #e8f0f8;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+    }
+  }
+  
+  .encuesta-opciones {
+    margin-bottom: 16px;
+    
+    .opcion-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .opcion-label {
+        font-weight: 500;
+        color: #333;
+      }
+      
+      .opcion-valor {
+        font-weight: bold;
+        color: var(--ion-color-fritos-red, #E53E3E);
+      }
+    }
+  }
+  
+  .encuesta-comentario {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid var(--ion-color-fritos-blue, #1B3769);
+    
+    .comentario-label {
+      font-weight: bold;
+      color: #333;
+      display: block;
+      margin-bottom: 8px;
+    }
+    
+    .comentario-texto {
+      color: #666;
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+  
+  .encuesta-imagenes {
+    text-align: center;
+    
+    .btn-ver-imagenes {
+      --color: var(--ion-color-fritos-blue, #1B3769);
+      --border-color: var(--ion-color-fritos-blue, #1B3769);
+      font-weight: 500;
+      
+      ion-icon {
+        margin-right: 6px;
+      }
+    }
+  }
 }
 
 .graficos-section {
+  margin-top: 20px;
   text-align: center;
 }
 
 .graficos-section .estadisticas-header {
-  background: var(--ion-color-fritos-blue) !important; /* Cabecera azul */
+  background: var(--ion-color-fritos-blue, #1B3769) !important;
   border-radius: 24px 24px 0 0;
   padding: 15px 20px;
   width: 100%;
@@ -249,93 +793,20 @@ ion-textarea {
 .graficos-section .estadisticas-header h3 {
   color: #fff !important;
   margin: 0 !important;
+  text-align: center !important;
   font-size: 1.2rem;
 }
 
-/* === Cartas de estadísticas === */
-ion-card {
-  --background: #fff;
-  margin: 10px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  
-  ion-card-header {
-    --background: #f4f4f4;
-    padding: 10px;
-  }
-  
-  ion-card-title {
-    color: var(--ion-color-fritos-blue) !important;
-    font-size: 1rem;
-    text-align: center;
-  }
-}
-
-/* === Sección de encuestas previas (lista) === */
-.encuestas-previas-section {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 18px;
-  padding: 20px;
-  margin-top: 20px;
-  width: 95%;
+.estadisticas-imagenes-container {
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  padding-top: 0;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.1);
+  margin-top: 30px;
+  width: 100%;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-  
-  h3 {
-    color: var(--ion-color-fritos-blue);
-    text-align: center;
-    margin-bottom: 15px;
-  }
-}
-
-.encuesta-item ion-card {
-  margin: 0 0 15px 0;
-  border: 1px solid #eee;
-}
-
-/* === Modales === */
-.modal-imagenes, .modal-imagen-ampliada {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 9999;
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content, .modal-imagen-content {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-.modal-header h4 {
-  color: var(--ion-color-fritos-blue);
-  text-align: center;
-}
-
-.imagenes-modal-lista img, .img-ampliada-wrapper img {
-  border-radius: 12px;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  max-width: 100%;
-}
-
-.no-encuestas {
-  text-align: center;
-  padding: 30px;
-  color: #fff;
-  
-  ion-icon {
-    font-size: 3rem;
-    color: rgba(255,255,255,0.7);
-  }
-  h3 { color: #fff; }
-  p { color: rgba(255,255,255,0.9); }
+  flex-direction: column;
 }
