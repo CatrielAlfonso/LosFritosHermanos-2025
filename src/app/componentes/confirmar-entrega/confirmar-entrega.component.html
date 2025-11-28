@@ -12,8 +12,10 @@
 <ion-content class="content-delivery">
   <!-- Loading -->
   <div *ngIf="cargando" class="loading-container">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Cargando pedido...</p>
+    <app-fritos-spinner 
+      size="large" 
+      mensaje="Cargando pedido...">
+    </app-fritos-spinner>
   </div>
 
   <!-- Paso 1: Confirmar Recepción -->

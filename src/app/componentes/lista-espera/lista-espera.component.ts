@@ -7,6 +7,7 @@ import { PushNotificationService } from '../../servicios/push-notification.servi
 import { ReservasService } from '../../servicios/reservas.service';
 import { Router } from '@angular/router';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 
 interface ClienteEnLista {
   id: number;
@@ -28,7 +29,8 @@ interface ClienteEnLista {
     IonButton,
     IonIcon,
  
-    IonModal
+    IonModal,
+    FritosSpinnerComponent
   ],
   standalone: true
 })
@@ -236,6 +238,8 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
         return;
       }
 
+      console.log('📋 [asignarMesaACliente] Cliente seleccionado:', clienteSeleccionado);
+
       // Verificar si la mesa tiene una reserva confirmada activa
       const tieneReservaActiva = await this.reservasService.tieneReservaConfirmadaActiva(this.mesaSeleccionada.numero);
       if (tieneReservaActiva) {
@@ -244,14 +248,35 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
         return;
       }
       
+      // Actualizar mesa_asignada en lista_espera
       const { error: errorCliente } = await this.supabase.supabase
         .from('lista_espera')
         .update({ mesa_asignada: this.mesaSeleccionada.numero })
         .eq('id', clienteId);
 
       if (errorCliente) {
+        console.error('Error al asignar mesa en lista_espera:', errorCliente);
         this.mensajeErrorAsignacion = 'Error al asignar cliente a la mesa';
         return;
+      }
+
+      // Obtener el ID real del cliente de la tabla clientes usando el correo
+      let clienteRealId: number | null = null;
+      const correoCliente = clienteSeleccionado.correo;
+      
+      console.log('🔍 [asignarMesaACliente] Buscando cliente real con correo:', correoCliente);
+      
+      const { data: clienteReal, error: errorBusqueda } = await this.supabase.supabase
+        .from('clientes')
+        .select('id')
+        .eq('correo', correoCliente)
+        .maybeSingle();
+
+      if (!errorBusqueda && clienteReal) {
+        clienteRealId = clienteReal.id;
+        console.log('✅ [asignarMesaACliente] Cliente real encontrado, ID:', clienteRealId);
+      } else {
+        console.log('⚠️ [asignarMesaACliente] No se encontró cliente en tabla clientes:', errorBusqueda);
       }
 
       // Contar cuántos clientes están asignados a esta mesa
@@ -267,19 +292,31 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
       const cantidadClientesAsignados = clientesEnMesa?.length || 0;
       const capacidadMesa = this.mesaSeleccionada.comensales;
 
-      // Solo marcar como ocupada si alcanzó o superó la capacidad
+      // Siempre actualizar la mesa con el clienteAsignadoId si lo tenemos
+      // Y marcar como ocupada si alcanzó la capacidad
       const debeMarcarComoOcupada = cantidadClientesAsignados >= capacidadMesa;
 
+      const updateData: any = {};
+      if (clienteRealId) {
+        updateData.clienteAsignadoId = clienteRealId;
+      }
       if (debeMarcarComoOcupada) {
+        updateData.ocupada = true;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        console.log('📝 [asignarMesaACliente] Actualizando mesa con:', updateData);
         const { error: errorMesa } = await this.supabase.supabase
           .from('mesas')
-          .update({ ocupada: true })
+          .update(updateData)
           .eq('numero', this.mesaSeleccionada.numero);
 
         if (errorMesa) {
-          this.mensajeErrorAsignacion = 'Error al marcar mesa como ocupada';
+          console.error('Error al actualizar mesa:', errorMesa);
+          this.mensajeErrorAsignacion = 'Error al actualizar la mesa';
           return;
         }
+        console.log('✅ [asignarMesaACliente] Mesa actualizada correctamente');
       }
 
       try {
@@ -305,6 +342,7 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
       this.mostrarMensajeExito(mensaje);
       
     } catch (error) {
+      console.error('Error inesperado:', error);
       this.mensajeErrorAsignacion = 'Error inesperado al asignar mesa';
     } finally {
       this.loadingService.hide();

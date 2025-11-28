@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { LoadingService } from '../servicios/loading.service';
 import { JuegosService, JUEGOS_CONFIG, JuegoId } from '../servicios/juegos.service';
 import { FeedbackService } from '../servicios/feedback-service.service';
+import { FritosSpinnerComponent } from '../componentes/fritos-spinner/fritos-spinner.component';
 
 interface Game {
   id: JuegoId;
@@ -20,7 +21,7 @@ interface Game {
   standalone: true,
   templateUrl: './game-selector.component.html',
   styleUrls: ['./game-selector.component.scss'],
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, FritosSpinnerComponent],
 })
 export class GameSelectorComponent implements OnInit {
 

@@ -17,11 +17,11 @@ import {
   IonChip,
   IonRefresher,
   IonRefresherContent,
-  IonSpinner,
   ToastController
 } from '@ionic/angular/standalone';
 import { DeliveryService, PedidoDelivery } from '../../servicios/delivery.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 import { addIcons } from 'ionicons';
 import { 
   arrowBackOutline,
@@ -57,7 +57,8 @@ import {
     IonBadge,
     IonChip,
     IonRefresher,
-    IonRefresherContent
+    IonRefresherContent,
+    FritosSpinnerComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

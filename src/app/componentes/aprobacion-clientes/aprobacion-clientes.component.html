@@ -13,8 +13,10 @@
 <ion-content class="fritos-theme">
   <div class="clientes-pendientes-section">
     <div *ngIf="cargandoClientes" class="loading-spinner">
-      <ion-spinner name="crescent"></ion-spinner>
-      <p>Cargando clientes pendientes...</p>
+      <app-fritos-spinner 
+        size="large" 
+        mensaje="Cargando clientes pendientes...">
+      </app-fritos-spinner>
     </div>
 
     <div *ngIf="!cargandoClientes && clientesPendientes.length === 0" class="no-clientes">

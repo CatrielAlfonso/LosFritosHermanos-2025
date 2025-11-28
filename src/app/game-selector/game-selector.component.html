@@ -14,6 +14,16 @@
 
     <h1 class="titulo">Jugá Mientras Esperás</h1>
     
+    <!-- Loading -->
+    @if (cargando) {
+      <div class="loading-container">
+        <app-fritos-spinner 
+          size="large" 
+          mensaje="Cargando juegos...">
+        </app-fritos-spinner>
+      </div>
+    }
+    
     <!-- Mensaje de estado según elegibilidad -->
     @if (!cargando) {
       <div class="estado-descuento" [class.puede-ganar]="puedeJugarPorDescuento" [class.ya-gano]="yaUsoIntento && descuentoObtenido > 0">

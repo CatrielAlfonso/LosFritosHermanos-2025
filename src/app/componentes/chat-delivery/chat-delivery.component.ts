@@ -13,12 +13,12 @@ import {
   IonFooter,
   IonTextarea,
   IonItem,
-  IonSpinner,
   ToastController
 } from '@ionic/angular/standalone';
 import { SupabaseService } from '../../servicios/supabase.service';
 import { AuthService } from '../../servicios/auth.service';
 import { DeliveryService } from '../../servicios/delivery.service';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, sendOutline } from 'ionicons/icons';
 
@@ -39,7 +39,8 @@ import { arrowBackOutline, sendOutline } from 'ionicons/icons';
     IonIcon,
     IonFooter,
     IonTextarea,
-    IonItem
+    IonItem,
+    FritosSpinnerComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

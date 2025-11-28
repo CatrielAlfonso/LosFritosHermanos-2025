@@ -10,6 +10,14 @@
   min-height: 100%;
 }
 
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 40px 20px;
+}
+
 .titulo {
   color: #e7ef0d;
   margin-bottom: .5rem;

@@ -4,12 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 
 @Component({
   selector: 'app-pagos',
   templateUrl: './pagos.component.html',
   styleUrls: ['./pagos.component.scss'],
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, FritosSpinnerComponent]
 })
 export class PagosComponent  implements OnInit {
 

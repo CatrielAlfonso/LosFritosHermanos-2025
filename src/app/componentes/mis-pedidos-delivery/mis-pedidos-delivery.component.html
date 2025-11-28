@@ -23,8 +23,10 @@
   <div class="pedidos-container">
     <!-- Loading -->
     <div *ngIf="cargando" class="loading-container">
-      <ion-spinner name="crescent"></ion-spinner>
-      <p>Cargando tus pedidos...</p>
+      <app-fritos-spinner 
+        size="large" 
+        mensaje="Cargando tus pedidos...">
+      </app-fritos-spinner>
     </div>
 
     <!-- Sin pedidos -->

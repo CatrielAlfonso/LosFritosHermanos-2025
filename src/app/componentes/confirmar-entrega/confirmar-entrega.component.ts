@@ -20,13 +20,13 @@ import {
   IonRange,
   IonChip,
   IonBadge,
-  IonSpinner,
   AlertController,
   ToastController
 } from '@ionic/angular/standalone';
 import { DeliveryService, PedidoDelivery } from '../../servicios/delivery.service';
 import { AuthService } from '../../servicios/auth.service';
 import { PushNotificationService } from '../../servicios/push-notification.service';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 import { addIcons } from 'ionicons';
 import { 
   arrowBackOutline, 
@@ -61,7 +61,8 @@ import {
     IonTextarea,
     IonRange,
     IonChip,
-    IonBadge
+    IonBadge,
+    FritosSpinnerComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

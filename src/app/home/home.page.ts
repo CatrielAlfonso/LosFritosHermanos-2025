@@ -156,12 +156,23 @@ export class HomePage implements OnInit, ViewWillEnter {
 
   /**
    * Se ejecuta cada vez que la vista está por mostrarse
-   * Recarga la info del cliente para reflejar cambios (ej: encuesta completada)
+   * Recarga la info del cliente para reflejar cambios (ej: encuesta completada, mesa asignada)
    */
   async ionViewWillEnter() {
-    // Recargar info del cliente para detectar cambios (ej: encuesta completada)
-    if (this.perfilUsuario === 'cliente' && this.usuario) {
+    console.log('🔄 [ionViewWillEnter] Recargando estado del cliente...');
+    console.log('🔄 [ionViewWillEnter] esClienteAnonimo:', this.esClienteAnonimo);
+    console.log('🔄 [ionViewWillEnter] perfilUsuario:', this.perfilUsuario);
+    
+    // Recargar info para clientes anónimos
+    if (this.esClienteAnonimo && this.clienteAnonimo) {
+      console.log('🔄 [ionViewWillEnter] Verificando estado cliente anónimo...');
+      await this.verificarEstadoClienteAnonimo();
+    }
+    // Recargar info para clientes autenticados
+    else if (this.perfilUsuario === 'cliente' && this.usuario) {
+      console.log('🔄 [ionViewWillEnter] Verificando mesa para cliente autenticado...');
       await this.cargarClienteInfo();
+      await this.verificarMesaAsignada();
     }
   }
 
@@ -212,6 +223,13 @@ export class HomePage implements OnInit, ViewWillEnter {
         this.perfilUsuario = 'cliente';
         this.nombreUsuario = this.clienteAnonimo.nombre;
         this.clienteInfo = this.clienteAnonimo;
+        
+        // Limpiar flags de empleados para clientes anónimos
+        this.esAdmin = false;
+        this.esMaitre = false;
+        this.esCocinero = false;
+        this.esBartender = false;
+        this.esMozo = false;
         
         // Verificar si tiene mesa asignada o está en lista de espera
         await this.verificarEstadoClienteAnonimo();
@@ -300,23 +318,36 @@ export class HomePage implements OnInit, ViewWillEnter {
   }
 
   async verificarEstadoClienteAnonimo() {
-    if (!this.clienteAnonimo || !this.esClienteAnonimo) return;
+    console.log('🔍 [verificarEstadoClienteAnonimo] Iniciando...');
+    console.log('🔍 [verificarEstadoClienteAnonimo] clienteAnonimo:', this.clienteAnonimo);
+    console.log('🔍 [verificarEstadoClienteAnonimo] esClienteAnonimo:', this.esClienteAnonimo);
+    
+    if (!this.clienteAnonimo || !this.esClienteAnonimo) {
+      console.log('❌ [verificarEstadoClienteAnonimo] No hay cliente anónimo, saliendo');
+      return;
+    }
 
     try {
       // Verificar si está en lista de espera
       const correoAnonimo = `anonimo-${this.clienteAnonimo.id}@fritos.com`;
+      console.log('🔍 [verificarEstadoClienteAnonimo] Buscando con correo:', correoAnonimo);
       
-      const { data: listaEspera } = await this.supabase.supabase
+      const { data: listaEspera, error: errorLista } = await this.supabase.supabase
         .from('lista_espera')
         .select('mesa_asignada')
         .eq('correo', correoAnonimo)
         .maybeSingle();
 
+      console.log('🔍 [verificarEstadoClienteAnonimo] Resultado lista_espera:', listaEspera, 'Error:', errorLista);
+
       if (listaEspera?.mesa_asignada) {
+        console.log('✅ [verificarEstadoClienteAnonimo] Mesa asignada encontrada:', listaEspera.mesa_asignada);
         this.mesaAsignada = listaEspera.mesa_asignada;
         this.mostrarBotonEscanearMesa = true;
         this.yaEnListaEspera = false; // Ya tiene mesa, no necesita mostrar mensaje
         this.mostrarMensajeListaEspera = false;
+        console.log('✅ [verificarEstadoClienteAnonimo] mostrarBotonEscanearMesa:', this.mostrarBotonEscanearMesa);
+        
         // Detener verificación periódica ya que encontró la mesa
         if (this.intervaloVerificarMesa) {
           clearInterval(this.intervaloVerificarMesa);
@@ -328,6 +359,7 @@ export class HomePage implements OnInit, ViewWillEnter {
           await this.verificarPedidoExistente();
         }
       } else {
+        console.log('⏳ [verificarEstadoClienteAnonimo] No tiene mesa asignada aún');
         // Verificar si está en lista de espera sin mesa
         const { data: enLista } = await this.supabase.supabase
           .from('lista_espera')
@@ -336,6 +368,7 @@ export class HomePage implements OnInit, ViewWillEnter {
           .maybeSingle();
         
         this.yaEnListaEspera = !!enLista;
+        console.log('🔍 [verificarEstadoClienteAnonimo] yaEnListaEspera:', this.yaEnListaEspera);
         
         // Si está en lista de espera, mostrar el mensaje inicialmente
         if (this.yaEnListaEspera) {
@@ -347,7 +380,7 @@ export class HomePage implements OnInit, ViewWillEnter {
         }
       }
     } catch (error) {
-      console.error('Error al verificar estado cliente anónimo:', error);
+      console.error('❌ [verificarEstadoClienteAnonimo] Error:', error);
     }
   }
 
