@@ -6,6 +6,7 @@ import { FeedbackService } from '../../servicios/feedback-service.service';
 import { ReservasService } from '../../servicios/reservas.service';
 import { AuthService } from '../../servicios/auth.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import Swal from 'sweetalert2';
 
 
 interface ClienteEspera {
@@ -34,7 +35,7 @@ interface Mesa {
 })
 export class MaitreMesasComponent  implements OnInit {
 
-   clientesEspera: ClienteEspera[] = [];
+  clientesEspera: ClienteEspera[] = [];
   mesas: Mesa[] = [];
   usuario: any = null;
   clienteSeleccionado: ClienteEspera | null = null;
@@ -42,9 +43,9 @@ export class MaitreMesasComponent  implements OnInit {
   mesaAsignada: any = null;
   notificacion: { mensaje: string, tipo: 'exito' | 'error' | 'info' } | null = null;
   qrEnProceso: boolean = false;
-    clienteSentado: boolean = false;
+  clienteSentado: boolean = false;
   mostrarBotonHacerPedido: boolean = false;
-    clienteInfo: any = null;
+  clienteInfo: any = null;
   mostrarBotonVerEstadoPedido: boolean = false;
 
 
@@ -127,111 +128,199 @@ export class MaitreMesasComponent  implements OnInit {
     const cliente = this.clienteSeleccionado;
     const mesa = this.mesaSeleccionada;
 
-    const alert = await this.alertCtrl.create({
-      header: 'Confirmar Asignación',
-      message: `¿Asignar la Mesa N° ${mesa.numero} a ${cliente.nombre}?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Asignar',
-          handler: async () => {
-            await this.ejecutarAsignacion(cliente, mesa);
+    Swal.fire({
+          title: 'Confirmar Asignación',
+          text: `¿Asignar la Mesa N° ${mesa.numero} a ${cliente.nombre}?`,
+          icon: 'question',
+          confirmButtonText: 'Asignar',
+          showCancelButton: true,
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#d32f2f', // Tu color --ion-color-primary (Rojo fuerte)
+          cancelButtonColor: '#ff9800',  // Tu color --ion-color-fritos-orange
+          heightAuto: false, // ⚠️ IMPORTANTE PARA IONIC: Evita que la pantalla "salte"
+          backdrop: true,    // Oscurece el fondo
+          allowOutsideClick: false
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.ejecutarAsignacion(cliente, mesa);
           }
-        }
-      ]
-    });
-    await alert.present();
+        })
+
+  //   const alert = await this.alertCtrl.create({
+  //     header: 'Confirmar Asignación',
+  //     message: `¿Asignar la Mesa N° ${mesa.numero} a ${cliente.nombre}?`,
+  //     buttons: [
+  //       { text: 'Cancelar', role: 'cancel' },
+  //       {
+  //         text: 'Asignar',
+  //         handler: async () => {
+  //           await this.ejecutarAsignacion(cliente, mesa);
+  //         }
+  //       }
+  //     ]
+  //   });
+  //   await alert.present();
   }
+
+  // async ejecutarAsignacion(cliente: ClienteEspera, mesa: Mesa) {
+  //   const loading = await this.feedback.showLoading('Asignando mesa...');
+    
+  //   try {
+  //     console.log('🔵 [ejecutarAsignacion] Iniciando asignación');
+  //     console.log('👤 Cliente:', cliente);
+  //     console.log('🪑 Mesa:', mesa);
+
+  //     // 0. Verificar si la mesa tiene una reserva confirmada activa
+  //     const tieneReservaActiva = await this.reservasService.tieneReservaConfirmadaActiva(mesa.numero);
+      
+  //     if (tieneReservaActiva) {
+  //       this.feedback.hide();
+  //       this.feedback.showToast('error', `❌ La mesa ${mesa.numero} está reservada y no puede ser asignada a otro cliente.`);
+  //       return;
+  //     }
+
+  //     // 1. Primero, actualizar lista_espera con mesa asignada
+  //     const { error: errorEspera } = await this.sb.supabase
+  //       .from('lista_espera')
+  //       .update({ mesa_asignada: mesa.numero })
+  //       .eq('id', cliente.id);
+        
+  //     if (errorEspera) throw errorEspera;
+  //     console.log('✅ Cliente agregado a lista_espera con mesa_asignada:', mesa.numero);
+
+  //     // 2. Contar cuántos clientes están asignados a esta mesa DESPUÉS de la asignación
+  //     const { data: clientesEnMesa, error: errorConteo } = await this.sb.supabase
+  //       .from('lista_espera')
+  //       .select('id')
+  //       .eq('mesa_asignada', mesa.numero);
+
+  //     if (errorConteo) {
+  //       console.error('❌ Error al contar clientes:', errorConteo);
+  //     }
+
+  //     const cantidadClientesAsignados = clientesEnMesa?.length || 0;
+  //     const capacidadMesa = mesa.comensales;
+
+  //     console.log('📊 Cantidad de clientes asignados:', cantidadClientesAsignados);
+  //     console.log('📊 Capacidad de la mesa:', capacidadMesa);
+
+  //     // 3. Solo marcar como ocupada si alcanzó o superó la capacidad
+  //     const debeMarcarComoOcupada = cantidadClientesAsignados >= capacidadMesa;
+  //     console.log('🔍 ¿Debe marcar como ocupada?:', debeMarcarComoOcupada);
+
+  //     // Actualizar la tabla 'mesas' - NO sobrescribir clienteAsignadoId
+  //     const updateData: any = {};
+  //     if (debeMarcarComoOcupada) {
+  //       updateData.ocupada = true;
+  //       console.log('🔴 Marcando mesa como OCUPADA');
+  //     } else {
+  //       console.log('🟢 Mesa sigue DISPONIBLE para más comensales');
+  //     }
+
+  //     const { error: errorMesa } = await this.sb.supabase
+  //       .from('mesas')
+  //       .update(updateData)
+  //       .eq('numero', mesa.numero);
+
+  //     if (errorMesa) throw errorMesa;
+
+  //     // NO marcar cliente como sentado aquí - eso debe hacerlo el cliente al escanear el QR de la mesa
+  //     // const {error: errorCliente }= await this.sb.supabase.from('clientes').update(
+  //     //   {
+  //     //     sentado: true,
+  //     //   }).eq('id', cliente.id,);
+
+  //     // if (errorCliente) throw errorCliente;
+
+  //     // 3. ENVIAR PUSH NOTIFICATION al cliente (A IMPLEMENTAR)
+  //     // Lógica simulada: notificar al dispositivo del cliente (celular 3)
+  //     // Ejemplo: this.notificationService.sendPush(cliente.correo, `Tu mesa asignada es la N° ${mesa.numero}`);
+      
+  //     const mensajeCapacidad = debeMarcarComoOcupada 
+  //       ? `Mesa ${mesa.numero} completa (${cantidadClientesAsignados}/${capacidadMesa}). ¡Mesa llena!`
+  //       : `Mesa ${mesa.numero} asignada a ${cliente.nombre} (${cantidadClientesAsignados}/${capacidadMesa}).`;
+      
+  //     this.feedback.showToast('exito', `✅ ${mensajeCapacidad}`);
+  //     console.log('🎉 Asignación completada exitosamente');
+
+  //     // Limpiar selección y recargar datos
+  //     this.clienteSeleccionado = null;
+  //     this.mesaSeleccionada = null;
+  //     await this.cargarDatos();
+
+  //   } catch (e: any) {
+  //     console.error('💥 Error en ejecutarAsignacion:', e);
+  //     this.feedback.showToast('error', 'Error al asignar: ' + e.message);
+  //   } finally {
+  //     await loading.dismiss();
+  //   }
+  // }
 
   async ejecutarAsignacion(cliente: ClienteEspera, mesa: Mesa) {
     const loading = await this.feedback.showLoading('Asignando mesa...');
     
     try {
       console.log('🔵 [ejecutarAsignacion] Iniciando asignación');
-      console.log('👤 Cliente:', cliente);
-      console.log('🪑 Mesa:', mesa);
 
-      // 0. Verificar si la mesa tiene una reserva confirmada activa
+      // 0. Validar si la mesa tiene reserva (Esto se mantiene igual, es seguridad)
       const tieneReservaActiva = await this.reservasService.tieneReservaConfirmadaActiva(mesa.numero);
       
       if (tieneReservaActiva) {
         this.feedback.hide();
-        this.feedback.showToast('error', `❌ La mesa ${mesa.numero} está reservada y no puede ser asignada a otro cliente.`);
+        this.feedback.showToast('error', `❌ La mesa ${mesa.numero} tiene una reserva activa.`);
         return;
       }
 
-      // 1. Primero, actualizar lista_espera con mesa asignada
+      // ---------------------------------------------------------
+      // PASO 1: Actualizar el cliente en la Lista de Espera
+      // ---------------------------------------------------------
+      // Le avisamos a la lista de espera que este cliente ya tiene mesa.
       const { error: errorEspera } = await this.sb.supabase
         .from('lista_espera')
-        .update({ mesa_asignada: mesa.numero })
+        .update({ 
+            mesa_asignada: mesa.numero.toString() // Convertimos a string porque en la DB es 'text'
+        }) 
         .eq('id', cliente.id);
         
-      if (errorEspera) throw errorEspera;
-      console.log('✅ Cliente agregado a lista_espera con mesa_asignada:', mesa.numero);
+      if (errorEspera) throw new Error('Error al actualizar lista de espera: ' + errorEspera.message);
+      console.log('✅ Lista de espera actualizada.');
 
-      // 2. Contar cuántos clientes están asignados a esta mesa DESPUÉS de la asignación
-      const { data: clientesEnMesa, error: errorConteo } = await this.sb.supabase
-        .from('lista_espera')
-        .select('id')
-        .eq('mesa_asignada', mesa.numero);
 
-      if (errorConteo) {
-        console.error('❌ Error al contar clientes:', errorConteo);
-      }
-
-      const cantidadClientesAsignados = clientesEnMesa?.length || 0;
-      const capacidadMesa = mesa.comensales;
-
-      console.log('📊 Cantidad de clientes asignados:', cantidadClientesAsignados);
-      console.log('📊 Capacidad de la mesa:', capacidadMesa);
-
-      // 3. Solo marcar como ocupada si alcanzó o superó la capacidad
-      const debeMarcarComoOcupada = cantidadClientesAsignados >= capacidadMesa;
-      console.log('🔍 ¿Debe marcar como ocupada?:', debeMarcarComoOcupada);
-
-      // Actualizar la tabla 'mesas' - NO sobrescribir clienteAsignadoId
-      const updateData: any = {};
-      if (debeMarcarComoOcupada) {
-        updateData.ocupada = true;
-        console.log('🔴 Marcando mesa como OCUPADA');
-      } else {
-        console.log('🟢 Mesa sigue DISPONIBLE para más comensales');
-      }
-
+      // ---------------------------------------------------------
+      // PASO 2: Ocupar la Mesa y Asignar Dueño (EL CAMBIO CLAVE)
+      // ---------------------------------------------------------
+      // Ya no "contamos" gente. Si asignamos, la mesa es DEL cliente.
       const { error: errorMesa } = await this.sb.supabase
         .from('mesas')
-        .update(updateData)
+        .update({
+          ocupada: true,                 // La marcamos como ocupada
+          clienteAsignadoId: cliente.id  // Guardamos el ID del cliente (Foreign Key)
+        })
         .eq('numero', mesa.numero);
 
-      if (errorMesa) throw errorMesa;
+      if (errorMesa) throw new Error('Error al actualizar estado de la mesa: ' + errorMesa.message);
+      console.log(`✅ Mesa ${mesa.numero} marcada como ocupada y asignada a ID: ${cliente.id}`);
 
-      // NO marcar cliente como sentado aquí - eso debe hacerlo el cliente al escanear el QR de la mesa
-      // const {error: errorCliente }= await this.sb.supabase.from('clientes').update(
-      //   {
-      //     sentado: true,
-      //   }).eq('id', cliente.id,);
 
-      // if (errorCliente) throw errorCliente;
-
-      // 3. ENVIAR PUSH NOTIFICATION al cliente (A IMPLEMENTAR)
-      // Lógica simulada: notificar al dispositivo del cliente (celular 3)
-      // Ejemplo: this.notificationService.sendPush(cliente.correo, `Tu mesa asignada es la N° ${mesa.numero}`);
+      // ---------------------------------------------------------
+      // PASO 3: Feedback y Finalización
+      // ---------------------------------------------------------
       
-      const mensajeCapacidad = debeMarcarComoOcupada 
-        ? `Mesa ${mesa.numero} completa (${cantidadClientesAsignados}/${capacidadMesa}). ¡Mesa llena!`
-        : `Mesa ${mesa.numero} asignada a ${cliente.nombre} (${cantidadClientesAsignados}/${capacidadMesa}).`;
-      
-      this.feedback.showToast('exito', `✅ ${mensajeCapacidad}`);
-      console.log('🎉 Asignación completada exitosamente');
+      // TODO: Aquí llamarías a tu servicio de notificaciones para avisar al cliente
+      // await this.notificacionService.enviarPush(...)
 
-      // Limpiar selección y recargar datos
+      this.feedback.showToast('exito', `✅ Mesa ${mesa.numero} asignada a ${cliente.nombre}.`);
+
+      // Limpiamos la selección de la pantalla del Maître
       this.clienteSeleccionado = null;
       this.mesaSeleccionada = null;
+      
+      // Recargamos los datos para ver los cambios en pantalla (la mesa se pondrá roja)
       await this.cargarDatos();
 
     } catch (e: any) {
       console.error('💥 Error en ejecutarAsignacion:', e);
-      this.feedback.showToast('error', 'Error al asignar: ' + e.message);
+      this.feedback.showToast('error', 'Ocurrió un error: ' + e.message);
     } finally {
       await loading.dismiss();
     }
