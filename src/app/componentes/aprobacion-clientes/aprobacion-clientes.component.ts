@@ -5,6 +5,8 @@ import { SupabaseService } from '../../servicios/supabase.service';
 import { PushNotificationService } from '../../servicios/push-notification.service';
 import { Router } from '@angular/router';
 import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
+import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 
 @Component({
   selector: 'app-aprobacion-clientes',
@@ -19,6 +21,8 @@ export class AprobacionClientesComponent implements OnInit {
 
   constructor(
     private supabase: SupabaseService,
+    private feedback: FeedbackService,
+    private customLoader: CustomLoader,
     private pushNotificationService: PushNotificationService,
     private router: Router
   ) {}
@@ -29,6 +33,7 @@ export class AprobacionClientesComponent implements OnInit {
 
   async cargarClientesPendientes() {
     try {
+      this.customLoader.show('Cargando clientes pendientes...');
       this.cargandoClientes = true;
       const { data: clientes, error } = await this.supabase.supabase
         .from('clientes')
@@ -36,16 +41,24 @@ export class AprobacionClientesComponent implements OnInit {
         .is('validado', null);
 
       if (error) {
+        this.customLoader.hide();
         console.error('Error al cargar clientes pendientes:', error);
         return;
       }
 
       this.clientesPendientes = clientes || [];
+
       console.log('Clientes pendientes cargados:', this.clientesPendientes.length);
+      this.feedback.showToast("exito", `✅ ${this.clientesPendientes.length} clientes pendientes cargados.`);
+      this.customLoader.hide();
+      
     } catch (error) {
       console.error('Error inesperado al cargar clientes pendientes:', error);
+      this.customLoader.hide();
     } finally {
       this.cargandoClientes = false;
+      this.customLoader.hide();
+      this.feedback.hide();
     }
   }
 
@@ -82,6 +95,7 @@ export class AprobacionClientesComponent implements OnInit {
 
   async rechazarCliente(cliente: any) {
     try {
+      this.customLoader.show('Rechazando cliente...');
       const { error } = await this.supabase.supabase
         .from('clientes')
         .update({
@@ -90,6 +104,7 @@ export class AprobacionClientesComponent implements OnInit {
         .eq('id', cliente.id);
 
       if (error) {
+        this.customLoader.hide();
         console.error('Error al rechazar cliente:', error);
         return;
       }
@@ -103,11 +118,14 @@ export class AprobacionClientesComponent implements OnInit {
           'rechazado'
         );
       } catch (notifyError) {
+        this.customLoader.hide();
         console.error('Error al notificar al cliente:', notifyError);
       }
 
       await this.cargarClientesPendientes();
+      this.customLoader.hide();
     } catch (error) {
+      this.customLoader.hide();
       console.error('Error inesperado al rechazar cliente:', error);
     }
   }
