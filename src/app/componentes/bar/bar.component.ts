@@ -3,6 +3,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
+import { Haptics } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-bar',
@@ -79,6 +80,9 @@ export class BarComponent  implements OnInit {
     } catch (error) {
       console.error('Error marcando pedido como recibido:', error);
       
+      // Vibrar en error
+      try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
+      
       const toast = await this.toastController.create({
         message: '❌ Error al marcar como recibido',
         duration: 3000,
@@ -140,6 +144,9 @@ export class BarComponent  implements OnInit {
       
     } catch (error) {
       console.error('Error marcando pedido como listo:', error);
+      
+      // Vibrar en error
+      try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
       
       const toast = await this.toastController.create({
         message: '❌ Error al marcar como listo',

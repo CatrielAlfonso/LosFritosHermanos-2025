@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import Swal from 'sweetalert2';
+import { Haptics } from '@capacitor/haptics';
 
 @Injectable({
   providedIn: 'root'
@@ -8,8 +9,20 @@ export class SweetAlertService {
 
   constructor() { }
 
+  private async vibrarSiError(icon: string) {
+    if (icon === 'error' || icon === 'warning') {
+      try {
+        await Haptics.vibrate({ duration: 300 });
+      } catch (err) {
+        console.warn('No se pudo vibrar');
+      }
+    }
+  }
 
   async showAlert(title: string, text: string, icon: 'success' | 'error' | 'warning' | 'info' | 'question') {
+
+    // Vibrar en errores y warnings
+    await this.vibrarSiError(icon);
 
     let alertConfirmado = false;
 
@@ -27,6 +40,9 @@ export class SweetAlertService {
   }
 
   async mostrarAlertaTemp(title: string,icon: 'success' | 'error' | 'warning' | 'info' | 'question') {
+    // Vibrar en errores y warnings
+    await this.vibrarSiError(icon);
+    
     Swal.fire({
       title: title,
       icon: icon,
@@ -38,6 +54,9 @@ export class SweetAlertService {
 
   async showToast(title: string, icon: 'success' | 'error' | 'warning' | 'info' | 'question')
   {
+    // Vibrar en errores y warnings
+    await this.vibrarSiError(icon);
+    
     const Toast = Swal.mixin({
       toast: true,
       position: "top-end",
@@ -93,6 +112,8 @@ export class SweetAlertService {
 
 
   async showTemporaryAlert(title: string, text: string, icon: 'success' | 'error' | 'warning' | 'info' | 'question') {
+    // Vibrar en errores y warnings
+    await this.vibrarSiError(icon);
 
     let timerInterval:any;
 
