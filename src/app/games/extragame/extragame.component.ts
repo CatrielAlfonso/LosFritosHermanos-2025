@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Vibration } from '@awesome-cordova-plugins/vibration/ngx';
 import { IonContent, IonButton } from "@ionic/angular/standalone";
 import { NgZone } from '@angular/core';
 import { Motion } from '@capacitor/motion';
+import { Haptics } from '@capacitor/haptics';
 
 type Obstacle = { x: number; y: number; size: number; img: string; tag: string };
 
@@ -37,8 +37,7 @@ export class ExtraGameComponent implements OnInit, OnDestroy {
 
   lastGyroLog = 0;
 
-  constructor(private vibration: Vibration, private ngZone: NgZone) {
-
+  constructor(private ngZone: NgZone) {
     this.audioInicio = new Audio('../../../assets/sounds/start_sound.mp3');
     this.audioFin = new Audio('../../../assets/sounds/winner.mp3');
     this.audioError = new Audio('../../../assets/sounds/error.mp3');
@@ -220,7 +219,7 @@ export class ExtraGameComponent implements OnInit, OnDestroy {
     this.juegoTerminado = true;
     this.mensaje = 'Perdiste';
     this.audioError.play();
-    this.vibration.vibrate(500);
+    Haptics.vibrate({ duration: 500 });
     this.detenerSensorMotion();
   }
 
