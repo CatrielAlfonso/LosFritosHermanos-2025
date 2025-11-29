@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { Haptics, ImpactStyle } from '@capacitor/haptics'; 
 import { CustomLoader } from './custom-loader.service';
+import { Vibration } from '@awesome-cordova-plugins/vibration/ngx';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,8 @@ export class FeedbackService {
   constructor(
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
-    private customLoader: CustomLoader
+    private customLoader: CustomLoader,
+    private vibration: Vibration,
   ) {}
 
   private mensajesGraciosos = {
@@ -49,6 +51,7 @@ export class FeedbackService {
     if (tipo === 'error') {
       await this.vibrarFuerte(); 
     } else if (tipo === 'exito') {
+      this.vibration.vibrate(100);
       await this.vibrarSuave();
     }
 

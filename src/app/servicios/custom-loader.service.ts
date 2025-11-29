@@ -14,6 +14,9 @@ export class CustomLoader {
     // Evita duplicados
     if (this.loaderElement) return;
 
+    // Limpiar estilos duplicados antes de inyectar
+    this.cleanupDuplicateStyles();
+    
     // Inyectar estilos si no existen
     this.injectStyles();
 
@@ -31,6 +34,21 @@ export class CustomLoader {
     this.loaderElement = overlay;
   }
 
+  private cleanupDuplicateStyles() {
+    // Eliminar estilos duplicados de servicios anteriores
+    const oldStyles = [
+      'fritos-loading-styles',
+      'fritos-feedback-spinner-styles'
+    ];
+    
+    oldStyles.forEach(id => {
+      const existingStyle = document.getElementById(id);
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    });
+  }
+
   hide() {
     if (this.loaderElement) {
       this.loaderElement.classList.add('fritos-loader-fade-out');
@@ -44,7 +62,8 @@ export class CustomLoader {
   }
 
   private injectStyles() {
-    if (this.styleElement) return;
+    // Verificar si ya existen los estilos en el DOM
+    if (this.styleElement || document.getElementById('fritos-loader-styles')) return;
 
     const style = document.createElement('style');
     style.id = 'fritos-loader-styles';
@@ -61,19 +80,19 @@ export class CustomLoader {
         justify-content: center;
         align-items: center;
         z-index: 99999;
-        animation: fritos-fade-in 0.3s ease;
+        animation: fritos-loader-fade-in 0.3s ease;
       }
 
       .fritos-loader-fade-out {
-        animation: fritos-fade-out 0.3s ease forwards;
+        animation: fritos-loader-fade-out 0.3s ease forwards;
       }
 
-      @keyframes fritos-fade-in {
+      @keyframes fritos-loader-fade-in {
         from { opacity: 0; }
         to { opacity: 1; }
       }
 
-      @keyframes fritos-fade-out {
+      @keyframes fritos-loader-fade-out {
         from { opacity: 1; }
         to { opacity: 0; }
       }
@@ -93,11 +112,11 @@ export class CustomLoader {
         border-radius: 50%;
         object-fit: cover;
         z-index: 2;
-        animation: fritos-pulse 1.5s ease-in-out infinite;
+        animation: fritos-loader-pulse 1.5s ease-in-out infinite;
         box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
       }
 
-      @keyframes fritos-pulse {
+      @keyframes fritos-loader-pulse {
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.1); }
       }
@@ -110,7 +129,7 @@ export class CustomLoader {
         border-top-color: #FFC107;
         border-right-color: #E53E3E;
         border-radius: 50%;
-        animation: fritos-spin 1.2s linear infinite;
+        animation: fritos-loader-spin 1.2s linear infinite;
       }
 
       .fritos-loader-ring-2 {
@@ -118,15 +137,15 @@ export class CustomLoader {
         height: 90%;
         border-top-color: #E53E3E;
         border-right-color: #FFC107;
-        animation: fritos-spin-reverse 1s linear infinite;
+        animation: fritos-loader-spin-reverse 1s linear infinite;
       }
 
-      @keyframes fritos-spin {
+      @keyframes fritos-loader-spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
 
-      @keyframes fritos-spin-reverse {
+      @keyframes fritos-loader-spin-reverse {
         0% { transform: rotate(360deg); }
         100% { transform: rotate(0deg); }
       }
@@ -139,10 +158,10 @@ export class CustomLoader {
         text-align: center;
         letter-spacing: 1px;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        animation: fritos-text-pulse 1.5s ease-in-out infinite;
+        animation: fritos-loader-text-pulse 1.5s ease-in-out infinite;
       }
 
-      @keyframes fritos-text-pulse {
+      @keyframes fritos-loader-text-pulse {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.6; }
       }

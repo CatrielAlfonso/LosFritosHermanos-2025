@@ -1,0 +1,181 @@
+.game-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.hud {
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.game-area {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+ background: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.1) 0px,
+      rgba(255,255,255,0.1) 50px,
+      transparent 50px,
+      transparent 100px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,0.1) 0px,
+      rgba(255,255,255,0.1) 50px,
+      transparent 50px,
+      transparent 100px
+    ),
+    linear-gradient(135deg, #f5d76e 0%, #f7ca18 100%);
+  
+  border: 5px solid #d4a017;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+}
+
+/* Tamaños del “mundo” */
+.mozo,
+.mesa,
+.obstaculo {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+}
+
+/* Placeholder visual */
+.mozo{
+  background-image: url("../../../assets/imgs/mozo.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
+}
+.mesa {
+  //background: #795548;
+  background-image: url("../../../assets/imgs/mesa.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  //background-image:  url("../../../assets/imgs/mesa.png");
+  border-radius: 8px;
+}
+
+.obstaculo {
+  //background: #f44336;
+  background-image: url("../../../assets/imgs/patines.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
+}
+
+/* Opcional: clases específicas por tipo */
+.patines {
+  background-image: url("../../../assets/imgs/patines.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.banana {
+  background-image: url("../../../assets/imgs/banana.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  //background-image: url("../../../assets/imgs/banana.png");
+}
+.aceite {
+  background-image: url("../../../assets/imgs/aceite.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  //background-image: url("../../../assets/imgs/aceite.png");
+}
+
+/* Overlay resultado */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3;
+}
+
+.overlay-content {
+  background: #222;
+  padding: 16px 24px;
+  border-radius: 8px;
+  text-align: center;
+  color: #fff;
+}
+
+.inicio-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.4);
+  text-align: center;
+  z-index: 5;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.inicio-screen h1 {
+  font-size: 2.4rem;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.inicio-screen p {
+  font-size: 1.1rem;
+  color: #f1f1f1;
+  margin-bottom: 25px;
+}
+
+.inicio-screen ion-button {
+  --background: #2ecc71;
+  --background-hover: #27ae60;
+  width: 180px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.mensaje-contenido {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  animation: slideUp 0.3s ease-out;
+
+  h2 {
+    font-size: 2.5rem;
+    color: #e74c3c;
+    margin-bottom: 30px;
+    font-weight: bold;
+  }
+
+  ion-button {
+    --background: #27ae60;
+    --background-hover: #229954;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
