@@ -15,7 +15,7 @@
   --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
   display: flex;
   justify-content: center;
-  align-items: center; /* Centrar verticalmente si hay poco contenido */
+  align-items: center; 
   min-height: 100%;
 }
 
@@ -58,6 +58,25 @@
   object-fit: contain;
   margin-bottom: 20px;
   filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+}
+.logout-button {
+  width: 40px !important;
+  height: 40px !important;
+  --padding-start: 0 !important;
+  --padding-end: 0 !important;
+  --border-radius: 50% !important;
+  margin-right: 10px;
+  color: black;
+  
+  /* Agranda el icono dentro */
+  ion-icon {
+    font-size: 32px !important; /* Icono bien grande */
+    margin: 0 !important;       /* Centrado perfecto */
+  }
+}
+.icono-cerrar{
+  height: 100%;
+  width: 100%;
 }
 
 .fritos-bounce {
@@ -103,7 +122,7 @@
 
 /* Botón especial de 2 líneas (Lista de Espera) */
 .btn-pedidos {
-  height: auto; /* Altura automática para que quepa todo */
+  height: auto; 
   min-height: 55px;
   
   .boton-contenido-columna {
@@ -121,7 +140,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 5px; /* Espacio extra entre elementos internos */
+  gap: 5px; 
 }
 
 /* Header */
@@ -135,6 +154,8 @@
     color: var(--fritos-yellow); /* Amarillo de la marca */
     text-shadow: 2px 2px 0px #b71c1c; /* Sombra sólida para contraste */
     letter-spacing: 1px;
+    text-align: center;
+    margin-top: 7px;
   }
 }
 
