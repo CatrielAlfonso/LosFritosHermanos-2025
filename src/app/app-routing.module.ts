@@ -125,7 +125,12 @@ const routes: Routes = [
     loadComponent: () => import('./games/memoria-de-sabores/memoria-de-sabores.component').then(m => m.MemoriaDeSaboresComponent)
   },
   {
-    path:'mozo-equilibrio',
+    path: 'equilibrio',
+    loadComponent: () => import('./games/equilibrio/equilibrio.component').then(m => m.EquilibrioComponent)
+  }
+  ,
+  {
+    path:'extragame',
     loadComponent: () => import('./games/extragame/extragame.component').then(m => m.ExtraGameComponent)
   }
   ,

@@ -1,0 +1,78 @@
+<ion-content fullscreen>
+  <div class="game-wrapper">
+    <!-- <div class="hud">
+      <button ion-button (click)="startGame()" *ngIf="state !== 'playing'">
+        Iniciar
+      </button>
+      <span *ngIf="state === 'playing'">Lleva la bandeja a la mesa</span>
+    </div> -->
+
+    <!-- Pantalla de inicio -->
+    <!-- <div class="inicio-screen" *ngIf="state!=='playing'">
+      <h1>Juego del Mozo</h1>
+      <p>Ayuda al mozo a llevar el pedido hasta la mesa</p>
+      <p>Inclina tu dispositivo para moverlo</p>
+      <ion-button  expand="block" (click)="startGame()">
+        Iniciar Juego
+      </ion-button>
+    </div> -->
+
+    <div class="inicio-screen" *ngIf="state === 'idle'">
+      <h1>Juego del Mozo</h1>
+      <p>Ayuda al mozo a llevar la bandeja a la mesa</p>
+      <ion-button expand="block" (click)="startGame()">Iniciar</ion-button>
+    </div>
+
+       <!-- Mensaje de resultado -->
+      <div *ngIf="state === 'lost' || state === 'won'"class="mensaje-overlay">
+        <div class="mensaje-contenido">
+          <!-- <h2 *ngIf="state === 'lost'">Perdiste</h2>
+          <h2 *ngIf="state === 'won'">Ganaste</h2> -->
+          <h2>{{ mensaje }}</h2>
+          <ion-button expand="block" (click)="startGame()">
+            Jugar de nuevo
+          </ion-button>
+          <ion-button expand="block" (click)="volverAjuegos()">
+            Volver a Juegos
+          </ion-button>
+        </div>
+      </div>
+
+
+    <div class="game-area" #gameArea>
+      <!-- Mozo -->
+      <div
+        class="mozo"
+        [style.transform]="'translate(' + mozo.x + 'px,' + mozo.y + 'px)'"
+      ></div>
+
+      <!-- Mesa -->
+      <div
+        class="mesa"
+        [style.transform]="'translate(' + mesa.x + 'px,' + mesa.y + 'px)'"
+      ></div>
+
+      <!-- Obstáculos -->
+      <!-- <div
+        class="obstaculo patines"
+        *ngFor="let o of obstacles"
+        [style.transform]="'translate(' + o.x + 'px,' + o.y + 'px)'"
+      ></div> -->
+      <div
+        class="obstaculo"
+  *ngFor="let o of obstacles"
+  [ngClass]="o.type"   [style.transform]="'translate(' + o.x + 'px,' + o.y + 'px)'"
+      ></div>
+      <!-- Overlay resultado -->
+      <!-- <div class="overlay" *ngIf="state === 'lost' || state === 'won'">
+        <div class="overlay-content">
+          <h2 *ngIf="state === 'lost'">Perdiste</h2>
+          <h2 *ngIf="state === 'won'">Ganaste</h2>
+          <button ion-button (click)="startGame()">Reintentar</button>
+        </div>
+      </div> -->
+
+   
+    </div>
+  </div>
+</ion-content>

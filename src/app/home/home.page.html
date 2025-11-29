@@ -151,6 +151,11 @@
         Ver Menú
       </ion-button>
 
+      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
+          <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+          Juegos
+      </ion-button>
+
       <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/reservas']">
         <ion-icon name="calendar-outline" slot="start"></ion-icon>
         Mis Reservas
@@ -209,10 +214,7 @@
           </div>
         </ion-button>
 
-        <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
-          <ion-icon name="game-controller-outline" slot="start"></ion-icon>
-          Juegos
-        </ion-button>
+        
       }
 
 

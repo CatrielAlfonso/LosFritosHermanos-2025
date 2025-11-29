@@ -1,7 +1,9 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
-import { NgModule} from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Vibration } from '@awesome-cordova-plugins/vibration/ngx';
+import { IonContent, IonButton } from "@ionic/angular/standalone";
+import { NgZone } from '@angular/core';
+import { Motion } from '@capacitor/motion';
 
 type Obstacle = { x: number; y: number; size: number; img: string; tag: string };
 
@@ -9,224 +11,231 @@ type Obstacle = { x: number; y: number; size: number; img: string; tag: string }
   selector: 'app-extra-game',
   templateUrl: './extragame.component.html',
   styleUrls: ['./extragame.component.scss'],
-  imports: [CommonModule],
+  imports: [IonButton, IonContent, CommonModule ],
 })
 export class ExtraGameComponent implements OnInit, OnDestroy {
   
-  @ViewChild('arena', { static: true }) arenaRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('startSound') startSoundRef!: ElementRef<HTMLAudioElement>;
-  @ViewChild('endSound') endSoundRef!: ElementRef<HTMLAudioElement>;
-  @ViewChild('errorSound') errorSoundRef!: ElementRef<HTMLAudioElement>;
+   mozoX = 20;
+  mozoY = 20;
+  mesaX = 80;
+  mesaY = 80;
 
-  running = false;
-  stopped = false;
-  won = false;
+  obstaculos: Array<{x:number,y:number,tipo:string,imagen:string}> = [];
+  
+  juegoIniciado = false;
+  juegoTerminado = false;
+  mensaje = '';
 
-  arenaW = 0;
-  arenaH = 0;
+  audioInicio: HTMLAudioElement;
+  audioFin: HTMLAudioElement;
+  audioError: HTMLAudioElement;
 
-  // player state
-  player = { x: 20, y: 20, w: 80, h: 80, vx: 0, vy: 0 };
-  speed = 1.6; // multiplier, adjust
+  motionListener: any;
+  mozoSize = 15;
+  mesaSize = 18;
+  obstaculoSize = 20;
 
-  // target table (opposite corner)
-  target = { x: 0, y: 0, w: 110, h: 110 };
+  lastGyroLog = 0;
 
-  obstacles: Obstacle[] = [];
+  constructor(private vibration: Vibration, private ngZone: NgZone) {
 
-  // loop
-  rafId: any = null;
-
-  constructor() {}
-
-  ngOnInit(): void {
-    this.setArenaSize();
-    window.addEventListener('resize', () => this.setArenaSize());
+    this.audioInicio = new Audio('../../../assets/sounds/start_sound.mp3');
+    this.audioFin = new Audio('../../../assets/sounds/winner.mp3');
+    this.audioError = new Audio('../../../assets/sounds/error.mp3');
   }
 
-  ngOnDestroy(): void {
-    this.stopSensors();
-    cancelAnimationFrame(this.rafId);
+  ngOnInit() {
+    this.inicializarObstaculos();
+    this.activarControlesTeclado();
   }
 
-  setArenaSize() {
-    const rect = this.arenaRef.nativeElement.getBoundingClientRect();
-    this.arenaW = Math.floor(rect.width);
-    this.arenaH = Math.floor(rect.height);
+  activarControlesTeclado() {
+  window.addEventListener('keydown', (event) => {
 
-    // place initial target bottom-right
-    this.target.x = this.arenaW - this.target.w - 10;
-    this.target.y = this.arenaH - this.target.h - 10;
+    if (!this.juegoIniciado || this.juegoTerminado) return;
 
-    // reset player start corner (top-left)
-    this.player.x = 10;
-    this.player.y = 10;
+    const velocidad = 5; // velocidad de movimiento con teclas
+
+    switch (event.key) {
+
+      case 'ArrowUp':
+      case 'w':
+      case 'W':
+        this.mozoY -= velocidad;
+        break;
+
+      case 'ArrowDown':
+      case 's':
+      case 'S':
+        this.mozoY += velocidad;
+        break;
+
+      case 'ArrowLeft':
+      case 'a':
+      case 'A':
+        this.mozoX -= velocidad;
+        break;
+
+      case 'ArrowRight':
+      case 'd':
+      case 'D':
+        this.mozoX += velocidad;
+        break;
+    }
+
+    this.verificarColisiones();
+  });
+}
+
+  iniciarJuego() {
+    this.audioInicio.play();
+    this.mozoX = 20;
+    this.mozoY = 20;
+    this.juegoIniciado = true;
+    this.juegoTerminado = false;
+    this.mensaje = '';
+
+    this.inicializarObstaculos();
+    this.iniciarSensorMotion();
   }
 
-  async startGame() {
-    // ask for permission on iOS
-    await this.requestDevicePermissionIfNeeded();
+  // -------------------------------
+  // ⭐️ USAR CAPACITOR MOTION
+  // -------------------------------
+  async iniciarSensorMotion() {
+    console.log("Activando Motion…");
 
-    this.running = true;
-    this.stopped = false;
-    this.won = false;
+    try {
+      this.motionListener = await Motion.addListener('orientation', (event) => {
+        
 
-    // recompute arena sizes
-    this.setArenaSize();
+        if (!this.juegoIniciado || this.juegoTerminado) return;
 
-    // create obstacles randomly near center
-    this.createObstacles();
+          const beta = event.beta ?? 0;   // inclinación adelante/atrás
+          const gamma = event.gamma ?? 0; // inclinación izquierda/derecha
 
-    // play start sound
-    this.startSoundRef.nativeElement.currentTime = 0;
-    this.startSoundRef.nativeElement.play().catch(()=>{});
+          console.log("beta:", beta, "gamma:", gamma);
 
-    // start sensors and loop
-    this.startSensors();
-    this.loop();
+          const sensibilidad = 0.6;
+          this.mozoX += gamma * sensibilidad;
+          this.mozoY += beta * sensibilidad;
+
+          const now = Date.now();
+          if (now - this.lastGyroLog > 500) 
+          {
+            
+              // beta,
+              // gamma,
+              // mozoX: this.mozoX,
+              // mozoY:this.mozoY
+              this.lastGyroLog = now;
+          }
+
+          this.verificarColisiones();
+  
+       
+      });
+
+    } catch (error) {
+      console.log("Error con Motion:", error);
+      alert("No se pudieron leer sensores. ¿Concediste permisos?");
+    }
   }
 
-  resetGame() {
-    this.stopSensors();
-    this.running = false;
-    this.stopped = false;
-    this.won = false;
-    cancelAnimationFrame(this.rafId);
-    this.obstacles = [];
-    this.setArenaSize();
+  detenerSensorMotion() {
+    if (this.motionListener) {
+      this.motionListener.remove();
+      this.motionListener = null;
+    }
   }
 
-  // create 3 obstacles around center with random jitter
-  createObstacles() {
-    this.obstacles = [];
-    const centerX = this.arenaW / 2;
-    const centerY = this.arenaH / 2;
-    const imgs = [
-      '../../../assets/imgs/patines.png', 
-      '../../../assets/imgs/banana.png',
-      '../../../assets/imgs/aceite.png'
+  // -------------------------------
+  // LÓGICA DEL JUEGO (igual que antes)
+  // -------------------------------
+
+  inicializarObstaculos() {
+    const tipos = [
+      { tipo: 'patines', imagen: '../../../assets/imgs/patines.png' },
+      { tipo: 'banana', imagen: '../../../assets/imgs/banana.png' },
+      { tipo: 'aceite', imagen: '../../../assets/imgs/aceite.png' }
     ];
 
+    this.obstaculos = [];
+
     for (let i = 0; i < 3; i++) {
-      const size = Math.max(60, Math.min(120, Math.floor(Math.min(this.arenaW, this.arenaH) * 0.12)));
-      const jitter = 80;
-      const o: Obstacle = {
-        x: centerX + (Math.random() - 0.5) * jitter - size / 2,
-        y: centerY + (Math.random() - 0.5) * jitter - size / 2,
-        size,
-        img: imgs[i],
-        tag: ['patines','cascara','aceite'][i]
-      };
-      this.obstacles.push(o);
-    }
-  }
+      let x=0,y=0,valido=false;
 
-  // sensor handling
-  deviceHandler = (e: any) => {
-    // prefer deviceorientation gamma/beta
-    const gamma = e.gamma ?? (e.rotationRate?.alpha ?? 0); // left-right tilt
-    const beta = e.beta ?? (e.rotationRate?.beta ?? 0); // front-back tilt
+      while (!valido) {
+        x = Math.random()*60+20;
+        y = Math.random()*60+20;
 
-    // map to velocity
-    // on phones gamma ∈ [-90,90], beta ∈ [-180,180]
-    // reduce sensitivity
-    this.player.vx = (gamma / 30) * this.speed;
-    this.player.vy = (beta / 30) * this.speed;
-  };
+        valido = this.obstaculos.every(obs => {
+          const dist = Math.hypot(obs.x - x, obs.y - y);
+          return dist > 15;
+        });
 
-  startSensors() {
-    // for modern browsers: deviceorientation
-    if (typeof DeviceOrientationEvent !== 'undefined' && 'ondeviceorientation' in window) {
-      window.addEventListener('deviceorientation', this.deviceHandler, true);
-    } else if (typeof DeviceMotionEvent !== 'undefined') {
-      window.addEventListener('devicemotion', this.deviceHandler, true);
-    }
-  }
+        const distMozo = Math.hypot(this.mozoX - x, this.mozoY - y);
+        const distMesa = Math.hypot(this.mesaX - x, this.mesaY - y);
 
-  stopSensors() {
-    window.removeEventListener('deviceorientation', this.deviceHandler, true);
-    window.removeEventListener('devicemotion', this.deviceHandler, true);
-  }
-
-  // iOS permission request
-  async requestDevicePermissionIfNeeded(): Promise<void> {
-    const anyWin: any = window;
-    if (anyWin.DeviceMotionEvent && typeof anyWin.DeviceMotionEvent.requestPermission === 'function') {
-      try {
-        const res = await anyWin.DeviceMotionEvent.requestPermission();
-        if (res !== 'granted') {
-          alert('Necesitamos permiso para leer sensores. Habilitá Motion & Orientation en tu navegador.');
-        }
-      } catch (err) {
-        console.warn('requestPermission error', err);
+        if (distMozo < 15 || distMesa < 15) valido = false;
       }
+
+      this.obstaculos.push({
+        x, y,
+        tipo: tipos[i].tipo,
+        imagen: tipos[i].imagen
+      });
     }
   }
 
-  // main loop
-  loop = () => {
-    if (!this.running) return;
-    // update position
-    if (!this.stopped && !this.won) {
-      this.player.x += this.player.vx;
-      this.player.y += this.player.vy;
+  verificarColisiones() {
+    if (this.mozoX < 0 || this.mozoX > 100 - this.mozoSize ||
+        this.mozoY < 0 || this.mozoY > 100 - this.mozoSize) {
 
-      // clamp to arena and check edges collision
-      if (this.player.x < 0 || this.player.y < 0 || (this.player.x + this.player.w) > this.arenaW || (this.player.y + this.player.h) > this.arenaH) {
-        // collided with border -> lose
-        this.handleLose('edge');
-      } else {
-        // check obstacle collisions
-        for (const o of this.obstacles) {
-          if (this.rectsOverlap(this.player.x, this.player.y, this.player.w, this.player.h, o.x, o.y, o.size, o.size)) {
-            this.handleLose(o.tag);
-            break;
-          }
-        }
+          console.log("Colisión con borde");
+      this.perderJuego();
+      return;
+    }
 
-        // check success: if player reaches target rect (table)
-        if (this.rectsOverlap(this.player.x, this.player.y, this.player.w, this.player.h, this.target.x, this.target.y, this.target.w, this.target.h)) {
-          this.handleWin();
-        }
+    for (const o of this.obstaculos) {
+      if (this.hayColision(this.mozoX, this.mozoY, o.x, o.y, this.obstaculoSize)) {
+        console.log("Colisión con obstáculo:", o.tipo);
+        this.perderJuego();
+        return;
       }
     }
 
-    // update waiter rotation for visual effect
-    const rot = Math.max(-25, Math.min(25, this.player.vx * 6));
-    const waiterEl = this.arenaRef.nativeElement.querySelector('.waiter') as HTMLElement | null;
-    if (waiterEl) waiterEl.style.transform = `translateZ(0) rotate(${rot}deg)`;
-
-    this.rafId = requestAnimationFrame(this.loop);
-  };
-
-  rectsOverlap(ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number) {
-    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    if (this.hayColision(this.mozoX, this.mozoY, this.mesaX, this.mesaY, this.mesaSize)) {
+      console.log("Llegaste a la mesa");
+      this.ganarJuego();
+    }
   }
 
-  handleLose(tag: string) {
-    if (this.stopped || this.won) return;
-    this.stopped = true;
-    // play error sound
-    this.errorSoundRef.nativeElement.currentTime = 0;
-    this.errorSoundRef.nativeElement.play().catch(()=>{});
-    // vibrate
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-    console.log('Perdiste por:', tag);
-    // stop sensors
-    this.stopSensors();
+  hayColision(x1:number,y1:number,x2:number,y2:number,size:number):boolean {
+    const d = Math.hypot(x1-x2, y1-y2);
+    return d < (this.mozoSize + size)/2;
   }
 
-  handleWin() {
-    if (this.won || this.stopped) return;
-    this.won = true;
-    this.endSoundRef.nativeElement.currentTime = 0;
-    this.endSoundRef.nativeElement.play().catch(()=>{});
-    this.stopSensors();
-    console.log('Ganaste');
+  perderJuego() {
+    this.juegoTerminado = true;
+    this.mensaje = 'Perdiste';
+    this.audioError.play();
+    this.vibration.vibrate(500);
+    this.detenerSensorMotion();
   }
 
-  focusArena() {
-    // helpful on some devices to start reading sensor
-    this.arenaRef.nativeElement.focus();
+  ganarJuego() {
+    this.juegoTerminado = true;
+    this.mensaje = '¡Ganaste! 🎉';
+    this.audioFin.play();
+    this.detenerSensorMotion();
+  }
+
+  reiniciarJuego() {
+    this.iniciarJuego();
+  }
+
+  ngOnDestroy() {
+    this.detenerSensorMotion();
   }
 }
