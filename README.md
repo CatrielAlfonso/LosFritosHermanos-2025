@@ -122,6 +122,10 @@ ENTRADA AL LOCAL:
 
 <img width="300" height="300" alt="qrentradalocal" src="https://github.com/user-attachments/assets/3a6858f4-8130-44a5-b4a2-e4854becea0a" />
 
+MESA DELIVERY:
+
+<img width="1200" height="1200" alt="qr-delivery" src="https://github.com/user-attachments/assets/ac829a52-14d9-4153-b975-e2681650f11a" />
+
 Mesa 2:
 
 <img width="512" height="512" alt="mesa-2-qr (2)" src="https://github.com/user-attachments/assets/b2037e73-d1da-497b-bd4d-46db5300816a" />
