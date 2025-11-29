@@ -1,50 +1,42 @@
 import { Injectable } from '@angular/core';
-import { NativeAudio } from '@capacitor-community/native-audio';
-//import { Assets } from '@capacitor/assets';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AudioService {
   
-
+  private audioInicio: HTMLAudioElement | null = null;
+  private audioSalida: HTMLAudioElement | null = null;
   private isLoaded = false;
-  // async preload() {
-  //   await NativeAudio.preload({
-  //     assetId: 'inicio',
-  //     assetPath: '../../assets/sounds/InicioLosFritos.mp3',
-  //   });
-  //   await NativeAudio.preload({
-  //     assetId: 'salida',
-  //     assetPath: '../../assets/sounds/SalirFrito.mp3',
-  //   });
-  // }
 
   async preload() {
-
     if (this.isLoaded) return;
 
     try {
-      await NativeAudio.preload({
-      assetId: 'inicio',
-      assetPath: '../../assets/sounds/InicioLosFritos.mp3',
-      });
-      await NativeAudio.preload({
-        assetId: 'salida',
-        assetPath: '../../assets/sounds/SalirFrito.mp3',
-      });
-      console.log('✅ Sonidos precargados');
+      // Crear elementos de audio para reproducir desde URLs
+      this.audioInicio = new Audio('https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/sonidos/InicioLosFritos.mp3');
+      this.audioSalida = new Audio('https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/sonidos/SalirFrito.mp3');
+      
+      // Precargar los audios
+      this.audioInicio.load();
+      this.audioSalida.load();
+      
+      console.log('✅ Sonidos precargados desde Supabase');
       this.isLoaded = true;
     } catch (err) {
-      console.error('❌ Error al precargar sonidos', err);
+      console.error('❌ Error al precargar sonidos desde Supabase', err);
     }
-    
-    
   }
 
   async playInicio() {
     try {
-      await NativeAudio.play({ assetId: 'inicio' });
+      if (!this.audioInicio) {
+        await this.preload();
+      }
+      if (this.audioInicio) {
+        this.audioInicio.currentTime = 0; // Reiniciar al inicio
+        await this.audioInicio.play();
+      }
     } catch (error) {
       console.error('Error al reproducir audio de inicio:', error);
     }
@@ -52,11 +44,15 @@ export class AudioService {
 
   async playSalida() {
     try {
-      await NativeAudio.play({ assetId: 'salida' });
+      if (!this.audioSalida) {
+        await this.preload();
+      }
+      if (this.audioSalida) {
+        this.audioSalida.currentTime = 0; // Reiniciar al inicio
+        await this.audioSalida.play();
+      }
     } catch (error) {
       console.error('Error al reproducir audio de salida:', error);
     }
   }
-
-
 }

@@ -7,6 +7,7 @@ import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { HttpClient } from '@angular/common/http';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
+import { Haptics } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-pedidos-mozo',
@@ -241,6 +242,9 @@ segmentoActivo = 'activos';
     } catch (error) {
       console.error('Error rechazando pedido:', error);
       
+      // Vibrar en error
+      try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
+      
       const toast = await this.toastController.create({
         message: 'Error al rechazar el pedido',
         duration: 3000,
@@ -297,6 +301,9 @@ segmentoActivo = 'activos';
       
     } catch (error) {
       console.error('Error entregando pedido:', error);
+      
+      // Vibrar en error
+      try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
       
       const toast = await this.toastController.create({
         message: 'Error al marcar como entregado',

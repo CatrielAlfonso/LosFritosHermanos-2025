@@ -1,173 +1,172 @@
-#container {
-  text-align: center;
-  position: absolute;
-  left: 50%;
-  right: 0;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 400px;
-  width: 90%;
-  padding: 2rem;
-  margin: 0 auto;
+/* =========================================
+   VARIABLES
+   ========================================= */
+:host {
+  --fritos-orange: var(--ion-color-fritos-orange, #ff9800);
+  --fritos-yellow: var(--ion-color-fritos-yellow, #ffeb3b);
+  --fritos-blue: var(--ion-color-fritos-blue, #4666de);
+  --fritos-red: var(--ion-color-primary, #d32f2f);
+  --fritos-white: #ffffff;
+  --fritos-text: #333333;
 }
 
-#container strong {
-  font-size: 24px;
-  line-height: 30px;
-  display: block;
-  margin-bottom: 1rem;
-}
-
-#container p {
-  font-size: 18px;
-  line-height: 24px;
-  color: var(--ion-color-fritos-blue);
-  margin: 0 0 2rem 0;
-  opacity: 0.8;
-}
-
-#container a {
-  text-decoration: none;
-}
-
-.fritos-red{
+/* 1. FONDO DE PANTALLA COMPLETA */
+.fritos-theme {
+  --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
   display: flex;
   justify-content: center;
+  align-items: center; 
+  min-height: 100%;
 }
 
+/* 2. CONTENEDOR PRINCIPAL (Tarjeta central) */
+#container {
+  /* Quitamos posición absoluta para que fluya mejor */
+  position: relative; 
+  left: auto;
+  right: auto;
+  top: auto;
+  transform: none;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  min-height: 70%;
+  width: 90%;
+  max-width: 500px; /* Un poco más ancho para pantallas grandes */
+  margin: 40px auto; /* Margen arriba y abajo para que no pegue */
+  padding: 30px 20px;
+  box-sizing: border-box;
+  
+  /* ESTILO DE LA TARJETA: Azul claro semitransparente */
+  background: rgba(159, 196, 222, 0.85); /* Azul muy suave con transparencia */
+  backdrop-filter: blur(10px); /* Efecto vidrio esmerilado */
+  border: 2px solid rgba(255, 255, 255, 0.5); /* Borde sutil */
+  border-radius: 25px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); /* Sombra suave */
+  
+  /* Animación de entrada */
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Logo animado */
 .login-logo {
-  width: 150px;
-  height: 100px;
+  width: 150px; /* Un poco más chico para que no coma toda la pantalla */
+  height: auto;
   object-fit: contain;
-  display: block;
-  margin: 0 auto 1.5rem auto;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+}
+.logout-button {
+  width: 40px !important;
+  height: 40px !important;
+  --padding-start: 0 !important;
+  --padding-end: 0 !important;
+  --border-radius: 50% !important;
+  margin-right: 10px;
+  color: black;
+  
+  /* Agranda el icono dentro */
+  ion-icon {
+    font-size: 32px !important; /* Icono bien grande */
+    margin: 0 !important;       /* Centrado perfecto */
+  }
+}
+.icono-cerrar{
+  height: 100%;
+  width: 100%;
 }
 
-.titulo{
-  color: rgb(214, 187, 38);
+.fritos-bounce {
+  animation: bounce 2s infinite;
+}
+
+/* Textos */
+.fritos-logo {
+  color: rgb(165, 40, 40);
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+}
+
+.fritos-subtitle {
+  color: var(--fritos-blue);
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  opacity: 0.9;
   text-align: center;
 }
 
-.logout-button {
-  --padding-start: 1rem;
-  --padding-end: 1rem;
-  font-size: 1rem;
-  height: 2.5rem;
-  font-weight: 500;
-}
-
-.admin-options, .maitre-options, .cocinero-options, .bartender-options, .cliente-options {
-  margin-top: 20px;
+/* 3. BOTONES ADAPTATIVOS */
+.fritos-button {
   width: 100%;
-  max-width: 500px;
+  margin-bottom: 15px; /* Espacio entre botones */
+  --border-radius: 12px;
+  --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  font-weight: 700;
+  font-size: 1rem;
+  height: 55px; /* Altura fija cómoda para el dedo */
+  
+  /* Iconos dentro del botón */
+  ion-icon {
+    font-size: 1.3rem;
+    margin-right: 10px;
+  }
 }
 
-.clientes-pendientes-section {
-  margin-top: 20px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+/* Botón especial de 2 líneas (Lista de Espera) */
+.btn-pedidos {
+  height: auto; 
+  min-height: 55px;
+  
+  .boton-contenido-columna {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 0;
+  }
+}
 
-  h4 {
-    margin-bottom: 20px;
-    color: var(--ion-color-light);
-    font-size: 1.2em;
+/* 4. CONTENEDORES DE OPCIONES */
+/* Hacemos que ocupen todo el ancho disponible */
+.admin-options, .maitre-options, .cocinero-options, .bartender-options, .cliente-options {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px; 
+}
+
+/* Header */
+.fritos-header {
+  ion-toolbar {
+    --border-width: 0; /* Sin borde abajo */
+  }
+  
+  .titulo {
+    font-weight: 900;
+    color: var(--fritos-yellow); /* Amarillo de la marca */
+    text-shadow: 2px 2px 0px #b71c1c; /* Sombra sólida para contraste */
+    letter-spacing: 1px;
     text-align: center;
+    margin-top: 7px;
   }
+}
 
-  .loading-spinner {
-    text-align: center;
-    padding: 20px;
-    
-    ion-spinner {
-      margin-bottom: 10px;
-    }
-    
-    p {
-      color: var(--ion-color-medium);
-    }
-  }
+/* Animaciones */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
 
-  .no-clientes {
-    text-align: center;
-    padding: 20px;
-    color: var(--ion-color-medium);
-  }
-
-  .clientes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 10px;
-
-    .cliente-card {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      transition: transform 0.2s;
-
-      &:hover {
-        transform: translateY(-2px);
-      }
-
-      .cliente-imagen {
-        text-align: center;
-        margin-bottom: 10px;
-
-        .profile-image {
-          width: 120px;
-          height: 120px;
-          border-radius: 60px;
-          object-fit: cover;
-          border: 3px solid var(--ion-color-fritos-red);
-          background-color: var(--ion-color-light);
-        }
-      }
-
-      .cliente-info {
-        text-align: center;
-
-        h2 {
-          color: var(--ion-color-light);
-          font-size: 1.2em;
-          margin-bottom: 10px;
-          font-weight: bold;
-        }
-
-        p {
-          color: var(--ion-color-medium);
-          margin: 5px 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 5px;
-
-          ion-icon {
-            font-size: 1.1em;
-          }
-        }
-      }
-
-      .cliente-acciones {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-top: 10px;
-
-        .accion-btn {
-          --padding-start: 1.5em;
-          --padding-end: 1.5em;
-          height: 45px;
-          font-size: 1.1em;
-          
-          ion-icon {
-            font-size: 1.2em;
-          }
-        }
-      }
-    }
-  }
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
 }

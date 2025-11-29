@@ -38,42 +38,6 @@
           Continuar con Google
         </ion-button>
 
-        <div class="quick-access-container">
-          <h3 class="quick-access-title fritos-subtitle">ACCESOS RÁPIDOS</h3>
-          <div class="quick-access">
-
-            <ion-button shape="round" (click)="accesoRapido('supervisor')" class="fritos-button">
-              <ion-icon name="eye" slot="start"></ion-icon>
-              Supervisor
-            </ion-button>
-
-            <ion-button shape="round" (click)="accesoRapido('dueno')" class="fritos-button">
-              <ion-icon name="person" slot="start"></ion-icon>
-              Dueño
-            </ion-button>
-
-            <ion-button id="empleados-trigger" shape="round" class="fritos-button">
-              <ion-icon name="people" slot="start"></ion-icon>
-              Empleados
-              <ion-icon name="chevron-up-outline" slot="end"></ion-icon>
-            </ion-button>
-            <ion-popover trigger="empleados-trigger" triggerAction="click" showBackdrop="false">
-              <ng-template>
-                <ion-list>
-                  <ion-item button (click)="accesoRapido('maitre')">Maître</ion-item>
-                  <ion-item button (click)="accesoRapido('mozo')">Mozo</ion-item>
-                  <ion-item button (click)="accesoRapido('cocinero')">Cocinero</ion-item>
-                  <ion-item button (click)="accesoRapido('bartender')">Bartender</ion-item>
-                </ion-list>
-              </ng-template>
-            </ion-popover>
-
-            <ion-button shape="round" (click)="accesoRapido('cliente')" class="fritos-button">
-              <ion-icon name="person" slot="start"></ion-icon>
-              Cliente
-            </ion-button>
-          </div>
-        </div>
 
         <div class="register-link">
           ¿No tenés cuenta? <a (click)="goToRegister()">Regístrate</a>
@@ -81,4 +45,35 @@
       </form>
     </div>
   </div>
+
+  <!-- Floating Action Button para accesos rápidos -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button color="fritos-red" aria-label="Accesos rápidos">
+      <ion-icon name="flash"></ion-icon>
+    </ion-fab-button>
+    
+    <ion-fab-list side="top">
+      <ion-fab-button class="fab-with-label" color="primary" (click)="accesoRapido('cliente')">
+        <span class="fab-label">Cliente</span>
+      </ion-fab-button>
+      <ion-fab-button class="fab-with-label" color="tertiary" (click)="accesoRapido('bartender')">
+        <span class="fab-label">Bartender</span>
+      </ion-fab-button>
+      <ion-fab-button class="fab-with-label" color="tertiary" (click)="accesoRapido('cocinero')">
+        <span class="fab-label">Cocinero</span>
+      </ion-fab-button>
+      <ion-fab-button class="fab-with-label" color="tertiary" (click)="accesoRapido('mozo')">
+        <span class="fab-label">Mozo</span>
+      </ion-fab-button>
+      <ion-fab-button class="fab-with-label" color="tertiary" (click)="accesoRapido('maitre')">
+        <span class="fab-label">Maître</span>
+      </ion-fab-button>
+      <ion-fab-button class="fab-with-label" color="success" (click)="accesoRapido('dueno')">
+        <span class="fab-label">Dueño</span>
+      </ion-fab-button>
+      <ion-fab-button class="fab-with-label" color="warning" (click)="accesoRapido('supervisor')">
+        <span class="fab-label">Supervisor</span>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
 </ion-content>

@@ -9,8 +9,11 @@
 
 <ion-content class="registro-mesa-content">
   <div class="center-wrapper">
+    
     <form [formGroup]="mesaForm" (ngSubmit)="registrarMesa()" class="mesa-form-container">
 
+      <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/crispy2.png" alt="Logo" class="login-logo fritos-bounce" />
+      
       <ion-item>
         <ion-icon slot="start" name="grid-outline"></ion-icon>
         <ion-label position="floating">Número de mesa</ion-label>

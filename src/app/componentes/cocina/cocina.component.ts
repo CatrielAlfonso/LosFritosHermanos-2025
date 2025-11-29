@@ -8,6 +8,7 @@ import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { NotificationsService } from 'src/app/servicios/notifications.service';
 import { INotification } from 'src/app/models/notification.model';
 import * as moment from 'moment-timezone';
+import { Haptics } from '@capacitor/haptics';
 
 
 @Component({
@@ -144,6 +145,9 @@ export class CocinaComponent  implements OnInit {
     } catch (error) {
       console.error('Error marcando pedido como recibido:', error);
       
+      // Vibrar en error
+      try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
+      
       const toast = await this.toastController.create({
         message: '❌ Error al marcar como recibido',
         duration: 3000,
@@ -207,6 +211,9 @@ export class CocinaComponent  implements OnInit {
       
     } catch (error) {
       console.error('Error marcando pedido como listo:', error);
+      
+      // Vibrar en error
+      try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
       
       const toast = await this.toastController.create({
         message: '❌ Error al marcar como listo',

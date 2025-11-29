@@ -4,7 +4,6 @@ import { HttpClientModule } from '@angular/common/http';
 import { RouteReuseStrategy } from '@angular/router';
 
 import { IonicModule, IonicRouteStrategy,  } from '@ionic/angular';
-import { Vibration } from '@awesome-cordova-plugins/vibration/ngx';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -23,7 +22,7 @@ register();
     SharedModule,
     
   ],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },Vibration],
+  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

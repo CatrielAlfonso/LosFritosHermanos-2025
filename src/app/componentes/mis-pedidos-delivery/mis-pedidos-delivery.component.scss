@@ -1,5 +1,5 @@
 .content-pedidos {
-  --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
 }
 
 .pedidos-container {
@@ -64,6 +64,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   animation: fadeInUp 0.4s ease-out;
+  background-color: white;
   
   ion-card-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

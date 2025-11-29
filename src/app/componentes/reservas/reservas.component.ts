@@ -24,6 +24,7 @@ import {
 import { ReservasService, Reserva } from '../../servicios/reservas.service';
 import { AuthService } from '../../servicios/auth.service';
 import { CustomLoader } from '../../servicios/custom-loader.service';
+import { Haptics } from '@capacitor/haptics';
 import { addIcons } from 'ionicons';
 import { 
   calendarOutline, 
@@ -68,7 +69,7 @@ import {
 export class ReservasComponent implements OnInit {
   reservaForm: FormGroup;
   reservas: Reserva[] = [];
-  clienteInfo: { id: number; nombre: string; apellido: string; email: string } | null = null;
+  clienteInfo: { id: number; nombre: string; apellido: string; email: string; validado?: boolean; aceptado?: boolean } | null = null;
   puedeHacerReserva: boolean = false;
   fechaMinima: string = '';
   horaMinima: string = '';
@@ -119,31 +120,41 @@ export class ReservasComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // Verificar que el usuario sea cliente
-    const perfil = this.authService.getPerfilUsuario();
-    if (perfil !== 'cliente') {
-      this.mostrarMensaje('Solo los clientes registrados pueden hacer reservas', 'danger');
-      setTimeout(() => {
-        this.router.navigate(['/home']);
-      }, 2000);
-      return;
-    }
+    try {
+      // Verificar que el usuario sea cliente
+      const perfil = this.authService.getPerfilUsuario();
+      if (perfil !== 'cliente') {
+        this.mostrarMensaje('Solo los clientes registrados pueden hacer reservas', 'danger');
+        setTimeout(() => {
+          this.router.navigate(['/home']);
+        }, 2000);
+        return;
+      }
 
-    // Verificar si puede hacer reservas
-    this.puedeHacerReserva = await this.reservasService.puedeHacerReserva();
-    if (!this.puedeHacerReserva) {
-      this.mostrarMensaje('Tu cuenta debe estar validada y aceptada para hacer reservas', 'warning');
-    }
+      // Obtener información del cliente primero
+      this.clienteInfo = await this.reservasService.obtenerInfoCliente();
+      if (!this.clienteInfo) {
+        this.mostrarMensaje('Error al obtener información del cliente', 'danger');
+        return;
+      }
 
-    // Obtener información del cliente
-    this.clienteInfo = await this.reservasService.obtenerInfoCliente();
-    if (!this.clienteInfo) {
-      this.mostrarMensaje('Error al obtener información del cliente', 'danger');
-      return;
-    }
+      // Verificar si puede hacer reservas basándose en la info del cliente
+      this.puedeHacerReserva = await this.reservasService.puedeHacerReserva();
+      
+      // Solo mostrar el mensaje si definitivamente no puede hacer reservas
+      // (validado y aceptado confirmados como false)
+      if (!this.puedeHacerReserva) {
+        console.log('Cliente no puede hacer reservas - validado:', this.clienteInfo.validado, 'aceptado:', this.clienteInfo.aceptado);
+        if (this.clienteInfo.validado === false || this.clienteInfo.aceptado === false) {
+          this.mostrarMensaje('Tu cuenta debe estar validada y aceptada para hacer reservas', 'warning');
+        }
+      }
 
-    // Cargar reservas existentes
-    await this.cargarReservas();
+      // Cargar reservas existentes
+      await this.cargarReservas();
+    } catch (error) {
+      console.error('Error en ngOnInit de reservas:', error);
+    }
   }
 
   async cargarReservas() {
@@ -473,6 +484,15 @@ export class ReservasComponent implements OnInit {
   }
 
   async mostrarMensaje(mensaje: string, color: string = 'primary') {
+    // Vibrar en errores y warnings
+    if (color === 'danger' || color === 'warning') {
+      try {
+        await Haptics.vibrate({ duration: 300 });
+      } catch (err) {
+        console.warn('No se pudo vibrar');
+      }
+    }
+    
     const toast = await this.toastController.create({
       message: mensaje,
       duration: 3000,

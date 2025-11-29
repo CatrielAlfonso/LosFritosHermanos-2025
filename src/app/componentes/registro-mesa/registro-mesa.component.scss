@@ -1,465 +1,173 @@
-.registro-mesa-content{
-  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
+/* =========================================
+   VARIABLES DE MARCA
+   ========================================= */
+:host {
+  --fritos-orange: var(--ion-color-fritos-orange, #ff9800);
+  --fritos-yellow: var(--ion-color-fritos-yellow, #ffeb3b);
+  --fritos-blue: var(--ion-color-fritos-blue, #4666de);
+  --fritos-red: var(--ion-color-primary, #d32f2f);
+  --fritos-white: #ffffff;
+}
+
+.registro-mesa-content {
+  /* Fondo Gradiente */
+  --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
+
+  /* Centrado Vertical y Horizontal del contenido principal */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   .center-wrapper {
     width: 100%;
-    max-width: 450px; /* Ancho máximo para el formulario */
-    padding: 1rem;
-    
-    /* Permite que el contenido se desplace dentro del wrapper si es muy largo */
-    // Si el formulario es más grande que la pantalla, puedes usar esto:
-    // overflow-y: auto; 
-    // max-height: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center; /* Centra verticalmente */
+    justify-content: center; /* Centra horizontalmente */
+    padding: 20px; /* Evita que pegue en los bordes en pantallas chicas */
   }
 
-  /* El formulario debe tomar el ancho máximo del wrapper */
+  /* TARJETA DEL FORMULARIO */
   .mesa-form-container {
     width: 100%;
-    /* Remueve los max-width y margin: 0 auto; de los items y el formulario,
-       ya que el .center-wrapper los controla. */
-    background: rgba(255, 255, 255, 0.95);
-    padding: 1rem;
-    border-radius: 1rem;
-    box-shadow: 0 5px 25px rgba(27, 55, 105, 0.2);
-  }
-
-  .register-container {
-    width: 100%;
-    max-width: 390px;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 0.5rem 0.6rem;
-    border-radius: 1rem 0.5rem;
-    box-shadow: 0 4px 20px rgba(27, 55, 105, 0.15);
-    border: 2px solid var(--ion-color-fritos-yellow);
-    text-align: center;
-    margin: 0 auto;
-  }
-
-  .register-subtitle {
-    font-size: 1.5rem;
-    color: var(--ion-color-fritos-red);
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-weight: 800;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    letter-spacing: 1px;
-  }
-
-  form {
-    width: 100%;
-    max-width: 360px;
-    margin: 0 auto;
-  }
-
-  ion-item {
-    --background: rgba(255, 255, 255, 0.9);
-    --border-radius: 12px;
-    --border: 2px solid var(--ion-color-fritos-yellow);
-    --highlight-color-focused: var(--ion-color-fritos-red);
-    margin-bottom: 3px;
-    padding-inline-start: 0.1rem;
-    max-width: 380px;
-    min-height: 32px;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 2px 8px rgba(27, 55, 105, 0.1);
-    align-items: center;
-
-    ion-icon {
-      color: var(--ion-color-fritos-blue);
-      padding: 6px;
-      border-radius: 50%;
-      font-size: 20px;
-      margin-right: 6px;
-    }
-  }
-
-  
-
-  ion-label {
-    color: var(--ion-color-fritos-blue) !important;
-    font-size: 1.1rem;
-    padding: 0;
-    font-weight: 500;
-    --color: var(--ion-color-fritos-blue) !important;
-  }
-
-  ion-label[position="floating"] {
-    color: var(--ion-color-fritos-blue) !important;
-    --color: var(--ion-color-fritos-blue) !important;
-  }
-
-  ion-label.ion-focused {
-    color: var(--ion-color-fritos-red) !important;
-    --color: var(--ion-color-fritos-red) !important;
-  }
-
-  ion-label.ion-valid {
-    color: var(--ion-color-fritos-green) !important;
-    --color: var(--ion-color-fritos-green) !important;
-  }
-
-  ion-label.ion-invalid {
-    color: var(--ion-color-fritos-red) !important;
-    --color: var(--ion-color-fritos-red) !important;
-  }
-
-  ion-input {
-    color: var(--ion-color-fritos-blue);
-    max-width: 300px;
-    font-size: 1.2rem;
-    margin: 0 auto;
-    min-height: 36px;
-    padding: 0 8px;
-    display: flex;
-    align-items: center;
-    font-weight: 500;
-
-    &::placeholder {
-      margin-top: 0 !important;
-      padding-top: 0 !important;
-      line-height: 1.2;
-      vertical-align: middle;
-      opacity: 1;
-      font-weight: bold !important;
-      color: var(--ion-color-fritos-blue) !important;
-    }
-  }
-
-  ion-button[type="submit"] {
-    margin-top: 0.3rem;
-    /* ... otros estilos de color ... */
+    max-width: 400px; /* Ancho ideal para formulario */
     
-    /* ELIMINA O COMENTA ESTAS LÍNEAS PARA QUE EL BOTÓN OCUPE EL ANCHO COMPLETO */
-    /*
-    min-width: 100px;
-    max-width: 180px;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-    */
+    /* Estilo visual */
+    background: rgba(159, 196, 222, 0.85); /* Blanco semitransparente */
+    backdrop-filter: blur(10px); /* Efecto vidrio */
+    border-radius: 25px;
+    padding: 30px 20px; /* Buen padding interno para que respire */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
 
-    /* Ajuste para que se vea más grande y sea prominente */
-    height: 48px; 
-    font-size: 1.2rem;
-    
-    /* Asegura que el botón se adhiera al ancho del contenedor 'form-actions' */
-    width: 100%; 
-}
-
-  ion-button[type="submit"]::part(native) {
-    transition: transform 0.15s ease;
-
-    &:active {
-      transform: scale(0.95);
-      background-color: rgba(0, 118, 28, 0.15);
-    }
-  }
-
-  .form-actions {
+    /* Estructura interna: Separa los elementos */
     display: flex;
     flex-direction: column;
-    gap: 0.5rem; /* Espacio entre los botones si añades el de Volver */
-    margin-top: 1rem;
-}
-
-/* Ajusta los ion-item para que ocupen todo el ancho del formulario, no 380px */
-.registro-mesa-content ion-item {
-    /* ... */
-    max-width: 100%; /* CLAVE: Ahora el item ocupa el 100% del formulario */
-    /* ... */
-}
-
-  .error-message {
-    color: #ff0000;
-    font-size: 0.75rem;
-    margin-top: 0.15rem;
-    margin-bottom: 0.5rem;
-    text-align: left;
-    padding-left: 0.5rem;
-    font-weight: 500;
+    gap: 18px; /* ESPACIO ENTRE INPUTS (Aquí quitamos lo pegado) */
   }
 
-  .field-error {
-    color: #d32f2f;
-    font-size: 0.7rem;
-    margin: -0.2rem 0 0.3rem 0.5rem;
-    text-align: left;
-    font-weight: 500;
-  }
-
-  .register-link {
-    margin-top: 0.7rem;
-    font-size: 1.2rem;
-    color: #444;
-
-    a {
-      color: #0e5f00;
-      font-weight: bold;
-      margin-left: 3px;
-      cursor: pointer;
-    }
-  }
-
-  .boton-verde {
-    --background: var(--ion-color-fritos-blue);
-    --background-hover: var(--ion-color-fritos-blue-shade);
-    --color: var(--ion-color-fritos-blue-contrast);
-    font-weight: bold;
-    border-radius: 8px;
-    height: 24px;
-    font-size: 0.7rem;
-    margin-left: 0.2rem;
-    box-shadow: 0 2px 6px rgba(27, 55, 105, 0.3);
-
-    &::part(native) {
-      transition: transform 0.15s ease;
-      &:active {
-        transform: scale(0.95);
-        background-color: var(--ion-color-fritos-blue-shade);
-      }
-    }
-  }
-
-  ion-item.ion-focused {
-
-  ion-input.ng-invalid.ng-touched,
-  ion-input.ng-invalid.ng-dirty {
-    --highlight-color-invalid: #007f00;
-  }
-
-  img {
-    object-fit: contain;
-    display: block;
-    margin: 0 auto;
-  }
-
-}
+  /* LOGO */
   .login-logo {
-    width: 150px;
-    height: 100px;
+    width: 140px;
+    height: auto;
     object-fit: contain;
     display: block;
-    margin: 0 auto;
-    margin-bottom: 5px;
+    margin: 0 auto 10px auto; /* Centrado y separado del primer input */
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
+  }
+
+  /* INPUTS (ION-ITEM) */
+  ion-item {
+    --background: #ffffff;
+    --border-radius: 15px;
+    --border-width: 0; /* Quitamos la línea de abajo */
+    --padding-start: 15px;
+    --inner-padding-end: 10px;
+    --highlight-color-focused: var(--fritos-red);
+    
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05); /* Sombrita sutil */
+    border: 1px solid rgba(0,0,0,0.05); /* Borde muy sutil */
+    
+    /* Iconos */
+    ion-icon {
+      color: var(--fritos-blue);
+      margin-right: 10px;
+      font-size: 1.4rem;
+    }
+
+    /* Etiquetas */
+    ion-label {
+      color: var(--fritos-blue) !important;
+      font-weight: 600 !important;
+    }
+
+    /* Texto escrito */
+    ion-input, ion-select {
+      color: #333;
+      font-weight: 500;
+      --padding-top: 5px;
+    }
+  }
+
+  /* BOTÓN PEQUEÑO "TOMAR FOTO" */
+  .boton-verde {
+    --background: var(--fritos-blue);
+    --border-radius: 8px;
+    font-size: 0.8rem;
+    height: 30px;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  /* PREVIEWS (Foto y QR) */
+  .imagen-preview-única {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 10px;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px dashed var(--fritos-blue);
+
+    ion-label {
+      display: block;
+      color: var(--fritos-blue);
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .preview-wrapper img {
+      max-width: 150px;
+      max-height: 150px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      border: 2px solid white;
+    }
+  }
+
+  /* MENSAJES DE ERROR/EXITO */
+  .field-error {
+    color: var(--fritos-red);
+    font-size: 0.8rem;
+    margin-top: -12px; /* Lo pegamos un poquito al input de arriba */
+    margin-left: 10px;
+    font-weight: 500;
   }
 
   .mensaje-exito {
-    color: #0e5f00;
-    font-size: 0.85rem;
-    margin-top: 0.5rem;
-    font-weight: bold;
+    background-color: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 10px;
     text-align: center;
-    display: block;
+    border: 1px solid #c3e6cb;
   }
 
-  ion-item img[alt="preview"] {
-    margin-left: 4px;
-    margin-right: 12px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    display: inline-block;
-    vertical-align: middle;
+  /* BOTÓN PRINCIPAL */
+  .form-actions {
+    margin-top: 10px;
   }
 
-  ion-item .perfil-checkboxes {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    margin-left: 1rem;
+  .boton-registro-principal {
+    --background: var(--fritos-red);
+    --background-hover: #b71c1c;
+    --border-radius: 15px;
+    --box-shadow: 0 4px 6px rgba(211, 47, 47, 0.3);
+    
+    height: 55px; /* Botón alto y fácil de tocar */
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
   }
 
-  ion-checkbox {
-    --background: #b10303;
-    --border-color: #0e5f00;
-    --checkmark-color: #0e5f00;
-    --border-radius: 4px;
-    --border-style: solid;
-    --border-width: 2px;
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin-right: 0;
-    font-size: 1rem;
-    --size: 20px;
-    color: #000000;
-    min-width: fit-content;
-    max-width: 100px;
+  /* Animación Rebote del Logo */
+  .fritos-bounce {
+    animation: bounce 2s infinite;
   }
 
-  ion-select{
-    color: var(--ion-color-fritos-blue);
-    font-weight: 500;
-  }
-
-  ion-checkbox::part(container) {
-    background: #fff !important;
-    border: 2px solid #0e5f00 !important;
-    border-radius: 4px !important;
-    width: 20px !important;
-    height: 20px !important;
-  }
-
-  ion-checkbox::part(mark) {
-    color: #0e5f00 !important;
-  }
-
-  ion-checkbox::part(label) {
-    color: #000000;
-    font-size: 0.6rem;
-    font-weight: 500;
-    padding-right: 0;
-    padding-left: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
   }
 }
-
-
-.perfil-checkboxes {
-  display: flex;
-  flex-direction: row;
-  gap: 0.3rem; 
-  align-items: center;
-  margin-left: 0.2rem;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: flex-start;
-  padding-right: 0.5rem;
-  max-width: 100%;
-  overflow: visible;
-  row-gap: 0.2rem;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  font-size: 0.75em;
-  margin-right: 0.3rem;
-  cursor: pointer;
-  color: #000000;
-  font-weight: 500;
-  white-space: nowrap;
-  min-width: fit-content;
-}
-
-ion-checkbox::part(label) {
-  color: #000000;
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding-right: 0.2rem;
-}
-
-ion-checkbox::part(container) {
-  background: #fff !important;
-  border: 2px solid #0e5f00 !important;
-  border-radius: 6px !important;
-}
-
-ion-checkbox::part(mark) {
-  color: #0e5f00 !important;
-}
-
-
-
-.boton-eliminar-foto {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  --padding-start: 0;
-  --padding-end: 0;
-  --border-radius: 50%;
-  min-width: 20px;
-  height: 20px;
-}
-
-.imagen-preview-única ion-label {
-  width: 100%;
-  text-align: center;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.perfil-checkboxes.fila-horizontal ion-checkbox {
-  margin-right: 0 !important;
-  margin-left: 0 !important;
-  padding-right: 0 !important;
-  padding-left: 0 !important;
-}
-
-.perfil-checkboxes.fila-horizontal ion-checkbox::part(container),
-.perfil-checkboxes.fila-horizontal ion-checkbox::part(label) {
-  vertical-align: middle;
-}
-
-.perfil-opcion {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  margin: 0 0.01em;
-  padding: 0;
-}
-
-.checkbox-perfil {
-  --size: 44px;
-  --checkbox-background-checked: #0e5f00;
-  --checkbox-background: #fff;
-  --border-color: #0e5f00;
-  --checkmark-color: #0e5f00;
-  margin-bottom: 0.05em;
-  align-self: center;
-  display: flex;
-  justify-content: center;
-  padding: 0;
-}
-
-.texto-perfil {
-  font-size: 0.8rem;
-  margin-top: 0.2rem;
-  text-align: center;
-  font-weight: 500;
-  display: block;
-  width: 100%;
-  padding: 0;
-  margin-left: 0;
-  color: var(--ion-color-fritos-blue);
-  line-height: 1.2;
-}
-
-
-// .registro-mesa-content {
-//   --background: #f9f9f9; // Fondo claro o el que uses
-//   padding: 16px;
-
-//   ion-item {
-//     margin-bottom: 12px;
-//     border-radius: 12px;
-//     --background: #fff;
-//     --border-color: #ccc;
-//   }
-
-//   .field-error {
-//     font-size: 13px;
-//     color: #e53935;
-//     margin: 4px 0 12px 12px;
-//   }
-
-//   .imagen-preview-única {
-//     margin: 12px 0;
-//     text-align: center;
-
-//     img {
-//       width: 120px;
-//       height: 120px;
-//       object-fit: cover;
-//       border-radius: 10px;
-//       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-//     }
-//   }
-// }

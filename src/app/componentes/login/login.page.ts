@@ -6,6 +6,7 @@ import { AuthService } from 'src/app/servicios/auth.service';
 import { LoadingService } from 'src/app/servicios/loading.service';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { CustomLoader } from 'src/app/servicios/custom-loader.service';
+import { Haptics } from '@capacitor/haptics';
 
 import {
   IonContent,
@@ -15,7 +16,10 @@ import {
   IonButton,
   IonIcon,
   IonList,
-  IonPopover
+  IonPopover,
+  IonFab,
+  IonFabButton,
+  IonFabList
 } from '@ionic/angular/standalone';
 import { FeedbackService } from '../../servicios/feedback-service.service';
 
@@ -31,7 +35,10 @@ import { FeedbackService } from '../../servicios/feedback-service.service';
     IonButton,
     IonIcon,
     IonPopover,
-    IonList
+    IonList,
+    IonFab,
+    IonFabButton,
+    IonFabList
   ],
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss']
@@ -179,6 +186,17 @@ export class LoginPage implements OnInit {
     this.contraseniaError = '';
   }
 
+  async vibrarError() {
+    console.log('🔔 [LOGIN] Intentando vibrar...');
+    try {
+      console.log('🔔 [LOGIN] Llamando a Haptics.vibrate()...');
+      await Haptics.vibrate({ duration: 300 });
+      console.log('✅ [LOGIN] Vibración ejecutada correctamente');
+    } catch (err) {
+      console.error('❌ [LOGIN] Error al vibrar:', err);
+    }
+  }
+
   async ingresar() {
     this.limpiarErrores();
 
@@ -202,6 +220,10 @@ export class LoginPage implements OnInit {
       }
 
       if (contrasenia.length < 6) {
+        console.log('❌ [LOGIN] Contraseña muy corta');
+        // Vibrar en error de validación
+        await this.vibrarError();
+        
         this.contraseniaError = 'La contraseña debe tener al menos 6 caracteres';
         //this.loadingService.hide();
         setTimeout(async () => {
@@ -214,6 +236,10 @@ export class LoginPage implements OnInit {
       try {
         usuario = await this.authService.logIn(correo, contrasenia);
       } catch (error: any) {
+        console.log('❌ [LOGIN] Error de autenticación detectado:', error?.message);
+        // Vibrar en error de login
+        await this.vibrarError();
+        
         if (error?.message === 'Invalid login credentials') {
           this.errorMessage = 'Correo electrónico o contraseña inválidos';
         } else if (error?.message) {
@@ -235,6 +261,10 @@ export class LoginPage implements OnInit {
       }
 
       if (!usuario) {
+        console.log('❌ [LOGIN] Usuario no encontrado');
+        // Vibrar en error de login
+        await this.vibrarError();
+        
         this.errorMessage = 'Correo electrónico o contraseña inválidos';
         setTimeout(async () => {
            this.customLoader.hide();
@@ -255,6 +285,10 @@ export class LoginPage implements OnInit {
          this.customLoader.hide();
       }, 2000);
     } catch (e: any) {
+      console.log('❌ [LOGIN] Error general:', e?.message);
+      // Vibrar en error general
+      await this.vibrarError();
+      
       this.errorMessage = e.message || 'Ocurrió un error al iniciar sesión';
       setTimeout(async () => {
          this.customLoader.hide();
@@ -326,6 +360,10 @@ export class LoginPage implements OnInit {
       // El loader se mantendrá hasta que el callback se complete en checkOAuthCallback()
       console.log('Redirigiendo a Google...');
     } catch (error: any) {
+      console.log('❌ [LOGIN] Error de Google OAuth:', error?.message);
+      // Vibrar en error de Google OAuth
+      await this.vibrarError();
+      
       console.error('Error al iniciar sesión con Google:', error);
       this.errorMessage = error.message || 'Error al iniciar sesión con Google. Por favor, intenta nuevamente.';
       this.customLoader.hide();

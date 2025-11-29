@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ToastController, LoadingController } from '@ionic/angular';
-import { Haptics, ImpactStyle } from '@capacitor/haptics'; 
+import { ToastController, LoadingController, AlertController } from '@ionic/angular';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics'; 
 import { CustomLoader } from './custom-loader.service';
-import { Vibration } from '@awesome-cordova-plugins/vibration/ngx';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +14,7 @@ export class FeedbackService {
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
     private customLoader: CustomLoader,
-    private vibration: Vibration,
+    private alertCtrl: AlertController
   ) {}
 
   private mensajesGraciosos = {
@@ -51,7 +50,6 @@ export class FeedbackService {
     if (tipo === 'error') {
       await this.vibrarFuerte(); 
     } else if (tipo === 'exito') {
-      this.vibration.vibrate(100);
       await this.vibrarSuave();
     }
 
@@ -81,7 +79,8 @@ export class FeedbackService {
 
   async vibrarFuerte() {
     try {
-      await Haptics.impact({ style: ImpactStyle.Heavy }); // Vibración fuerte 💥
+      // Vibración de error: patrón largo y fuerte
+      await Haptics.vibrate({ duration: 500 });
     } catch (err) {
       console.warn('No se pudo vibrar (no es un dispositivo móvil)');
     }
@@ -93,6 +92,46 @@ export class FeedbackService {
     } catch (err) {
       console.warn('No se pudo vibrar (no es un dispositivo móvil)');
     }
+  }
+
+  async vibrarError() {
+    try {
+      // Patrón de vibración para errores: 3 vibraciones cortas
+      await Haptics.vibrate({ duration: 200 });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await Haptics.vibrate({ duration: 200 });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await Haptics.vibrate({ duration: 200 });
+    } catch (err) {
+      console.warn('No se pudo vibrar (no es un dispositivo móvil)');
+    }
+  }
+
+  async vibrarNotificacion() {
+    try {
+      await Haptics.notification({ type: NotificationType.Error });
+    } catch (err) {
+      // Fallback a vibración simple
+      try {
+        await Haptics.vibrate({ duration: 300 });
+      } catch (e) {
+        console.warn('No se pudo vibrar (no es un dispositivo móvil)');
+      }
+    }
+  }
+
+  // Método para mostrar alertas de error con vibración
+  async showErrorAlert(titulo: string, mensaje: string) {
+    await this.vibrarError();
+    
+    const alert = await this.alertCtrl.create({
+      header: titulo,
+      message: mensaje,
+      buttons: ['OK'],
+      cssClass: 'error-alert'
+    });
+    
+    await alert.present();
   }
 
   async mostrarLoaderPolloFrito() {
