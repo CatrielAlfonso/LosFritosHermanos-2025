@@ -1,77 +1,61 @@
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  
-  ion-spinner {
-    margin-bottom: 16px;
-  }
-  
-  p {
-    color: #666;
-  }
+/* =========================================
+   VARIABLES DE MARCA (Forzadas)
+   ========================================= */
+:host {
+  --fritos-orange: var(--ion-color-fritos-orange, #ff9800);
+  --fritos-yellow: var(--ion-color-fritos-yellow, #ffeb3b);
+  --fritos-blue: var(--ion-color-fritos-blue, #4666de);
+  --fritos-red: var(--ion-color-primary, #d32f2f);
+  --fritos-white: #ffffff;
+  --fritos-text: #333333;
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  
-  .empty-icon {
-    font-size: 80px;
-    color: #ccc;
-    margin-bottom: 20px;
-  }
-  
-  h3 {
-    color: #333;
-    margin: 0 0 8px 0;
-  }
-  
-  p {
-    color: #666;
-    margin: 0;
-  }
+/* 1. FONDO DE PANTALLA (Naranja Gradiente) */
+ion-content {
+  --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
 }
 
+/* ----------------------------------- */
+/* LISTA DE CONSULTAS                  */
+/* ----------------------------------- */
 .consultas-list {
+  padding: 10px;
+
+  /* Tarjeta de cada consulta */
   ion-item {
-    --background: #fff;
-    --padding-start: 16px;
-    --inner-padding-end: 16px;
-    margin-bottom: 1px;
-    
+    --background: rgba(255, 255, 255, 0.9); /* Blanco casi opaco */
+    --background-hover: #f0f0f0;
+    --border-radius: 15px;
+    --padding-start: 15px;
+    --inner-padding-end: 15px;
+    margin-bottom: 10px; /* Separación entre tarjetas */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Sombrita para que flote */
+    --border-color: transparent; /* Quitar líneas feas */
+
+    /* Estilo diferente para las respondidas (Azul muy clarito) */
     &.respondida {
-      --background: #f8f8f8;
+      --background: #e3f2fd; 
+      border: 1px solid var(--fritos-blue);
     }
   }
 }
 
-.consulta-item {
-  cursor: pointer;
-  
-  &:hover {
-    --background: #f5f5f5;
-  }
-}
-
+/* ----------------------------------- */
+/* CONTENIDO DE LA TARJETA             */
+/* ----------------------------------- */
 .consulta-avatar {
   width: 50px;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--fritos-blue); /* Azul de marca */
   border-radius: 50%;
-  margin-right: 12px;
+  margin-right: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   
   ion-icon {
-    font-size: 32px;
+    font-size: 28px;
     color: #fff;
   }
 }
@@ -80,95 +64,151 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   
   .cliente-nombre {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #333;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--fritos-text); /* Texto oscuro forzado */
     margin: 0;
   }
   
   .consulta-fecha {
     font-size: 0.75rem;
-    color: #999;
+    color: #666; /* Gris medio */
     margin: 0;
-    white-space: nowrap;
+    font-weight: 500;
   }
 }
 
 .consulta-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   
   .mesa-numero {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.85rem;
-    color: #666;
+    gap: 5px;
+    font-size: 0.9rem;
+    color: var(--fritos-blue); /* Mesa en azul */
+    font-weight: 600;
     margin: 0;
     
-    ion-icon {
-      font-size: 16px;
-      color: #007bff;
-    }
+    ion-icon { font-size: 18px; }
   }
   
   .mozo-nombre {
+    color: #28a745; /* Verde para mozo asignado */
+    font-weight: 600;
+    font-size: 0.85rem;
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.8rem;
-    color: #28a745;
-    margin: 0;
-    
-    ion-icon {
-      font-size: 14px;
-    }
+  }
+}
+
+/* Icono flecha derecha */
+.chevron-icon {
+  color: var(--fritos-orange); /* Naranja */
+  font-size: 24px;
+  opacity: 0.7;
+}
+
+/* ----------------------------------- */
+/* ESTADOS VACÍOS Y LOADING            */
+/* ----------------------------------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  
+  /* Tarjeta blanca semitransparente para que se lea sobre el naranja */
+  background: rgba(255,255,255,0.8);
+  border-radius: 20px;
+  margin: 20px;
+  
+  .empty-icon {
+    font-size: 80px;
+    color: var(--fritos-blue);
+    opacity: 0.5;
+    margin-bottom: 20px;
   }
   
-  ion-badge {
-    font-size: 0.7rem;
-    padding: 4px 8px;
-    text-transform: capitalize;
+  h3 {
+    color: var(--fritos-text);
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+  
+  p {
+    color: #555;
   }
 }
 
-.chevron-icon {
-  color: #ccc;
-  font-size: 20px;
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  
+  p { color: white; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
 }
 
-// Segment personalizado
+/* ----------------------------------- */
+/* SEGMENTO SUPERIOR (Pestañas)        */
+/* ----------------------------------- */
+
+/* 1. La barra contenedora */
+ion-header ion-toolbar:last-child {
+  --background: transparent; /* Quitamos el fondo blanco de la barra */
+  --border-width: 0;
+  padding-bottom: 5px;
+}
+
+/* Si el header queda blanco, forzamos el color del header también */
+ion-header {
+  background: linear-gradient(135deg, var(--fritos-red) 0%, var(--fritos-orange) 100%);
+}
+
+/* 2. El segmento en sí */
 ion-segment {
-  --background: #f0f0f0;
+  /* Fondo "Glass" (Vidrio) semitransparente */
+  background: rgba(255, 255, 255, 0.25); 
+  border-radius: 12px;
+  margin: 0 10px 5px 10px; /* Margen a los costados */
+  padding: 4px;
   
   ion-segment-button {
-    --indicator-color: var(--ion-color-primary);
-    --color-checked: var(--ion-color-primary);
-    text-transform: none;
-    font-weight: 500;
+    /* Estado NO seleccionado */
+    --color: rgba(255, 255, 255, 0.9); /* Texto casi blanco */
+    --color-hover: white;
+    font-weight: 600;
+    text-transform: none; /* Texto normal, no todo mayúsculas */
+    letter-spacing: 0.5px;
     
-    ion-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      
-      ion-badge {
-        margin-left: 4px;
-      }
+    /* Estado SELECCIONADO (Activo) */
+    --indicator-color: white; /* La "pastilla" de fondo se vuelve blanca */
+    --color-checked: var(--fritos-blue); /* El texto se vuelve AZUL para resaltar */
+    
+    /* Contador (Badge) */
+    ion-badge {
+      --background: var(--fritos-red); /* Rojo alerta */
+      --color: white;
+      margin-left: 6px;
+      font-size: 0.7rem;
     }
   }
 }
 
-// Responsive
+/* Responsive */
 @media (min-width: 768px) {
   .consultas-list {
     max-width: 800px;
     margin: 0 auto;
   }
 }
-
