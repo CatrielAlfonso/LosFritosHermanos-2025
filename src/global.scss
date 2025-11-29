@@ -36,6 +36,15 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
+// Fondo inicial para evitar flash negro en splash
+html, body {
+  background-color: #1942d7;
+}
+
+// Una vez que la app carga, el ion-app toma control
+ion-app {
+  background-color: var(--ion-background-color, #ffffff);
+}
 
 ion-button {
     text-transform: none;
