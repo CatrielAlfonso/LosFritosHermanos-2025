@@ -173,7 +173,7 @@
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
-        Ver Menú
+        Ver Carta
       </ion-button>
 
       <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/reservas']" (click)="ocultarMensajeListaEspera()">
@@ -183,12 +183,12 @@
 
       <ion-button expand="block" color="fritos-green" class="fritos-button" [routerLink]="['/menu']" [queryParams]="{tipo: 'delivery'}" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="bicycle-outline" slot="start"></ion-icon>
-        Pedir Delivery
+        Pedir a Domicilio
       </ion-button>
 
       <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/mis-pedidos-delivery" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="receipt-outline" slot="start"></ion-icon>
-        Mis Pedidos Delivery
+        Mis Pedidos a Domicilio
       </ion-button>
 
       <!-- Botón Escanear QR Mesa - siempre visible mientras tenga mesa asignada -->

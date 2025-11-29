@@ -70,7 +70,9 @@
           <!-- Productos -->
           <div class="info-row">
             <ion-icon name="restaurant-outline"></ion-icon>
-            <span>{{ getTotalProductos(pedido) }} productos</span>
+            @if(getTotalProductos(pedido) == 1){<span>{{ getTotalProductos(pedido) }} producto</span>}
+            @else{<span>{{ getTotalProductos(pedido) }} productos</span>}
+            
           </div>
 
           <!-- Total -->
