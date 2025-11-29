@@ -9,6 +9,8 @@ import { LoadingService } from 'src/app/servicios/loading.service';
 import { SupabaseService } from '../../servicios/supabase.service';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
+import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 
 @Component({
   selector: 'app-registro-empleados',
@@ -38,7 +40,9 @@ export class RegistroEmpleadosComponent  implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private loadingService: LoadingService,
+    private feedbackService: FeedbackService,
     private loadingCtrl: LoadingController,
+    private customLoader:CustomLoader,
     private sb: SupabaseService,
     private authService: AuthService,
 
@@ -137,7 +141,8 @@ export class RegistroEmpleadosComponent  implements OnInit {
       return;
     }
 
-    this.loadingService.show();
+    //this.loadingService.show();
+     this.customLoader.show('Registrando empleado...');
 
     try {
       const { nombre, apellido, correo, contrasenia, dni, cuil, perfil } = this.empleadoForm.value;
@@ -152,7 +157,8 @@ export class RegistroEmpleadosComponent  implements OnInit {
 
       if (empleadoExistente) {
         this.mensajeError = 'Este correo electrónico ya está registrado';
-        this.loadingService.hide();
+        //this.loadingService.hide();
+        this.customLoader.hide();
         return;
       }
 
@@ -160,6 +166,7 @@ export class RegistroEmpleadosComponent  implements OnInit {
       const usuario = await this.authService.registro(correo, contrasenia, perfil, nombre);
       if (!usuario) {
         this.mensajeError = 'Error al crear el usuario';
+        this.customLoader.hide();
         this.loadingService.hide();
         return;
       }
@@ -185,13 +192,16 @@ export class RegistroEmpleadosComponent  implements OnInit {
       const { error } = await this.sb.supabase.from('empleados').insert([nuevoEmpleado]);
       if (error) {
         this.mensajeError = 'Error al registrar empleado: ' + error.message;
+        this.customLoader.hide();
         this.loadingService.hide();
         return;
       }
 
       this.mensajeExito = 'Empleado registrado exitosamente!';
+      await this.feedbackService.showToast('exito', 'Empleado registrado con éxito');
       this.empleadoForm.reset();
       this.imagenEmpleadoURL = null;
+      this.customLoader.hide();
       this.loadingService.hide();
       this.router.navigateByUrl('/home')
 
