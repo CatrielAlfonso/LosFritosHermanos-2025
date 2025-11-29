@@ -499,15 +499,12 @@
         <ion-button size="small" [color]="tipoRegistro==='bebida' ? 'success' : 'medium'" (click)="setTipoRegistro('bebida')">Bebida</ion-button>
       </div>
 
-      <!-- Usuarios anónimos (sin login) solo pueden registrar clientes -->
-      <div *ngIf="!esAdmin && !esMaitre && !esCocinero && !esBartender" class="registro-selector">
-        <ion-button size="small" [color]="tipoRegistro==='cliente' ? 'success' : 'medium'" (click)="setTipoRegistro('cliente')">Cliente</ion-button>
-      </div>
+     
 
       <div class="register-link">
         <a *ngIf="!estaAutenticado" (click)="irAlLogin()">¿Ya tenés cuenta? Iniciar sesión</a>
         <br *ngIf="!estaAutenticado">
-        <a (click)="irAlLogin()">Volver al Login</a>
+        
       </div>
     </div>
   </div>

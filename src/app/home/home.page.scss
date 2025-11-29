@@ -38,6 +38,7 @@
   max-width: 500px; /* Un poco más ancho para pantallas grandes */
   margin: 40px auto; /* Margen arriba y abajo para que no pegue */
   padding: 30px 20px;
+  box-sizing: border-box;
   
   /* ESTILO DE LA TARJETA: Azul claro semitransparente */
   background: rgba(159, 196, 222, 0.85); /* Azul muy suave con transparencia */
@@ -52,7 +53,7 @@
 
 /* Logo animado */
 .login-logo {
-  width: 180px; /* Un poco más chico para que no coma toda la pantalla */
+  width: 150px; /* Un poco más chico para que no coma toda la pantalla */
   height: auto;
   object-fit: contain;
   margin-bottom: 20px;
@@ -65,20 +66,20 @@
 
 /* Textos */
 .fritos-logo {
-  color: var(--fritos-red);
+  color: rgb(165, 40, 40);
   font-size: 1.5rem;
   font-weight: 900;
   text-align: center;
   text-transform: uppercase;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
   text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
 }
 
 .fritos-subtitle {
   color: var(--fritos-blue);
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
   opacity: 0.9;
   text-align: center;
 }

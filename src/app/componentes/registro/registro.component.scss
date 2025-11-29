@@ -7,12 +7,14 @@
     align-items: center;
     height: 100%;
     padding: 0.5rem;
+    gap: 5px;
   }
 
   .register-container {
     width: 100%;
     max-width: 390px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(159, 196, 222, 0.85);
+    gap: 5px;
     padding: 0.5rem 0.6rem;
     border-radius: 1rem 0.5rem;
     box-shadow: 0 4px 20px rgba(27, 55, 105, 0.15);
@@ -22,6 +24,7 @@
   }
 
   .register-subtitle {
+    gap: 5px;
     font-size: 1.5rem;
     color: var(--ion-color-fritos-red);
     margin-top: 0;
@@ -35,6 +38,7 @@
     width: 100%;
     max-width: 360px;
     margin: 0 auto;
+  
   }
 
   ion-item {
@@ -50,6 +54,7 @@
     margin-right: auto;
     box-shadow: 0 2px 8px rgba(27, 55, 105, 0.1);
     align-items: center;
+    margin: 5px;
 
     ion-icon {
       color: var(--ion-color-fritos-blue);

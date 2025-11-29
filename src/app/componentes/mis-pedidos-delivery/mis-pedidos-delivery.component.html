@@ -5,7 +5,7 @@
         <ion-icon name="arrow-back-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Mis Pedidos Delivery</ion-title>
+    <ion-title>Mis Pedidos a Domicilio</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="cargarPedidos()">
         <ion-icon name="refresh-outline"></ion-icon>
@@ -32,10 +32,10 @@
     <!-- Sin pedidos -->
     <div *ngIf="!cargando && pedidos.length === 0" class="empty-state">
       <ion-icon name="bicycle-outline"></ion-icon>
-      <h2>No tienes pedidos delivery</h2>
+      <h2>No tienes pedidos a domicilio</h2>
       <p>Realiza tu primer pedido y lo verás aquí</p>
       <ion-button expand="block" routerLink="/delivery">
-        Pedir Delivery
+        Pedir a Domicilio
       </ion-button>
     </div>
 

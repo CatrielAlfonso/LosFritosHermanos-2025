@@ -33,11 +33,9 @@
   <div id="container" class="fritos-card" *ngIf="nombreUsuario">
     <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/crispy2.png" alt="Logo" class="login-logo fritos-bounce" />
     <strong class="fritos-logo">¡Bienvenido, {{ nombreUsuario }}!</strong>
-    <p class="fritos-subtitle">Perfil: {{ tipoUsuario | titlecase }}</p>
 
   
     <div *ngIf="(tipoUsuario === 'dueño' || tipoUsuario === 'supervisor') && !esClienteAnonimo" class="admin-options">
-      <h3 class="fritos-subtitle">Panel de Administración</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro-empleados')">
         <ion-icon name="person-add-outline" slot="start"></ion-icon>
@@ -61,13 +59,12 @@
 
       <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/gestionar-delivery">
         <ion-icon name="bicycle-outline" slot="start"></ion-icon>
-        Gestionar Pedidos Delivery
+        Gestionar Pedidos a Domicilio
       </ion-button>
 
     </div>
 
     <div *ngIf="esMaitre && !esAdmin && !esClienteAnonimo" class="maitre-options">
-      <h3 class="fritos-subtitle">Panel de Maître</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro')">
         <ion-icon name="person-add-outline" slot="start"></ion-icon>
@@ -93,7 +90,6 @@
 
  
     <div *ngIf="tipoUsuario === 'cocinero' && !esClienteAnonimo" class="cocinero-options">
-      <h3 class="fritos-subtitle">Panel de Cocinero</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro-plato')">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
@@ -107,7 +103,6 @@
     </div>
 
     <div *ngIf="tipoUsuario === 'bartender' && !esClienteAnonimo" class="bartender-options">
-      <h3 class="fritos-subtitle">Panel de Bartender</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/bebidas']" routerLinkActive="router-link-active" >
         <ion-icon name="wine-outline" slot="start"></ion-icon>
@@ -121,7 +116,6 @@
     </div>
 
     <div *ngIf="tipoUsuario === 'mozo' && !esClienteAnonimo" class="mozo-options">
-      <h3 class="fritos-subtitle">Panel de Mozo</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irAPedidosMozo()">
         <ion-icon name="clipboard-outline" slot="start"></ion-icon>
@@ -135,7 +129,6 @@
     </div>
 
     <div *ngIf="tipoUsuario === 'repartidor' && !esClienteAnonimo" class="repartidor-options">
-      <h3 class="fritos-subtitle">Panel de Repartidor</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/panel-repartidor">
         <ion-icon name="bicycle-outline" slot="start"></ion-icon>
@@ -144,7 +137,6 @@
     </div>
 
     <div *ngIf="tipoUsuario === 'cliente' || esClienteAnonimo" class="cliente-options">
-      <h3 class="fritos-subtitle">Panel de Cliente</h3>
       
       <!-- Botón para clientes anónimos: Escanear QR para Ver Encuestas -->
       @if (esClienteAnonimo)
