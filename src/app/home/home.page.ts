@@ -52,6 +52,10 @@ export class HomePage implements OnInit, ViewWillEnter {
   clienteAnonimo: any = null;
   mostrarMensajeListaEspera: boolean = true; // Control para mostrar/ocultar el mensaje
   qrMesaEscaneado: boolean = false; // Se activa cuando el cliente escanea el QR de su mesa
+  
+  // Variables para Delivery
+  qrDeliveryEscaneado: boolean = false; // Se activa cuando el cliente escanea el QR DELIVERY
+  tienePedidoDeliveryConfirmado: boolean = false; // Indica si tiene un pedido de delivery confirmado
 
   mesaSeleccionada='12';
 
@@ -121,10 +125,16 @@ export class HomePage implements OnInit, ViewWillEnter {
       }
     });
 
-    this.loadUserData(); // lo podés dejar después
+    // El QR Delivery debe escanearse cada vez que se inicia la app
+    this.qrDeliveryEscaneado = false;
+    
+    await this.loadUserData(); // Esperamos a que cargue el usuario
     
     // Iniciar verificación periódica de mesa asignada para clientes
     this.iniciarVerificacionMesaAsignada();
+    
+    // Verificar pedidos de delivery inmediatamente después de cargar usuario
+    await this.verificarPedidoDeliveryConfirmado();
 
     console.log('Perfil usuario en HomePage:', this.perfilUsuario);
 
@@ -167,12 +177,14 @@ export class HomePage implements OnInit, ViewWillEnter {
     if (this.esClienteAnonimo && this.clienteAnonimo) {
       console.log('🔄 [ionViewWillEnter] Verificando estado cliente anónimo...');
       await this.verificarEstadoClienteAnonimo();
+      await this.verificarPedidoDeliveryConfirmado();
     }
     // Recargar info para clientes autenticados
     else if (this.perfilUsuario === 'cliente' && this.usuario) {
       console.log('🔄 [ionViewWillEnter] Verificando mesa para cliente autenticado...');
       await this.cargarClienteInfo();
       await this.verificarMesaAsignada();
+      await this.verificarPedidoDeliveryConfirmado();
     }
   }
 
@@ -206,6 +218,8 @@ export class HomePage implements OnInit, ViewWillEnter {
           // Verificar si tiene mesa asignada
           await this.verificarMesaAsignada();
           await this.cargarClienteInfo();
+          // Verificar pedidos de delivery inmediatamente
+          await this.verificarPedidoDeliveryConfirmado();
         }
       }
       
@@ -233,6 +247,8 @@ export class HomePage implements OnInit, ViewWillEnter {
         
         // Verificar si tiene mesa asignada o está en lista de espera
         await this.verificarEstadoClienteAnonimo();
+        // Verificar pedidos de delivery inmediatamente
+        await this.verificarPedidoDeliveryConfirmado();
         
         this.isLoading = false;
         return;
@@ -1746,6 +1762,87 @@ export class HomePage implements OnInit, ViewWillEnter {
   // La lógica de descuentos ahora se maneja directamente en cada juego
   // usando juegosService.registrarResultadoJuego()
 
+  // ========== DELIVERY ==========
+  
+  /**
+   * Verifica si el cliente tiene un pedido de delivery confirmado (estado: confirmado o preparando)
+   */
+  async verificarPedidoDeliveryConfirmado() {
+    try {
+      let email = '';
+      
+      if (this.esClienteAnonimo && this.clienteAnonimo) {
+        email = `anonimo-${this.clienteAnonimo.id}@fritos.com`;
+      } else if (this.usuario?.email) {
+        email = this.usuario.email;
+      }
+      
+      if (!email) {
+        this.tienePedidoDeliveryConfirmado = false;
+        return;
+      }
+      
+      const { data, error } = await this.supabase.supabase
+        .from('pedidos_delivery')
+        .select('id, estado')
+        .eq('cliente_email', email)
+        .in('estado', ['confirmado', 'preparando', 'en_camino'])
+        .limit(1);
+      
+      if (!error && data && data.length > 0) {
+        this.tienePedidoDeliveryConfirmado = true;
+        console.log('📦 [verificarPedidoDeliveryConfirmado] Tiene pedido delivery confirmado:', data[0]);
+      } else {
+        this.tienePedidoDeliveryConfirmado = false;
+        console.log('📦 [verificarPedidoDeliveryConfirmado] No tiene pedidos delivery confirmados');
+      }
+    } catch (error) {
+      console.error('❌ [verificarPedidoDeliveryConfirmado] Error:', error);
+      this.tienePedidoDeliveryConfirmado = false;
+    }
+  }
+  
+  /**
+   * Escanea el QR DELIVERY para acceder a juegos y mis pedidos
+   */
+  async escanearQRDelivery() {
+    console.log('📷 [escanearQRDelivery] Iniciando escaneo...');
+    this.customLoader.show();
+    
+    try {
+      const { barcodes } = await BarcodeScanner.scan();
+      
+      if (barcodes.length > 0) {
+        const qrContent = barcodes[0].rawValue?.trim().toUpperCase() || '';
+        console.log('📷 [escanearQRDelivery] Código escaneado:', qrContent);
+        
+        // Verificar que sea el QR DELIVERY (acepta "DELIVERY" o "QR DELIVERY")
+        if (qrContent === 'DELIVERY' || qrContent === 'QR DELIVERY') {
+          this.qrDeliveryEscaneado = true;
+          // NO guardamos en localStorage - el cliente debe escanear cada vez que inicia la app
+          this.feedback.showToast('exito', '✅ QR escaneado correctamente. ¡Ya podés acceder a los juegos y tus pedidos!');
+        } else {
+          this.feedback.showToast('error', '❌ QR inválido. Escaneá el código QR DELIVERY');
+        }
+      } else {
+        this.feedback.showToast('error', '❌ No se detectó ningún código QR');
+      }
+    } catch (error: any) {
+      console.error('❌ [escanearQRDelivery] Error:', error);
+      if (!error.message?.includes('cancelled') && !error.message?.includes('cancelado')) {
+        this.feedback.showToast('error', '❌ Error al escanear el QR');
+      }
+    } finally {
+      this.customLoader.hide();
+    }
+  }
+  
+  /**
+   * Navega a Mis Pedidos Delivery
+   */
+  irAMisPedidosDelivery() {
+    this.router.navigate(['/mis-pedidos-delivery']);
+  }
 
 }
 

@@ -158,6 +158,72 @@
       font-size: 16px;
     }
   }
+  
+  &.tiempo-estimado-row {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 10px 0;
+    border: 1px solid #ffc107;
+    border-bottom: 1px solid #ffc107;
+    
+    ion-icon {
+      color: #856404;
+      font-size: 24px;
+    }
+    
+    .tiempo-estimado {
+      color: #856404;
+      font-size: 15px;
+      
+      strong {
+        color: #664d03;
+        font-size: 17px;
+      }
+    }
+  }
+}
+
+// Estados de los sectores (cocina/bar)
+.estados-sectores {
+  background: linear-gradient(135deg, #e8f4fd 0%, #d1e7f5 100%);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  border: 1px solid #b8daff;
+  
+  .sectores-titulo {
+    font-weight: 700;
+    color: #004085;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .sector-estado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0, 64, 133, 0.1);
+    
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    
+    .sector-nombre {
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    ion-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+  }
 }
 
 .actions {

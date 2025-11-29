@@ -178,10 +178,30 @@
         Pedir a Domicilio
       </ion-button>
 
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/mis-pedidos-delivery" (click)="ocultarMensajeListaEspera()">
-        <ion-icon name="receipt-outline" slot="start"></ion-icon>
-        Mis Pedidos a Domicilio
-      </ion-button>
+      <!-- Escanear QR DELIVERY - visible cuando tiene pedido confirmado y NO escaneó el QR -->
+      @if (tienePedidoDeliveryConfirmado && !qrDeliveryEscaneado) {
+        <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="escanearQRDelivery()">
+          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+          Escanear QR DELIVERY
+        </ion-button>
+
+      }
+
+      <!-- Mis Pedidos a Domicilio - visible solo después de escanear QR DELIVERY (si tiene pedido confirmado) -->
+      @if (!tienePedidoDeliveryConfirmado || qrDeliveryEscaneado) {
+        <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/mis-pedidos-delivery" (click)="ocultarMensajeListaEspera()">
+          <ion-icon name="receipt-outline" slot="start"></ion-icon>
+          Mis Pedidos a Domicilio
+        </ion-button>
+      }
+
+      <!-- Juegos para Delivery - visible después de escanear QR DELIVERY y tener pedido confirmado -->
+      @if (tienePedidoDeliveryConfirmado && qrDeliveryEscaneado) {
+        <ion-button expand="block" color="fritos-red" class="fritos-button" (click)="irAJuegos()">
+          <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+          🎮 Jugar por Descuento
+        </ion-button>
+      }
 
       <!-- Botón Escanear QR Mesa - siempre visible mientras tenga mesa asignada -->
       @if ((tipoUsuario === 'cliente' || esClienteAnonimo) && mostrarBotonEscanearMesa)

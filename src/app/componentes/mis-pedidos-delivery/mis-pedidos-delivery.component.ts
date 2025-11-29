@@ -33,7 +33,8 @@ import {
   gameControllerOutline,
   clipboardOutline,
   cashOutline,
-  qrCodeOutline
+  qrCodeOutline,
+  timeOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -91,14 +92,15 @@ export class MisPedidosDeliveryComponent implements OnInit {
       gameControllerOutline,
       clipboardOutline,
       cashOutline,
-      qrCodeOutline
+      qrCodeOutline,
+      timeOutline
     });
   }
 
   async ngOnInit() {
     await this.cargarPedidos();
-    // Verificar si ya se escaneó el QR DELIVERY anteriormente
-    this.qrEscaneado = localStorage.getItem('qrDeliveryEscaneado') === 'true';
+    // El QR DELIVERY debe escanearse cada vez que se inicia la app
+    this.qrEscaneado = false;
   }
 
   async cargarPedidos() {
@@ -125,6 +127,39 @@ export class MisPedidosDeliveryComponent implements OnInit {
   getTextoEstado(estado: string | undefined): string {
     if (!estado) return 'Sin estado';
     return this.estadosConfig[estado]?.texto || estado;
+  }
+
+  // Obtener texto del estado de un sector (cocina/bar)
+  getTextoEstadoSector(estado: string | undefined): string {
+    const estados: { [key: string]: string } = {
+      'pendiente': '⏳ Pendiente',
+      'derivado': '📥 Derivado - Por recibir',
+      'en preparacion': '🍳 En Preparación',
+      'listo': '✅ Listo'
+    };
+    return estados[estado || ''] || estado || 'Sin estado';
+  }
+
+  // Obtener color del estado de un sector
+  getColorEstadoSector(estado: string | undefined): string {
+    const colores: { [key: string]: string } = {
+      'pendiente': 'medium',
+      'derivado': 'warning',
+      'en preparacion': 'primary',
+      'listo': 'success'
+    };
+    return colores[estado || ''] || 'medium';
+  }
+
+  // Verificar si el pedido tiene comidas/postres
+  tieneComidas(pedido: PedidoDelivery): boolean {
+    return (pedido.comidas && pedido.comidas.length > 0) || 
+           (pedido.postres && pedido.postres.length > 0);
+  }
+
+  // Verificar si el pedido tiene bebidas
+  tieneBebidas(pedido: PedidoDelivery): boolean {
+    return pedido.bebidas && pedido.bebidas.length > 0;
   }
 
   getTotalProductos(pedido: PedidoDelivery): number {
@@ -219,13 +254,13 @@ export class MisPedidosDeliveryComponent implements OnInit {
       document.body.classList.remove('barcode-scanner-active');
 
       if (result.barcodes.length > 0) {
-        const qrContent = result.barcodes[0].rawValue.trim();
+        const qrContent = result.barcodes[0].rawValue.trim().toUpperCase();
         
-        // Verificar que sea el QR DELIVERY
-        if (qrContent === 'QR DELIVERY' || qrContent.toUpperCase() === 'QR DELIVERY') {
+        // Verificar que sea el QR DELIVERY (acepta "DELIVERY" o "QR DELIVERY")
+        if (qrContent === 'DELIVERY' || qrContent === 'QR DELIVERY') {
           this.qrEscaneado = true;
-          localStorage.setItem('qrDeliveryEscaneado', 'true');
-          await this.mostrarToast('✅ QR escaneado correctamente. Ya puedes acceder a juegos, encuesta y pagar', 'success');
+          // NO guardamos en localStorage - el cliente debe escanear cada vez que inicia la app
+          await this.mostrarToast('✅ QR escaneado correctamente. ¡Ya podés acceder a los juegos!', 'success');
         } else {
           await this.mostrarToast('QR inválido. Escaneá el código QR DELIVERY', 'warning');
         }

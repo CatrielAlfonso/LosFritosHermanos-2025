@@ -23,9 +23,9 @@ export interface Pedido {
   confirmado : boolean
   mesa : string
   estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'pagado_pendiente' | 'cancelado' | 'rechazado' | 'finalizado'
-  estado_comida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
-  estado_bebida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
-  estado_postre : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
+  estado_comida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente' | 'derivado'
+  estado_bebida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente' | 'derivado'
+  estado_postre : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente' | 'derivado'
   recepcion : boolean
   pagado : number
   cuenta: number               

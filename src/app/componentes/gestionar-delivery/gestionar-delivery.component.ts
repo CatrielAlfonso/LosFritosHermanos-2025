@@ -275,9 +275,9 @@ async derivarACocinaYBar(pedido: PedidoDelivery) {
       confirmado: true,
       mesa: 'DELIVERY', 
       estado: 'en preparacion',
-      estado_comida: (pedido.comidas && pedido.comidas.length > 0) ? 'en preparacion' : 'pendiente',
-      estado_bebida: (pedido.bebidas && pedido.bebidas.length > 0) ? 'en preparacion' : 'pendiente',
-      estado_postre: (pedido.postres && pedido.postres.length > 0) ? 'en preparacion' : 'pendiente',
+      estado_comida: (pedido.comidas && pedido.comidas.length > 0) ? 'derivado' : 'pendiente',
+      estado_bebida: (pedido.bebidas && pedido.bebidas.length > 0) ? 'derivado' : 'pendiente',
+      estado_postre: (pedido.postres && pedido.postres.length > 0) ? 'derivado' : 'pendiente',
       recepcion: true,
       pagado: 0, // Recordar usar 0 y no false
       cuenta: 0,

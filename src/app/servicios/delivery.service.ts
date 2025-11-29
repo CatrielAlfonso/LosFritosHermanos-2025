@@ -829,7 +829,61 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
       throw new Error(`Error al obtener los pedidos: ${error.message}`);
     }
 
-    return data || [];
+    // Para cada pedido, obtener los estados actualizados desde la tabla 'pedidos'
+    const pedidosConEstados = await Promise.all((data || []).map(async (pedido) => {
+      // Solo buscar estados si el pedido está confirmado o preparando
+      if (pedido.estado === 'confirmado' || pedido.estado === 'preparando') {
+        const estadosSectores = await this.obtenerEstadosSectoresDesdePedidos(pedido.cliente_id);
+        if (estadosSectores) {
+          pedido.estado_comida = estadosSectores.estado_comida;
+          pedido.estado_bebida = estadosSectores.estado_bebida;
+          pedido.estado_postre = estadosSectores.estado_postre;
+        }
+      }
+      return pedido;
+    }));
+
+    return pedidosConEstados;
+  }
+
+  /**
+   * Obtiene los estados de los sectores (cocina/bar) desde la tabla 'pedidos'
+   * buscando por el cliente_id del pedido delivery en las observaciones
+   */
+  async obtenerEstadosSectoresDesdePedidos(clienteId: number): Promise<{
+    estado_comida: string;
+    estado_bebida: string;
+    estado_postre: string;
+  } | null> {
+    try {
+      // Buscar en la tabla pedidos el registro que tenga el cliente_id en observaciones
+      const { data, error } = await this.supabase.supabase
+        .from('pedidos')
+        .select('estado_comida, estado_bebida, estado_postre')
+        .eq('mesa', 'DELIVERY')
+        .ilike('observaciones_generales', `%CLIENTE #${clienteId}:%`)
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error al obtener estados de sectores:', error);
+        return null;
+      }
+
+      if (data) {
+        return {
+          estado_comida: data.estado_comida || 'pendiente',
+          estado_bebida: data.estado_bebida || 'pendiente',
+          estado_postre: data.estado_postre || 'pendiente'
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error en obtenerEstadosSectoresDesdePedidos:', error);
+      return null;
+    }
   }
 }
 
