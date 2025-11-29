@@ -7,6 +7,7 @@ import { LoadingService } from '../../servicios/loading.service';
 import { Router } from '@angular/router';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Chart, registerables } from 'chart.js';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 
 Chart.register(...registerables);
 
@@ -80,6 +81,7 @@ export class EncuestasComponent  implements OnInit {
     private fb: FormBuilder,
     private supabase: SupabaseService,
     private loadingService: LoadingService,
+    private customLoader: CustomLoader,
     private router: Router,
     private alertController: AlertController
   ) {
@@ -122,42 +124,139 @@ export class EncuestasComponent  implements OnInit {
   }
 
   async cargarUsuario() {
-    try {
-      const { data } = await this.supabase.supabase.auth.getUser();
-      this.user = data?.user;
-      
+      try {
+        const { data } = await this.supabase.supabase.auth.getUser();
+        this.user = data?.user;
+        
+      // 🔑 CASO 1: Usuario NO autenticado (llegó por QR)
       if (!this.user) {
-        await this.mostrarAlerta('Error', 'No se pudo obtener la información del usuario. Por favor, inicie sesión nuevamente.');
-        this.router.navigate(['/login']);
-        return;
+        console.log('⚠️ Usuario no autenticado - Verificando localStorage...');
+        
+        // Buscar datos de cliente anónimo en localStorage
+        const datosAnonimo = localStorage.getItem('clienteAnonimo');
+        
+        if (!datosAnonimo) {
+          // No hay sesión ni datos locales - redirigir a login
+          await this.mostrarAlerta(
+            'Sesión requerida', 
+            'Debe iniciar sesión o registrarse como cliente anónimo para acceder a las encuestas.'
+          );
+          this.router.navigate(['/login']);
+          return;
+        }
+
+        try {
+          const clienteAnonimo = JSON.parse(datosAnonimo);
+          
+          // Usar datos del localStorage sin autenticación
+          this.clientInfo = { 
+            id: clienteAnonimo.id,
+            nombre: clienteAnonimo.nombre || 'Cliente', 
+            apellido: 'Anónimo',
+            correo: `anonimo_${clienteAnonimo.id}@restaurante.com`,
+            imagenPerfil: clienteAnonimo.imagenPerfil,
+            encuesta: false,
+            esAnonimo: true,
+            anonimo: true,
+            sinAuth: true // Flag especial: no tiene sesión Auth
+          };
+          
+          console.log('✅ Cliente anónimo cargado desde localStorage (sin Auth):', this.clientInfo);
+          return; // ✅ Salir exitosamente
+          
+        } catch (parseError) {
+          console.error('Error al parsear clienteAnonimo:', parseError);
+          await this.mostrarAlerta('Error', 'Error al procesar datos del usuario anónimo.');
+          this.router.navigate(['/login']);
+          return;
+        }
       }
 
-      const { data: clientData, error: clientError } = await this.supabase.supabase
-        .from('clientes')
-        .select('*')
-        .eq('correo', this.user.email)
-        .single();
+      // 🔑 CASO 2: Usuario autenticado - Verificar si es anónimo o normal
+      const esAnonimo = !this.user.email;
+      
+      if (esAnonimo) {
+        // 👤 USUARIO ANÓNIMO AUTENTICADO: Recuperar datos del localStorage
+        const datosAnonimo = localStorage.getItem('clienteAnonimo');
+        
+        if (!datosAnonimo) {
+          await this.mostrarAlerta(
+            'Error', 
+            'No se encontraron datos del usuario anónimo. Por favor, registre sus datos nuevamente.'
+          );
+          this.router.navigate(['/login']);
+          return;
+        }
 
-      if (clientError) {
-        await this.mostrarAlerta('Error', 'No se pudo obtener la información del cliente.');
-        this.router.navigate(['/login']);
-        return;
-      }
-
-      if (clientData) {
-        this.clientInfo = clientData;
+        try {
+          const clienteAnonimo = JSON.parse(datosAnonimo);
+          
+          this.clientInfo = { 
+            id: clienteAnonimo.id,
+            nombre: clienteAnonimo.nombre || 'Cliente', 
+            apellido: 'Anónimo',
+            correo: `anonimo_${this.user.id}@restaurante.com`,
+            imagenPerfil: clienteAnonimo.imagenPerfil,
+            encuesta: false,
+            esAnonimo: true,
+            anonimo: clienteAnonimo.anonimo
+          };
+          
+          console.log('✅ Usuario anónimo cargado desde localStorage:', this.clientInfo);
+          
+        } catch (parseError) {
+          console.error('Error al parsear clienteAnonimo:', parseError);
+          await this.mostrarAlerta('Error', 'Error al procesar datos del usuario anónimo.');
+          this.router.navigate(['/login']);
+          return;
+        }
+        
       } else {
-        await this.mostrarAlerta('Error', 'No se encontró información del cliente.');
-        this.router.navigate(['/login']);
-        return;
+        // 👥 USUARIO NORMAL: Buscar en tabla clientes
+        const { data: clientData, error: clientError } = await this.supabase.supabase
+          .from('clientes')
+          .select('*')
+          .eq('correo', this.user.email)
+          .single();
+
+        if (clientError) {
+          if (clientError.code === 'PGRST116') {
+            await this.mostrarAlerta(
+              'Error', 
+              'No se encontró la información del cliente para su correo. Contacte al soporte.'
+            );
+          } else {
+            await this.mostrarAlerta(
+              'Error', 
+              'No se pudo obtener la información del cliente debido a un error de conexión o permisos.'
+            );
+          }
+          this.router.navigate(['/login']);
+          return;
+        }
+
+        if (clientData) {
+          this.clientInfo = clientData;
+          console.log('✅ Usuario normal cargado desde BD:', this.clientInfo);
+        } else {
+          await this.mostrarAlerta('Error', 'No se encontró información del cliente.');
+          this.router.navigate(['/login']);
+          return;
+        }
       }
+      
     } catch (error) {
+      console.error('Error en cargarUsuario:', error);
       await this.mostrarAlerta('Error', 'Error al cargar la información del usuario.');
+      this.router.navigate(['/login']);
     }
   }
 
-  async cargarEncuestas() {
+  async cargarEncuestas() 
+  { 
+    //await this.customLoad
     this.loadingService.show();
+    this.customLoader.show('Cargando encuestas...');
     try {
       const tablaCorrecta = await this.verificarTablas();
       if (!tablaCorrecta) {
@@ -176,12 +275,14 @@ export class EncuestasComponent  implements OnInit {
           await this.mostrarAlerta('Error', `No se pudieron cargar las encuestas: ${error.message}`);
         }
       } else {
+        console.log('Encuestas cargadas:', data);
         this.encuestas = data || [];
       }
     } catch (error) {
       await this.mostrarAlerta('Error', `Error inesperado al cargar las encuestas: ${error}`);
     } finally {
-      this.loadingService.hide();
+      this.customLoader.hide();
+      //this.loadingService.hide();
     }
   }
 
@@ -251,60 +352,131 @@ export class EncuestasComponent  implements OnInit {
     return urls;
   }
 
-  async enviarEncuesta() {
-    if (this.encuestaForm.valid) {
-      this.loadingService.show();
-      try {
-        const tablaCorrecta = await this.verificarTablas();
-        if (!tablaCorrecta) {
-          await this.mostrarAlerta('Error', 'No se encontró la tabla de encuestas. Contacte al administrador.');
-          return;
-        }
+  // async enviarEncuesta() {
+  //   if (this.encuestaForm.valid) {
+  //     this.customLoader.show('Enviando encuesta...');
+  //     //this.loadingService.show();
+  //     try {
+  //       const tablaCorrecta = await this.verificarTablas();
+  //       if (!tablaCorrecta) {
+  //         await this.mostrarAlerta('Error', 'No se encontró la tabla de encuestas. Contacte al administrador.');
+  //         return;
+  //       }
 
-        const imagenesUrls = await this.subirImagenesAStorage();
+  //       const imagenesUrls = await this.subirImagenesAStorage();
         
-        const encuestaData = {
-          ...this.encuestaForm.value,
-          nombre: this.clientInfo.nombre,
-          apellido: this.clientInfo.apellido,
-          correo: this.clientInfo.correo,
-          imagenes: imagenesUrls,
-        };
+  //       const encuestaData = {
+  //         ...this.encuestaForm.value,
+  //         nombre: this.clientInfo.nombre,
+  //         apellido: this.clientInfo.apellido,
+  //         correo: this.clientInfo.correo,
+  //         imagenes: imagenesUrls,
+  //       };
 
-        const { error } = await this.supabase.supabase
-          .from(tablaCorrecta)
-          .insert([encuestaData]);
+  //       const { error } = await this.supabase.supabase
+  //         .from(tablaCorrecta)
+  //         .insert([encuestaData]);
 
-        if (error) {
-          await this.mostrarAlerta('Error', `No se pudo enviar la encuesta: ${error.message}`);
-        } else {
-          this.encuestaEnviada = true;
-          this.mostrarMensajeExito = true;
-          this.mensajeExito = '¡Encuesta enviada exitosamente!';
+  //       if (error) {
+  //         await this.mostrarAlerta('Error', `No se pudo enviar la encuesta: ${error.message}`);
+  //       } else {
+  //         this.encuestaEnviada = true;
+  //         this.mostrarMensajeExito = true;
+  //         this.mensajeExito = '¡Encuesta enviada exitosamente!';
 
-          const { error: errorCliente } = await this.supabase.supabase
-            .from('clientes')
-            .update({ encuesta: true })
-            .eq('correo', this.clientInfo.correo);
+  //         const { error: errorCliente } = await this.supabase.supabase
+  //           .from('clientes')
+  //           .update({ encuesta: true })
+  //           .eq('correo', this.clientInfo.correo);
           
-          if (errorCliente) {
+  //         if (errorCliente) {
+  //         }
+          
+  //         await this.cargarEncuestas();
+  //         this.mostrarGraficos = true;
+  //         this.crearGraficos();
+          
+  //         setTimeout(() => {
+  //           this.mostrarMensajeExito = false;
+  //         }, 3000);
+  //       }
+  //     } catch (error) {
+  //       await this.mostrarAlerta('Error', `Error inesperado al enviar la encuesta: ${error}`);
+  //     } finally {
+  //       this.customLoader.hide();
+  //       //this.loadingService.hide();
+  //     }
+  //   }
+  // }
+
+  // 🔄 TAMBIÉN ACTUALIZA enviarEncuesta() para manejar usuarios sin Auth:
+
+    async enviarEncuesta() 
+    {
+      if (this.encuestaForm.valid) {
+        this.customLoader.show('Enviando encuesta...');
+        try {
+          const tablaCorrecta = await this.verificarTablas();
+          if (!tablaCorrecta) {
+            await this.mostrarAlerta('Error', 'No se encontró la tabla de encuestas. Contacte al administrador.');
+            return;
           }
+
+          const imagenesUrls = await this.subirImagenesAStorage();
           
-          await this.cargarEncuestas();
-          this.mostrarGraficos = true;
-          this.crearGraficos();
-          
-          setTimeout(() => {
-            this.mostrarMensajeExito = false;
-          }, 3000);
+          const encuestaData = {
+            ...this.encuestaForm.value,
+            nombre: this.clientInfo.nombre,
+            apellido: this.clientInfo.apellido,
+            correo: this.clientInfo.correo,
+            imagenes: imagenesUrls,
+          };
+
+          const { error } = await this.supabase.supabase
+            .from(tablaCorrecta)
+            .insert([encuestaData]);
+
+          if (error) {
+            await this.mostrarAlerta('Error', `No se pudo enviar la encuesta: ${error.message}`);
+          } else {
+            this.encuestaEnviada = true;
+            this.mostrarMensajeExito = true;
+            this.mensajeExito = '¡Encuesta enviada exitosamente!';
+
+            // 🔄 Solo actualizar BD si NO es anónimo Y tiene Auth
+            if (!this.clientInfo.esAnonimo && !this.clientInfo.sinAuth) {
+              const { error: errorCliente } = await this.supabase.supabase
+                .from('clientes')
+                .update({ encuesta: true })
+                .eq('correo', this.clientInfo.correo);
+              
+              if (errorCliente) {
+                console.warn('No se pudo actualizar estado de encuesta:', errorCliente);
+              }
+            } else {
+              // Para anónimos, solo actualizar flag local
+              this.clientInfo.encuesta = true;
+              console.log('✅ Encuesta marcada localmente para cliente anónimo');
+            }
+            
+            await this.cargarEncuestas();
+            this.mostrarGraficos = true;
+            this.crearGraficos();
+            
+            setTimeout(() => {
+              this.mostrarMensajeExito = false;
+            }, 3000);
+          }
+        } catch (error) {
+          await this.mostrarAlerta('Error', `Error inesperado al enviar la encuesta: ${error}`);
+        } finally {
+          this.customLoader.hide();
         }
-      } catch (error) {
-        await this.mostrarAlerta('Error', `Error inesperado al enviar la encuesta: ${error}`);
-      } finally {
-        this.loadingService.hide();
       }
     }
-  }
+
+
+
 
   async mostrarAlerta(titulo: string, mensaje: string) {
     const alert = await this.alertController.create({
