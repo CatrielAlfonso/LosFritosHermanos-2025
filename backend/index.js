@@ -226,6 +226,59 @@ app.post("/notify-maitre-new-client", async (req, res) => {
   }
 });
 
+// Notificar SOLO al maître cuando un cliente entra en lista de espera
+app.post("/notify-maitre-lista-espera", async (req, res) => {
+  const { clienteNombre } = req.body;
+  
+  try {
+    const title = "📋 Nuevo cliente en lista de espera";
+    const body = `${clienteNombre} está esperando asignación de mesa`;
+    
+    // Obtener solo los tokens de empleados con perfil "maitre"
+    const { data: maitres, error } = await supabase
+      .from("empleados")
+      .select("fcm_token")
+      .eq("perfil", "maitre")
+      .not("fcm_token", "is", null);
+
+    if (error) {
+      console.error("Error al buscar maîtres:", error);
+      return res.status(500).send({ error: `Error en base de datos: ${error.message}` });
+    }
+
+    if (!maitres || maitres.length === 0) {
+      console.log("No se encontraron maîtres con token FCM");
+      return res.status(200).send({ success: true, message: "No hay maîtres para notificar" });
+    }
+
+    const tokens = maitres.map(m => m.fcm_token).filter(t => t);
+    
+    if (tokens.length === 0) {
+      return res.status(200).send({ success: true, message: "No hay tokens FCM válidos" });
+    }
+
+    const message = {
+      notification: { title, body },
+      tokens: tokens,
+      data: {
+        link: '/lista-espera'
+      }
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    console.log("Notificación a maître enviada:", response);
+
+    res.status(200).send({ 
+      success: true, 
+      message: "Notificación enviada al maître",
+      response 
+    });
+  } catch (error) {
+    console.error("Error al notificar al maître:", error);
+    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+  }
+});
+
 app.post("/notify-client-table-assigned", async (req, res) => {
   const { clienteEmail, mesaNumero, clienteNombre, clienteApellido } = req.body;
   
