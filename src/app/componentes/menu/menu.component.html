@@ -21,32 +21,6 @@
     {{ motionIndicatorText }}
   </div>
 
-  <!-- Guía de controles -->
-  <ion-card class="control-guide" *ngIf="motionEnabled">
-    <ion-card-content>
-      <h3>🎮 Control por Movimiento</h3>
-      <div class="guide-item">
-        <ion-icon name="arrow-back"></ion-icon>
-        <span>Izquierda: Foto anterior</span>
-      </div>
-      <div class="guide-item">
-        <ion-icon name="arrow-forward"></ion-icon>
-        <span>Derecha: Foto siguiente</span>
-      </div>
-      <div class="guide-item">
-        <ion-icon name="arrow-up"></ion-icon>
-        <span>Adelante: Producto anterior</span>
-      </div>
-      <div class="guide-item">
-        <ion-icon name="arrow-down"></ion-icon>
-        <span>Atrás: Producto siguiente</span>
-      </div>
-      <div class="guide-item">
-        <ion-icon name="phone-portrait"></ion-icon>
-        <span>Agitar: Volver al inicio</span>
-      </div>
-    </ion-card-content>
-  </ion-card>
 
   @for(plato of platos; track plato; let i = $index){
     <ion-card class="container-plato" [class.producto-activo]="productoActualIndex === i">

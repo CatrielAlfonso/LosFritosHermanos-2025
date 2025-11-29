@@ -22,7 +22,7 @@ export interface Pedido {
   tiempo_estimado : number
   confirmado : boolean
   mesa : string
-  estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'cancelado' | 'rechazado' | 'finalizado'
+  estado: 'pendiente' | 'en preparacion' | 'listo' | 'entregado' | 'pagado_pendiente' | 'cancelado' | 'rechazado' | 'finalizado'
   estado_comida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
   estado_bebida : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
   estado_postre : 'listo' | 'en preparacion' | 'cancelado' | 'pendiente'
@@ -34,6 +34,8 @@ export interface Pedido {
   observaciones_generales?: string; 
   solicita_cuenta?: boolean
   cuenta_habilitada?: boolean
+  descuento?: number  // Porcentaje de descuento ganado en juegos (0, 10, 15, 20)
+  propina?: number    // Porcentaje de propina seleccionado por el cliente
 }
 
 

@@ -9,7 +9,10 @@
     </div>
     
     <div *ngIf="cargando" class="loading-container">
-      <p>Cargando lista de espera...</p>
+      <app-fritos-spinner 
+        size="medium" 
+        mensaje="Cargando lista de espera...">
+      </app-fritos-spinner>
     </div>
 
     <div *ngIf="!cargando && listaEspera.length === 0" class="empty-state">

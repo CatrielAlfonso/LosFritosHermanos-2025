@@ -32,8 +32,10 @@
 
   <!-- Loading -->
   <div class="loading-container" *ngIf="isLoading">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Cargando consultas...</p>
+    <app-fritos-spinner 
+      size="large" 
+      mensaje="Cargando consultas...">
+    </app-fritos-spinner>
   </div>
 
   <!-- Consultas Pendientes -->

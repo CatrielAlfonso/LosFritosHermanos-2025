@@ -128,31 +128,22 @@ export class AnonimoComponent  {
 
       if (errorCliente) throw errorCliente;
 
-      // Insertar en lista_espera
-      await this.sb.supabase.from('lista_espera').insert([
-        {
-          correo: `anonimo-${cliente.id}@fritos.com`,
+      // Guardar cliente anónimo en localStorage para mantener sesión
+      localStorage.setItem('clienteAnonimo', JSON.stringify({
+        id: cliente.id,
           nombre: cliente.nombre,
-          fecha_ingreso: new Date()
-        }
-      ]);
+        imagenPerfil: cliente.imagenPerfil,
+        anonimo: true
+      }));
 
       await loading.dismiss();
 
-      // Notificar al maître
-      try {
-        await this.pushNotificationService.notificarMaitreNuevoCliente(
-          cliente.nombre,
-          '' // Sin apellido para anónimos
-        );
-      } catch (error) {
-        console.error('Error al notificar al maître:', error);
-        // No lanzamos el error para no interrumpir el flujo del usuario
-      }
-
-      this.feedback.showToast('exito', '🙌 Ya estás en la lista de espera, capo!');
+      this.feedback.showToast('exito', '¡Bienvenido a Los Fritos Hermanos!');
       this.anonimoForm.reset();
       this.imagenURL = null;
+
+      // Navegar directamente al home
+      this.router.navigate(['/home']);
 
     } catch (e: any) {
       await loading.dismiss();

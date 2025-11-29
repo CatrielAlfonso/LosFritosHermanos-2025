@@ -28,7 +28,9 @@
   
     <!-- Lista de pedidos -->
     <div *ngIf="pedidosPendientes().length > 0" class="lista-pedidos">
-      <div *ngFor="let pedido of pedidosPendientes()" class="pedido-item">
+      <div *ngFor="let pedido of pedidosPendientes()" class="pedido-item"
+           [class.pedido-pagado-pendiente]="pedido.estado === 'pagado_pendiente'"
+           [class.pedido-entregado]="pedido.estado === 'entregado'">
         <div class="pedido-header">
           <div class="pedido-info">
             <h2 class="mesa-numero">Mesa {{pedido.mesa}}</h2>
@@ -36,6 +38,9 @@
           </div>
           <div class="pedido-total">
             <span class="total-pedido">{{pedido.cuenta | currency}}</span>
+            <div class="estado-badge" [class]="'estado-' + pedido.estado">
+              {{getEstadoTexto(pedido.estado)}}
+            </div>
           </div>
         </div>
   
@@ -179,7 +184,42 @@
               <span>Esperando preparación...</span>
             </div>
           </div>
-  
+
+          <!-- Para pedidos entregados - Cliente solicita cuenta -->
+          <div *ngIf="pedido.estado === 'entregado' && pedido.solicita_cuenta && !pedido.cuenta_habilitada" 
+               class="solicitud-cuenta">
+            <ion-icon name="receipt-outline"></ion-icon>
+            <span>Cliente solicita cuenta</span>
+            <button class="btn-habilitar-cuenta" (click)="habilitarCuenta(pedido)">
+              Habilitar Cuenta
+            </button>
+          </div>
+
+          <!-- Para pedidos entregados - Esperando que cliente solicite cuenta -->
+          <div *ngIf="pedido.estado === 'entregado' && !pedido.solicita_cuenta && !pedido.cuenta_habilitada" 
+               class="estado-entregado-info">
+            <ion-icon name="checkmark-done-outline"></ion-icon>
+            <span>Pedido entregado - Esperando solicitud de cuenta</span>
+          </div>
+
+          <!-- Para pedidos entregados - Cuenta habilitada, esperando pago -->
+          <div *ngIf="pedido.estado === 'entregado' && pedido.cuenta_habilitada" 
+               class="estado-cuenta-habilitada">
+            <ion-icon name="card-outline"></ion-icon>
+            <span>Cuenta habilitada - Esperando pago del cliente</span>
+          </div>
+
+          <!-- Para pedidos con pago pendiente de confirmación -->
+          <div *ngIf="pedido.estado === 'pagado_pendiente'" class="solicitud-cuenta pago-pendiente">
+            <ion-icon name="cash-outline"></ion-icon>
+            <div class="pago-info">
+              <span class="pago-titulo">💰 Cliente pagó: {{pedido.pagado | currency}}</span>
+              <span class="pago-mesa">Mesa {{pedido.mesa}}</span>
+            </div>
+            <button class="btn-confirmar-pago" (click)="confirmarPagoPedido(pedido)">
+              Confirmar Pago
+            </button>
+          </div>
           
         </div>
       </div>
@@ -224,11 +264,15 @@
           </button>
         </div>
 
-        <div *ngIf="pedido.cuenta <= pedido.pagado && pedido.estado !== 'finalizado'" class="solicitud-cuenta">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          <span>Cliente pagó el pedido</span>
-          <button class="btn-habilitar-cuenta" (click)="confirmarPagoPedido(pedido)">
-            Confirmar pago
+        <!-- Pago pendiente de confirmación -->
+        <div *ngIf="pedido.estado === 'pagado_pendiente'" class="solicitud-cuenta pago-pendiente">
+          <ion-icon name="cash-outline"></ion-icon>
+          <div class="pago-info">
+            <span class="pago-titulo">💰 Cliente pagó: {{pedido.pagado | currency}}</span>
+            <span class="pago-mesa">Mesa {{pedido.mesa}}</span>
+          </div>
+          <button class="btn-confirmar-pago" (click)="confirmarPagoPedido(pedido)">
+            Confirmar Pago
           </button>
         </div>
 

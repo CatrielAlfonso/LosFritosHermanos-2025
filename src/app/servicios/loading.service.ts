@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { LoadingController } from '@ionic/angular';
 import { BehaviorSubject } from 'rxjs';
+import { CustomLoader } from './custom-loader.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,15 +12,17 @@ export class LoadingService {
   loading$ = this._loading.asObservable();
   private minLoadingTime = 1000;
   private loadingTimeout: any;
-  constructor(private loadingCtrl: LoadingController) {}
+  
+  constructor(
+    private loadingCtrl: LoadingController,
+    private customLoader: CustomLoader
+  ) {}
   
   async present(message: string = 'Por favor espere...') {
-    this.loading = await this.loadingCtrl.create({
-      message,
-      spinner: 'crescent'
-    });
-    await this.loading.present();
+    // Usar el CustomLoader con el logo de la empresa
+    this.customLoader.show(message);
   }
+  
   show() {
     this._loading.next(true);
     clearTimeout(this.loadingTimeout);
@@ -30,7 +33,9 @@ export class LoadingService {
       this._loading.next(false);
     }, this.minLoadingTime);
   }
+  
   async dismiss() {
+    this.customLoader.hide();
     if (this.loading) {
       await this.loading.dismiss();
       this.loading = null;

@@ -12,10 +12,11 @@
 <ion-content class="container-pagos">
   <!-- Loading -->
   <div *ngIf="loading()" class="estado-contenedor">
-    <div class="icono-container">
-      <ion-spinner name="crescent" class="icono-cargando"></ion-spinner>
-    </div>
-    <h2 class="mensaje-titulo">Cargando cuenta</h2>
+    <app-fritos-spinner 
+      size="large" 
+      mensaje="Cargando cuenta..."
+      [showText]="true">
+    </app-fritos-spinner>
     <p class="mensaje-descripcion">Estamos preparando la información de tu mesa...</p>
   </div>
 

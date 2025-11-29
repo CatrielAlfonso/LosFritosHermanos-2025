@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { Haptics, ImpactStyle } from '@capacitor/haptics'; 
+import { CustomLoader } from './custom-loader.service';
 import { Vibration } from '@awesome-cordova-plugins/vibration/ngx';
 
 @Injectable({
@@ -8,9 +9,12 @@ import { Vibration } from '@awesome-cordova-plugins/vibration/ngx';
 })
 export class FeedbackService {
   
+  private currentLoading: any = null;
+  
   constructor(
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
+    private customLoader: CustomLoader,
     private vibration: Vibration,
   ) {}
 
@@ -55,37 +59,24 @@ export class FeedbackService {
   }
 
   async showLoading(textoPersonalizado?: string) {
-
-
-    if (textoPersonalizado) {
-      const loading = await this.loadingCtrl.create({
-        message: textoPersonalizado,
-        spinner: 'crescent',
-        cssClass: 'custom-loading'
-        });
-      await loading.present();
-      return loading;
-    }
-    else {
-      const texto = this.mensajesGraciosos.loading[
+    const texto = textoPersonalizado || this.mensajesGraciosos.loading[
       Math.floor(Math.random() * this.mensajesGraciosos.loading.length)
-      ];
+    ];
 
-      const loading = await this.loadingCtrl.create({
-        message: texto,
-        spinner: 'crescent',
-        cssClass: 'custom-loading'
-      });
-
-      await loading.present();
-      return loading;
-    }
+    // Usar CustomLoader con el logo de la empresa
+    this.customLoader.show(texto);
     
-
+    // Retornar un objeto compatible con la API anterior
+    return {
+      dismiss: () => {
+        this.customLoader.hide();
+        return Promise.resolve();
+      }
+    };
   }
 
   hide() {
-    this.loadingCtrl.dismiss();
+    this.customLoader.hide();
   }
 
   async vibrarFuerte() {
@@ -104,17 +95,16 @@ export class FeedbackService {
     }
   }
 
-  async mostrarLoaderPolloFrito() 
-  {
-    const loading = await this.loadingCtrl.create({
-      spinner: null,
-      message: `<img src="/assets/imgs/loader.gif" alt="Cargando..." class="custom-loader">`,
-      cssClass: 'gif-loader',
-      backdropDismiss: false
-    });
-    await loading.present();
-    return loading;
+  async mostrarLoaderPolloFrito() {
+    // Usar CustomLoader con el logo de la empresa
+    this.customLoader.show('Preparando tu pedido...');
+    
+    // Retornar un objeto compatible con la API anterior
+    return {
+      dismiss: () => {
+        this.customLoader.hide();
+        return Promise.resolve();
+      }
+    };
   }
-
-
 }

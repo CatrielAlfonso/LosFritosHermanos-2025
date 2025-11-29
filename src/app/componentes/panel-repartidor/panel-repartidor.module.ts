@@ -5,6 +5,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
 import { PanelRepartidorComponent, MapaRutaComponent } from './panel-repartidor.component';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 
 const routes: Routes = [
   {
@@ -18,7 +19,8 @@ const routes: Routes = [
     CommonModule,
     FormsModule,
     IonicModule,
-    RouterModule.forChild(routes)
+    RouterModule.forChild(routes),
+    FritosSpinnerComponent
   ],
   declarations: [
     PanelRepartidorComponent,

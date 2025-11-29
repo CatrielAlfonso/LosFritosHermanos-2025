@@ -78,9 +78,93 @@ misPedidos = computed(() => {
       'en preparacion': 'En Preparación',
       'listo': 'Listo para servir',
       'entregado': 'Entregado',
+      'pagado_pendiente': 'Pago en proceso',
+      'finalizado': 'Finalizado',
       'cancelado': 'Cancelado'
     };
     return estados[estado] || estado;
+  }
+
+  /**
+   * Obtiene el estado detallado del pedido para mostrar al cliente
+   * basado en los estados de comida y bebida
+   */
+  getEstadoDetallado(pedido: any): string {
+    const tieneComidas = pedido.comidas?.length > 0 || pedido.postres?.length > 0;
+    const tieneBebidas = pedido.bebidas?.length > 0;
+    
+    // Si el pedido general no está en preparación, usar el estado general
+    if (pedido.estado !== 'en preparacion') {
+      return this.getEstadoTexto(pedido.estado);
+    }
+    
+    const estadoComida = pedido.estado_comida;
+    const estadoBebida = pedido.estado_bebida;
+    
+    // Verificar si todo está derivado (recién aceptado por mozo)
+    const todoDerivado = 
+      (!tieneComidas || estadoComida === 'derivado') && 
+      (!tieneBebidas || estadoBebida === 'derivado');
+    
+    if (todoDerivado) {
+      return 'Derivado a sectores';
+    }
+    
+    // Verificar si todo está listo
+    const todoListo = 
+      (!tieneComidas || estadoComida === 'listo') && 
+      (!tieneBebidas || estadoBebida === 'listo');
+    
+    if (todoListo) {
+      return 'Listo para servir';
+    }
+    
+    // Si hay algo en preparación
+    return 'En Preparación';
+  }
+
+  /**
+   * Obtiene el estado de cada sector para mostrar detalle al cliente
+   */
+  getEstadoSectores(pedido: any): { cocina?: string, bar?: string } {
+    const resultado: { cocina?: string, bar?: string } = {};
+    
+    const tieneComidas = pedido.comidas?.length > 0 || pedido.postres?.length > 0;
+    const tieneBebidas = pedido.bebidas?.length > 0;
+    
+    if (tieneComidas && pedido.estado === 'en preparacion') {
+      switch(pedido.estado_comida) {
+        case 'derivado':
+          resultado.cocina = 'Esperando recepción';
+          break;
+        case 'en preparacion':
+          resultado.cocina = 'En preparación';
+          break;
+        case 'listo':
+          resultado.cocina = 'Listo ✓';
+          break;
+        default:
+          resultado.cocina = pedido.estado_comida || 'Pendiente';
+      }
+    }
+    
+    if (tieneBebidas && pedido.estado === 'en preparacion') {
+      switch(pedido.estado_bebida) {
+        case 'derivado':
+          resultado.bar = 'Esperando recepción';
+          break;
+        case 'en preparacion':
+          resultado.bar = 'En preparación';
+          break;
+        case 'listo':
+          resultado.bar = 'Listo ✓';
+          break;
+        default:
+          resultado.bar = pedido.estado_bebida || 'Pendiente';
+      }
+    }
+    
+    return resultado;
   }
 
   volverAHome() {
@@ -122,6 +206,24 @@ misPedidos = computed(() => {
     await alert.present();
   }
 
+  /**
+   * Confirma la recepción del pedido por parte del cliente
+   * Habilita acceso a juegos y encuestas
+   */
+  async confirmarRecepcion(pedido: any) {
+    try {
+      await this.supabase.actualizarPedido(pedido.id, {
+        recepcion: true
+      });
+      
+      this.feedback.showToast('exito', '✅ ¡Recepción confirmada! Ya podés acceder a Juegos y Encuestas desde el menú principal.');
+      
+    } catch (error) {
+      console.error('Error al confirmar recepción:', error);
+      this.feedback.showToast('error', 'Error al confirmar la recepción. Intentá nuevamente.');
+    }
+  }
+
   async pedirCuenta(pedido : any){
     this.notificationService.solicitarCuentaMozo(
       pedido.mesa,
@@ -137,15 +239,15 @@ misPedidos = computed(() => {
     });
   }
 
-  async escanearQRPropina() {
+  async escanearQRPropina(pedido: any) {
     try {
-      this.feedback.showToast('exito', 'Escaneá el QR de tu mesa para acceder al pago');
+      this.feedback.showToast('exito', 'Escaneá el QR de propina');
       
       const { barcodes } = await BarcodeScanner.scan();
       
       if (barcodes && barcodes.length > 0) {
         const codigoEscaneado = barcodes[0].displayValue;
-        await this.procesarQRPropina(codigoEscaneado);
+        await this.procesarQRPropina(codigoEscaneado, pedido);
       } else {
         this.feedback.showToast('error', 'No se detectó ningún código QR');
       }
@@ -155,58 +257,41 @@ misPedidos = computed(() => {
     }
   }
 
-  async procesarQRPropina(codigoEscaneado: string) {
+  async procesarQRPropina(codigoEscaneado: string, pedido: any) {
     try {
-      const user = this.user();
-      if (!user?.id) {
-        this.feedback.showToast('error', 'Error de autenticación');
-        return;
-      }
-
-      // Verificar si es QR genérico de propina
-      if (codigoEscaneado === 'PROPINA_FRITOS_HERMANOS' || 
-          (codigoEscaneado.includes('tipo') && codigoEscaneado.includes('propina'))) {
-        await this.mostrarPedidosParaPagar();
-        return;
-      }
-
-      // Si no es QR genérico, procesar como QR específico de mesa
-      let numeroMesa: number | null = null;
+      // Verificar si es QR de propina válido
+      const esQRPropina = codigoEscaneado === 'PROPINA_FRITOS_HERMANOS' || 
+                          codigoEscaneado.includes('propina') ||
+                          codigoEscaneado.includes('PROPINA');
       
-      // Intentar parsear como JSON (formato nuevo)
-      try {
-        const datosQR = JSON.parse(codigoEscaneado);
-        if (datosQR.numeroMesa) {
-          numeroMesa = parseInt(datosQR.numeroMesa);
+      if (!esQRPropina) {
+        // Intentar validar como QR de mesa
+        let numeroMesa: number | null = null;
+        try {
+          const datosQR = JSON.parse(codigoEscaneado);
+          if (datosQR.numeroMesa) {
+            numeroMesa = parseInt(datosQR.numeroMesa);
+          }
+        } catch {
+          const match = codigoEscaneado.match(/numeroMesa[:\s]+(\d+)/);
+          if (match) {
+            numeroMesa = parseInt(match[1]);
+          }
         }
-      } catch {
-        // Si no es JSON, intentar extraer número con regex (formato legacy)
-        const match = codigoEscaneado.match(/numeroMesa[:\s]+(\d+)/);
-        if (match) {
-          numeroMesa = parseInt(match[1]);
+        
+        // Validar que sea la mesa correcta
+        if (numeroMesa && parseInt(pedido.mesa) === numeroMesa) {
+          // Es QR de mesa válido, mostrar selector de propina
+          await this.mostrarSelectorPropina(pedido);
+          return;
         }
-      }
-      
-      if (!numeroMesa) {
+        
         this.feedback.showToast('error', 'QR inválido. Escaneá el QR de propina o de tu mesa.');
         return;
       }
       
-      // Buscar pedido del cliente en esa mesa
-      const pedidoEnMesa = this.misPedidos().find(pedido => 
-        parseInt(pedido.mesa) === numeroMesa && 
-        pedido.cuenta_habilitada && 
-        pedido.estado === 'entregado'
-      );
-      
-      if (!pedidoEnMesa) {
-        this.feedback.showToast('error', 'No tenés una cuenta habilitada en esta mesa o el pedido no está entregado');
-        return;
-      }
-      
-      // Redirigir a la página de pagos
-      this.feedback.showToast('exito', 'QR válido. Accediendo al pago...');
-      this.router.navigate(['/pagos', numeroMesa]);
+      // QR de propina válido, mostrar selector
+      await this.mostrarSelectorPropina(pedido);
       
     } catch (error) {
       console.error('Error procesando QR de propina:', error);
@@ -214,48 +299,131 @@ misPedidos = computed(() => {
     }
   }
 
-  async mostrarPedidosParaPagar() {
-    // Obtener pedidos del cliente con cuenta habilitada
-    const pedidosConCuentaHabilitada = this.misPedidos().filter(pedido => 
-      pedido.cuenta_habilitada && 
-      pedido.estado === 'entregado' &&
-      !pedido.solicita_cuenta
-    );
-
-    if (pedidosConCuentaHabilitada.length === 0) {
-      this.feedback.showToast('error', 'No tenés cuentas habilitadas para pagar');
-      return;
-    }
-
-    if (pedidosConCuentaHabilitada.length === 1) {
-      // Si solo hay un pedido, ir directamente al pago
-      const pedido = pedidosConCuentaHabilitada[0];
-      this.feedback.showToast('exito', `Accediendo al pago de Mesa ${pedido.mesa}...`);
-      this.router.navigate(['/pagos', pedido.mesa]);
-      return;
-    }
-
-    // Si hay múltiples pedidos, mostrar selector
-    const opciones = pedidosConCuentaHabilitada.map(pedido => ({
-      text: `Mesa ${pedido.mesa} - $${pedido.cuenta}`,
-      handler: () => {
-        this.router.navigate(['/pagos', pedido.mesa]);
-      }
-    }));
-
-    opciones.push({
-      text: 'Cancelar',
-      handler: () => {}
-    });
-
+  /**
+   * Muestra un selector de propina usando AlertController
+   */
+  async mostrarSelectorPropina(pedido: any) {
     const alert = await this.alertController.create({
-      header: 'Seleccionar Mesa para Pagar',
-      message: 'Tenés múltiples cuentas habilitadas. Seleccioná cuál querés pagar:',
-      buttons: opciones
+      header: '¿Cuánto querés dejar de propina?',
+      message: `Subtotal: $${this.calcularSubtotal(pedido).toFixed(2)}`,
+      inputs: [
+        { name: 'propina', type: 'radio', label: '0% - Sin propina', value: 0 },
+        { name: 'propina', type: 'radio', label: '5%', value: 5 },
+        { name: 'propina', type: 'radio', label: '10%', value: 10, checked: true },
+        { name: 'propina', type: 'radio', label: '15%', value: 15 },
+        { name: 'propina', type: 'radio', label: '20%', value: 20 }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Confirmar',
+          handler: async (data) => {
+            const propina = data;
+            await this.guardarPropina(pedido, propina);
+          }
+        }
+      ]
     });
 
     await alert.present();
   }
 
+  /**
+   * Guarda la propina seleccionada en el pedido
+   */
+  async guardarPropina(pedido: any, propina: number) {
+    try {
+      await this.supabase.actualizarPedido(pedido.id, {
+        propina: propina
+      });
+      
+      this.feedback.showToast('exito', `✅ Propina del ${propina}% registrada. Esperando habilitación del mozo.`);
+      
+    } catch (error) {
+      console.error('Error al guardar propina:', error);
+      this.feedback.showToast('error', 'Error al guardar la propina. Intentá nuevamente.');
+    }
+  }
+
+  // ========== CÁLCULOS DE CUENTA ==========
+
+  calcularSubtotal(pedido: any): number {
+    if (!pedido) return 0;
+
+    let subtotal = 0;
+
+    // Función helper para calcular el precio de un item
+    const calcularPrecioItem = (item: any): number => {
+      // Si tiene precioTotal, usarlo
+      if (item.precioTotal) return item.precioTotal;
+      // Si no, calcular precio * cantidad
+      const precio = item.precio || 0;
+      const cantidad = item.cantidad || 1;
+      return precio * cantidad;
+    };
+
+    if (pedido.comidas && Array.isArray(pedido.comidas)) {
+      subtotal += pedido.comidas.reduce((sum: number, c: any) => sum + calcularPrecioItem(c), 0);
+    }
+
+    if (pedido.bebidas && Array.isArray(pedido.bebidas)) {
+      subtotal += pedido.bebidas.reduce((sum: number, b: any) => sum + calcularPrecioItem(b), 0);
+    }
+
+    if (pedido.postres && Array.isArray(pedido.postres)) {
+      subtotal += pedido.postres.reduce((sum: number, p: any) => sum + calcularPrecioItem(p), 0);
+    }
+
+    return subtotal;
+  }
+
+  calcularDescuento(pedido: any): number {
+    if (!pedido || !pedido.descuento) return 0;
+    const subtotal = this.calcularSubtotal(pedido);
+    return (subtotal * pedido.descuento) / 100;
+  }
+
+  calcularPropina(pedido: any): number {
+    if (!pedido || !pedido.propina) return 0;
+    const subtotal = this.calcularSubtotal(pedido);
+    const descuento = this.calcularDescuento(pedido);
+    const basePropina = subtotal - descuento;
+    return (basePropina * pedido.propina) / 100;
+  }
+
+  calcularTotal(pedido: any): number {
+    const subtotal = this.calcularSubtotal(pedido);
+    const descuento = this.calcularDescuento(pedido);
+    const propina = this.calcularPropina(pedido);
+    return subtotal - descuento + propina;
+  }
+
+  /**
+   * Procesa el pago del pedido (simulado)
+   * El cliente espera confirmación del mozo
+   */
+  async procesarPago(pedido: any) {
+    try {
+      const total = this.calcularTotal(pedido);
+      
+      // Marcar el pedido como pagado (pendiente de confirmación del mozo)
+      await this.supabase.actualizarPedido(pedido.id, {
+        pagado: total,
+        estado: 'pagado_pendiente' // Estado intermedio hasta que el mozo confirme
+      });
+      
+      // Notificar al mozo, dueño y supervisor
+      await this.notificationService.notificarPagoExitoso(pedido.mesa, total);
+      
+      this.feedback.showToast('exito', '✅ ¡Pago registrado! Esperando confirmación del mozo.');
+      
+    } catch (error) {
+      console.error('Error al procesar pago:', error);
+      this.feedback.showToast('error', 'Error al procesar el pago. Intentá nuevamente.');
+    }
+  }
 
 }

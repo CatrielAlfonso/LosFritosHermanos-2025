@@ -93,6 +93,10 @@ const routes: Routes = [
     loadComponent: () => import('./componentes/carrito/carrito.component').then(m => m.CarritoComponent)
   },
   {
+    path: 'carrito/:mesa',
+    loadComponent: () => import('./componentes/carrito/carrito.component').then(m => m.CarritoComponent)
+  },
+  {
     path: 'maitre',
     loadComponent: () => import('./componentes/maitre-mesas/maitre-mesas.component').then(m => m.MaitreMesasComponent)
   },

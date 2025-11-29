@@ -13,12 +13,12 @@ import {
   IonFooter,
   IonTextarea,
   IonItem,
-  IonSpinner,
   ToastController
 } from '@ionic/angular/standalone';
 import { SupabaseService } from '../../servicios/supabase.service';
 import { AuthService } from '../../servicios/auth.service';
 import { DeliveryService } from '../../servicios/delivery.service';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, sendOutline } from 'ionicons/icons';
 
@@ -39,7 +39,8 @@ import { arrowBackOutline, sendOutline } from 'ionicons/icons';
     IonIcon,
     IonFooter,
     IonTextarea,
-    IonItem
+    IonItem,
+    FritosSpinnerComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
@@ -179,11 +180,15 @@ export class ChatDeliveryComponent implements OnInit {
         },
         (payload: any) => {
           console.log('Nuevo mensaje recibido:', payload);
-          this.mensajes.push(payload.new);
-          setTimeout(() => this.scrollToBottom(), 100);
           
-          // Marcar como leído si es de la otra parte
+          // Solo agregar si es de la otra parte (evitar duplicados de mensajes propios)
           if (payload.new.remitente_tipo !== this.miTipo) {
+            // Verificar que no exista ya el mensaje (por si acaso)
+            const yaExiste = this.mensajes.some(m => m.id === payload.new.id);
+            if (!yaExiste) {
+              this.mensajes.push(payload.new);
+              setTimeout(() => this.scrollToBottom(), 100);
+            }
             this.marcarMensajeComoLeido(payload.new.id);
           }
         }
@@ -193,6 +198,9 @@ export class ChatDeliveryComponent implements OnInit {
 
   async enviarMensaje() {
     if (!this.nuevoMensaje.trim() || !this.conversacionId) return;
+
+    const mensajeTexto = this.nuevoMensaje.trim();
+    this.nuevoMensaje = ''; // Limpiar input inmediatamente
 
     try {
       const { data: { user } } = await this.auth.getCurrentUser();
@@ -211,19 +219,24 @@ export class ChatDeliveryComponent implements OnInit {
         return;
       }
 
-      const { error } = await this.supabase.supabase
+      const nuevoMensajeObj = {
+        conversacion_id: this.conversacionId,
+        remitente_tipo: this.miTipo,
+        remitente_id: remitente.id,
+        remitente_nombre: `${remitente.nombre} ${remitente.apellido || ''}`,
+        mensaje: mensajeTexto
+      };
+
+      const { data, error } = await this.supabase.supabase
         .from('mensajes_delivery')
-        .insert([{
-          conversacion_id: this.conversacionId,
-          remitente_tipo: this.miTipo,
-          remitente_id: remitente.id,
-          remitente_nombre: `${remitente.nombre} ${remitente.apellido || ''}`,
-          mensaje: this.nuevoMensaje.trim()
-        }]);
+        .insert([nuevoMensajeObj])
+        .select()
+        .single();
 
       if (error) throw error;
 
-      this.nuevoMensaje = '';
+      // Agregar el mensaje a la lista inmediatamente
+      this.mensajes.push(data);
       setTimeout(() => this.scrollToBottom(), 100);
     } catch (error: any) {
       console.error('Error al enviar mensaje:', error);

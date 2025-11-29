@@ -14,8 +14,10 @@
 <ion-content class="chat-content">
   <!-- Loading -->
   <div *ngIf="cargando" class="loading-container">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Cargando conversación...</p>
+    <app-fritos-spinner 
+      size="medium" 
+      mensaje="Cargando conversación...">
+    </app-fritos-spinner>
   </div>
 
   <!-- Sin conversación -->

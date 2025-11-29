@@ -1,3 +1,97 @@
-<p>
-  memoria-de-sabores works!
-</p>
+<div class="component">
+
+  <!-- PANTALLA DE INICIO -->
+  @if (gameState === 'inicio') {
+    <div class="game-overlay">
+      <h1 class="titulo-juego">🧠 Memoria de Sabores</h1>
+      
+      <p class="estado-mensaje" 
+         [class.puede-ganar]="puedeJugarPorDescuento"
+         [class.sin-descuento]="!puedeJugarPorDescuento">
+        {{ getMensajeInicio() }}
+      </p>
+      
+      <p class="instrucciones">
+        Encontrá todos los pares de comidas. 
+        Tenés {{ maxIntentos }} intentos máximo para ganar el descuento.
+      </p>
+      
+      <ion-button expand="block" [color]="puedeJugarPorDescuento ? 'success' : 'primary'" (click)="iniciarJuego()">
+        <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+        {{ puedeJugarPorDescuento ? 'Comenzar (Intento por Descuento)' : 'Jugar' }}
+      </ion-button>
+      
+      <ion-button expand="block" fill="outline" color="medium" (click)="volverAlMenu()">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Volver
+      </ion-button>
+    </div>
+  }
+
+  <!-- PANTALLA DE JUEGO -->
+  @if (gameState === 'jugando') {
+    <div class="game-header">
+      <div class="stat">
+        <span class="stat-label">Intentos:</span>
+        <span class="stat-value" [class.warning]="intentos > maxIntentos - 3">{{ intentos }}/{{ maxIntentos }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Pares:</span>
+        <span class="stat-value success">{{ paresEncontrados }}/{{ totalPares }}</span>
+      </div>
+    </div>
+    
+    <div class="tablero">
+      @for (carta of cartas; track carta.id) {
+        <div 
+          class="carta" 
+          [class.volteada]="carta.volteada || carta.encontrada"
+          [class.encontrada]="carta.encontrada"
+          (click)="voltearCarta(carta)">
+          
+          <div class="carta-inner">
+            <div class="carta-front">
+              <ion-icon name="help-outline"></ion-icon>
+            </div>
+            <div class="carta-back">
+              <img [src]="carta.imagen" [alt]="carta.nombre">
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- PANTALLA DE RESULTADO -->
+  @if (gameState === 'terminado') {
+    <div class="game-overlay resultado">
+      <h1 class="titulo-juego">
+        {{ gano ? '🎉 ¡GANASTE!' : '💔 Game Over' }}
+      </h1>
+      
+      <div class="score-card">
+        <p class="stat-final">Pares encontrados: {{ paresEncontrados }}/{{ totalPares }}</p>
+        <p class="stat-final">Intentos usados: {{ intentos }}</p>
+        
+        @if (gano && puedeJugarPorDescuento === false && !yaUsoIntento) {
+          <p class="descuento-ganado">🎉 +{{ descuentoJuego }}% de descuento</p>
+        }
+      </div>
+      
+      <div class="mensaje-resultado">
+        <p>{{ mensajeResultado }}</p>
+      </div>
+
+      <ion-button expand="block" color="secondary" (click)="reiniciarJuego()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Jugar de Nuevo
+      </ion-button>
+      
+      <ion-button expand="block" fill="outline" color="medium" (click)="volverAlMenu()">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Volver al Menú de Juegos
+      </ion-button>
+    </div>
+  }
+
+</div>

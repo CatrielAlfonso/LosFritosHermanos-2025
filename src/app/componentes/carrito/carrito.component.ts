@@ -7,6 +7,7 @@ import { CarritoService, CartItem } from 'src/app/servicios/carrito.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
+import Swal from 'sweetalert2';
 
 
 
@@ -36,9 +37,48 @@ export class CarritoComponent {
   ) {}
 
 
-  ngOnInit(){
-    this.user = this.authService.userActual
-    this.mesa = this.route.snapshot.paramMap.get('mesa') || ''
+  async ngOnInit(){
+    this.user = this.authService.userActual;
+    this.mesa = this.route.snapshot.paramMap.get('mesa') || '';
+    
+    console.log('🛒 [Carrito] Inicializando...');
+    console.log('🛒 [Carrito] Mesa desde parámetro de ruta:', this.mesa);
+    
+    // Si no hay mesa en la ruta, intentar obtenerla de lista_espera
+    if (!this.mesa && this.user) {
+      await this.obtenerMesaDelUsuario();
+    }
+    
+    console.log('🛒 [Carrito] Mesa final:', this.mesa);
+  }
+
+  async obtenerMesaDelUsuario() {
+    try {
+      const { data: authData } = await this.authService.getCurrentUser();
+      if (!authData?.user?.email) {
+        console.log('🛒 [Carrito] No hay usuario logueado');
+        return;
+      }
+
+      const email = authData.user.email;
+      console.log('🛒 [Carrito] Buscando mesa para email:', email);
+
+      const { data: clienteEnLista, error } = await this.supabase.supabase
+        .from('lista_espera')
+        .select('mesa_asignada')
+        .eq('correo', email)
+        .not('mesa_asignada', 'is', null)
+        .single();
+
+      if (!error && clienteEnLista?.mesa_asignada) {
+        this.mesa = String(clienteEnLista.mesa_asignada);
+        console.log('🛒 [Carrito] Mesa obtenida de lista_espera:', this.mesa);
+      } else {
+        console.log('🛒 [Carrito] No se encontró mesa asignada en lista_espera');
+      }
+    } catch (error) {
+      console.error('🛒 [Carrito] Error al obtener mesa:', error);
+    }
   }
 
   aumentarCantidad(item: CartItem) {
@@ -54,64 +94,117 @@ export class CarritoComponent {
   }
 
   async eliminarItem(item: CartItem) {
-    const alert = await this.alertController.create({
-      header: 'Eliminar producto',
-      message: `¿Estás seguro de que querés eliminar ${item.nombre} del carrito?`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Eliminar',
-          handler: () => {
-            this.carritoService.eliminarProducto(item.id);
-          }
-        }
-      ]
-    });
 
-    await alert.present();
+    Swal.fire({
+      title: 'Eliminar producto',
+      text: `¿Estás seguro de que querés eliminar ${item.nombre} del carrito?`,
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d32f2f', // Tu color --ion-color-primary (Rojo fuerte)
+      cancelButtonColor: '#ff9800',  // Tu color --ion-color-fritos-orange
+      heightAuto: false, // ⚠️ IMPORTANTE PARA IONIC: Evita que la pantalla "salte"
+      backdrop: true,    // Oscurece el fondo
+      allowOutsideClick: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.carritoService.eliminarProducto(item.id)
+      }
+    })
+
+
+    // const alert = await this.alertController.create({
+    //   header: 'Eliminar producto',
+    //   message: `¿Estás seguro de que querés eliminar ${item.nombre} del carrito?`,
+    //   buttons: [
+    //     {
+    //       text: 'Cancelar',
+    //       role: 'cancel'
+    //     },
+    //     {
+    //       text: 'Eliminar',
+    //       handler: () => {
+    //         this.carritoService.eliminarProducto(item.id);
+    //       }
+    //     }
+    //   ]
+    // });
+
+    // await alert.present();
   }
 
   async confirmarPedido() {
     if (this.items().length === 0) return;
 
-    const alert = await this.alertController.create({
-      header: 'Confirmar pedido',
-      message: `¿Confirmás tu pedido de ${this.totalItems()} productos por ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(this.total())}?`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Confirmar',
-          handler: () => {
-            this.realizarPedido();
-          }
-        }
-      ]
-    });
+    Swal.fire({
+      title: 'Confirmar pedido',
+      text: `¿Confirmás tu pedido de ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(this.total())}?`,
+      icon: 'question',
+      confirmButtonText: 'Confirmar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d32f2f', // Tu color --ion-color-primary (Rojo fuerte)
+      cancelButtonColor: '#ff9800',  // Tu color --ion-color-fritos-orange
+      heightAuto: false, // ⚠️ IMPORTANTE PARA IONIC: Evita que la pantalla "salte"
+      backdrop: true,    // Oscurece el fondo
+      allowOutsideClick: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.realizarPedido();
+      }
+    })
 
-    await alert.present();
+    // const alert = await this.alertController.create({
+    //   header: 'Confirmar pedido',
+    //   message: `¿Confirmás tu pedido de ${this.totalItems()} productos por ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(this.total())}?`,
+    //   buttons: [
+    //     {
+    //       text: 'Cancelar',
+    //       role: 'cancel'
+    //     },
+    //     {
+    //       text: 'Confirmar',
+    //       handler: () => {
+    //         this.realizarPedido();
+    //       }
+    //     }
+    //   ]
+    // });
+
+    // await alert.present();
   }
 
   async realizarPedido() {
     try {
       if (!this.user) {
-      throw new Error('Usuario no autenticado');
-    }
-    console.log('user', this.user().id)
+        throw new Error('Usuario no autenticado');
+      }
+      
+      console.log('🛒 [realizarPedido] Iniciando pedido...');
+      console.log('🛒 [realizarPedido] User ID:', this.user().id);
+      console.log('🛒 [realizarPedido] Mesa:', this.mesa);
+      
+      // Si la mesa está vacía, intentar obtenerla nuevamente
+      if (!this.mesa) {
+        console.log('🛒 [realizarPedido] Mesa vacía, intentando obtener...');
+        await this.obtenerMesaDelUsuario();
+        console.log('🛒 [realizarPedido] Mesa después de obtener:', this.mesa);
+      }
+      
       const itemsCarrito = this.items();
       if (itemsCarrito.length === 0) {
         throw new Error('El carrito está vacío');
       }
+      
       const pedido = this.carritoService.generarPedidoParaConfirmacion(
         this.user().id,
         this.mesa,
         this.observaciones,
       );
+      
+      console.log('🛒 [realizarPedido] Pedido generado:', pedido);
+      console.log('🛒 [realizarPedido] Mesa en pedido:', pedido.mesa);
       const { data, error } = await this.supabase.supabase
       .from('pedidos')
       .insert([pedido])

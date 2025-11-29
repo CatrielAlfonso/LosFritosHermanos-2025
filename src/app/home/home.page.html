@@ -36,7 +36,7 @@
     <p class="fritos-subtitle">Perfil: {{ tipoUsuario | titlecase }}</p>
 
   
-    <div *ngIf="tipoUsuario === 'dueño' || tipoUsuario === 'supervisor'" class="admin-options">
+    <div *ngIf="(tipoUsuario === 'dueño' || tipoUsuario === 'supervisor') && !esClienteAnonimo" class="admin-options">
       <h3 class="fritos-subtitle">Panel de Administración</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro-empleados')">
@@ -66,7 +66,7 @@
 
     </div>
 
-    <div *ngIf="esMaitre && !esAdmin" class="maitre-options">
+    <div *ngIf="esMaitre && !esAdmin && !esClienteAnonimo" class="maitre-options">
       <h3 class="fritos-subtitle">Panel de Maître</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro')">
@@ -92,7 +92,7 @@
     </div>
 
  
-    <div *ngIf="tipoUsuario === 'cocinero'" class="cocinero-options">
+    <div *ngIf="tipoUsuario === 'cocinero' && !esClienteAnonimo" class="cocinero-options">
       <h3 class="fritos-subtitle">Panel de Cocinero</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irARegistro('/registro-plato')">
@@ -106,7 +106,7 @@
       </ion-button>
     </div>
 
-    <div *ngIf="tipoUsuario === 'bartender'" class="bartender-options">
+    <div *ngIf="tipoUsuario === 'bartender' && !esClienteAnonimo" class="bartender-options">
       <h3 class="fritos-subtitle">Panel de Bartender</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/bebidas']" routerLinkActive="router-link-active" >
@@ -120,7 +120,7 @@
       </ion-button>
     </div>
 
-    <div *ngIf="tipoUsuario === 'mozo'" class="mozo-options">
+    <div *ngIf="tipoUsuario === 'mozo' && !esClienteAnonimo" class="mozo-options">
       <h3 class="fritos-subtitle">Panel de Mozo</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irAPedidosMozo()">
@@ -134,7 +134,7 @@
       </ion-button>
     </div>
 
-    <div *ngIf="tipoUsuario === 'repartidor'" class="repartidor-options">
+    <div *ngIf="tipoUsuario === 'repartidor' && !esClienteAnonimo" class="repartidor-options">
       <h3 class="fritos-subtitle">Panel de Repartidor</h3>
       
       <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/panel-repartidor">
@@ -143,35 +143,56 @@
       </ion-button>
     </div>
 
-    <div *ngIf="tipoUsuario === 'cliente'" class="cliente-options">
+    <div *ngIf="tipoUsuario === 'cliente' || esClienteAnonimo" class="cliente-options">
       <h3 class="fritos-subtitle">Panel de Cliente</h3>
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']">
+      <!-- Botón para clientes anónimos: Escanear QR para Ver Encuestas -->
+      @if (esClienteAnonimo)
+      {
+        <ion-button
+          expand="block" 
+          color="fritos-red" 
+          class="fritos-button" 
+          (click)="ocultarMensajeListaEspera(); escanearQRParaVerEncuestas()">
+          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+          Escanear QR para Ver Encuestas
+        </ion-button>
+      }
+      
+      @if (esClienteAnonimo && yaEnListaEspera && !mesaAsignada && mostrarMensajeListaEspera)
+      {
+        <ion-card color="warning">
+          <ion-card-content>
+            <p>✅ Ya estás en la lista de espera. El maître te asignará una mesa pronto.</p>
+            <ion-button fill="clear" size="small" (click)="ocultarMensajeListaEspera()">
+              Cerrar
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      }
+      
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="restaurant-outline" slot="start"></ion-icon>
         Ver Menú
       </ion-button>
 
-      <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
-          <ion-icon name="game-controller-outline" slot="start"></ion-icon>
-          Juegos
-      </ion-button>
-
-      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/reservas']">
+      <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/reservas']" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="calendar-outline" slot="start"></ion-icon>
         Mis Reservas
       </ion-button>
 
-      <ion-button expand="block" color="fritos-green" class="fritos-button" [routerLink]="['/menu']" [queryParams]="{tipo: 'delivery'}">
+      <ion-button expand="block" color="fritos-green" class="fritos-button" [routerLink]="['/menu']" [queryParams]="{tipo: 'delivery'}" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="bicycle-outline" slot="start"></ion-icon>
         Pedir Delivery
       </ion-button>
 
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/mis-pedidos-delivery">
+      <ion-button expand="block" color="fritos-blue" class="fritos-button" routerLink="/mis-pedidos-delivery" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="receipt-outline" slot="start"></ion-icon>
         Mis Pedidos Delivery
       </ion-button>
 
-      @if (tipoUsuario === 'cliente' && mostrarBotonEscanearMesa && !clienteSentado)
+      <!-- Botón Escanear QR Mesa - siempre visible mientras tenga mesa asignada -->
+      @if ((tipoUsuario === 'cliente' || esClienteAnonimo) && mostrarBotonEscanearMesa)
       {
         <ion-button
         expand="block" color="fritos-orange" class="fritos-button" (click)="escanearMesaAsignada()">
@@ -180,41 +201,56 @@
         </ion-button>
       }
       
-      <ion-button 
-      *ngIf="perfilUsuario === 'cliente' && mostrarBotonHacerPedido" 
-      expand="block" 
-      class="btn-pedidos btn-solicitar-mesa"
-      (click)="escanearQRParaMenu()">
-      <div class="boton-contenido-columna">
-        <ion-icon name="qr-code-outline"></ion-icon>
-        <span class="boton-texto">HACER PEDIDO</span>
-      </div>
-      </ion-button>
+      <!-- Botón Ver Estado del Pedido - visible después de escanear QR y tener pedido -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && mostrarBotonVerEstadoPedido && pedidoActualCliente && qrMesaEscaneado)
+      {
+        <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irAVerEstadoPedido()">
+          <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+          Ver Estado del Pedido
+        </ion-button>
+      }
 
-      @if (perfilUsuario === 'cliente' && pedidoActualCliente?.recepcion && pedidoActualCliente?.cuenta === 'pedida' && !clienteInfo?.encuesta)
+      <!-- Juegos - visible después de escanear QR y cuando el pedido está confirmado O después de confirmar recepción -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente && qrMesaEscaneado && (
+        (pedidoActualCliente.confirmado && (pedidoActualCliente.estado === 'en preparacion' || pedidoActualCliente.estado === 'listo')) ||
+        (pedidoActualCliente.estado === 'entregado' && pedidoActualCliente.recepcion)
+      ))
+      {
+        <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAJuegos()">
+          <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+          Juegos
+        </ion-button>
+      }
+
+      <!-- Encuestas - visible después de confirmar recepción del pedido (si no completó encuesta) -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.recepcion && pedidoActualCliente?.estado === 'entregado' && !clienteInfo?.encuesta && qrMesaEscaneado)
       {
         <ion-button expand="block" color="fritos-red" class="fritos-button" (click)="irAEncuestas()">
           <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
           Encuestas
         </ion-button>
-  
-        
       }
 
-      @if(perfilUsuario === 'cliente' && !yaEnListaEspera && !clienteSentado)
+      <!-- Ver Resultados de Encuestas - visible si ya completó la encuesta -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && clienteInfo?.encuesta && qrMesaEscaneado)
+      {
+        <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="verResultadosEncuestas()">
+          <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
+          Ver Resultados de Encuestas
+        </ion-button>
+      }
+
+      @if((perfilUsuario === 'cliente' || esClienteAnonimo) && !yaEnListaEspera && !clienteSentado)
       {
         <ion-button 
-          *ngIf="perfilUsuario === 'cliente' && !yaEnListaEspera && !clienteSentado" 
           expand="block" 
           class="btn-pedidos btn-solicitar-mesa"
-          (click)="escanearQR()">
+          (click)="ocultarMensajeListaEspera(); escanearQR()">
           <div class="boton-contenido-columna">
             <ion-icon name="qr-code-outline"></ion-icon>
             <span class="boton-texto">SOLICITAR MESA</span>
           </div>
         </ion-button>
-
-        
       }
 
 

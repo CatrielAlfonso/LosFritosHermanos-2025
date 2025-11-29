@@ -4,13 +4,14 @@ import { IonicModule } from '@ionic/angular';
 import { SupabaseService } from '../../servicios/supabase.service';
 import { PushNotificationService } from '../../servicios/push-notification.service';
 import { Router } from '@angular/router';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 
 @Component({
   selector: 'app-aprobacion-clientes',
   templateUrl: './aprobacion-clientes.component.html',
   styleUrls: ['./aprobacion-clientes.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule]
+  imports: [CommonModule, IonicModule, FritosSpinnerComponent]
 })
 export class AprobacionClientesComponent implements OnInit {
   clientesPendientes: any[] = [];

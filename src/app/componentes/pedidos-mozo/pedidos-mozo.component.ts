@@ -23,7 +23,9 @@ export class PedidosMozoComponent  implements OnInit {
   
   return todosPedidos.filter(pedido => 
     pedido.estado === 'pendiente' || 
-    pedido.estado === 'en preparacion' 
+    pedido.estado === 'en preparacion' ||
+    pedido.estado === 'entregado' ||
+    pedido.estado === 'pagado_pendiente'
   );
 });
   categoriasAbiertas = signal<{[key: string]: {[categoria: string]: boolean}}>({});
@@ -97,10 +99,27 @@ segmentoActivo = 'activos';
 
   async aceptarPedido(pedido: any) {
     try{
-      await this.sb.actualizarPedido(pedido.id, {
+      // Determinar qué sectores tienen productos
+      const tieneComidas = pedido.comidas?.length > 0 || pedido.postres?.length > 0;
+      const tieneBebidas = pedido.bebidas?.length > 0;
+      
+      // Preparar objeto de actualización con estados derivados
+      const actualizacion: any = {
         estado: 'en preparacion',
         confirmado: true
-      });
+      };
+      
+      // Derivar a cocina si hay comidas/postres
+      if (tieneComidas) {
+        actualizacion.estado_comida = 'derivado';
+      }
+      
+      // Derivar a bar si hay bebidas
+      if (tieneBebidas) {
+        actualizacion.estado_bebida = 'derivado';
+      }
+      
+      await this.sb.actualizarPedido(pedido.id, actualizacion);
       
       // Notificar al cliente que el pedido fue confirmado
       try {
@@ -293,8 +312,11 @@ segmentoActivo = 'activos';
   getEstadoTexto(estado: string): string {
     const estados: {[key: string]: string} = {
       'pendiente': 'Pendiente',
+      'derivado': 'Derivado a sectores',
       'en preparacion': 'En Preparación', 
       'listo': 'Listo',
+      'entregado': 'Entregado',
+      'pagado_pendiente': '💰 Pago pendiente',
       'finalizado' : 'Finalizado'
     };
     return estados[estado] || estado;

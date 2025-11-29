@@ -29,12 +29,31 @@
       <div class="pedido-header">
         <div class="pedido-info">
           <h2 class="pedido-fecha">{{pedido.fecha_pedido | date:'dd/MM/yyyy HH:mm'}}</h2>
-          <div class="estado-badge" [class]="'estado-' + pedido.estado">
-            {{getEstadoTexto(pedido.estado)}}
+          <div class="estado-badge" [class]="'estado-' + pedido.estado" 
+               [class.estado-derivado]="pedido.estado === 'en preparacion' && (pedido.estado_comida === 'derivado' || pedido.estado_bebida === 'derivado')">
+            {{getEstadoDetallado(pedido)}}
           </div>
         </div>
         <div class="pedido-total">
           <span class="total-pedido">{{pedido.cuenta | currency}}</span>
+        </div>
+      </div>
+      
+      <!-- Estados por sector (solo si está en preparación) -->
+      <div *ngIf="pedido.estado === 'en preparacion'" class="estados-sectores">
+        <div *ngIf="getEstadoSectores(pedido).cocina" class="sector-estado">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <span class="sector-nombre">Cocina:</span>
+          <span class="sector-valor" [class.listo]="pedido.estado_comida === 'listo'">
+            {{getEstadoSectores(pedido).cocina}}
+          </span>
+        </div>
+        <div *ngIf="getEstadoSectores(pedido).bar" class="sector-estado">
+          <ion-icon name="wine-outline"></ion-icon>
+          <span class="sector-nombre">Bar:</span>
+          <span class="sector-valor" [class.listo]="pedido.estado_bebida === 'listo'">
+            {{getEstadoSectores(pedido).bar}}
+          </span>
         </div>
       </div>
 
@@ -78,7 +97,18 @@
           Eliminar
         </button>
       </div>
-      @if(pedido.estado === 'entregado' && !pedido.solicita_cuenta && !pedido.cuenta_habilitada){
+      <!-- Botón Confirmar Recepción - cuando el mozo entregó pero el cliente no confirmó -->
+      @if(pedido.estado === 'entregado' && !pedido.recepcion){
+        <div class="pedido-actions">
+          <button class="btn-confirmar-recepcion" (click)="confirmarRecepcion(pedido)">
+            <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+            Confirmar Recepción del Pedido
+          </button>
+        </div>
+      }
+
+      <!-- Botón Pedir Cuenta - solo después de confirmar recepción -->
+      @if(pedido.estado === 'entregado' && pedido.recepcion && !pedido.solicita_cuenta && !pedido.cuenta_habilitada){
         <div class="pedido-actions">
           <button class="btn-pedir-cuenta" (click)="pedirCuenta(pedido)">
             <ion-icon name="receipt-outline"></ion-icon>
@@ -86,20 +116,149 @@
           </button>
         </div>
       }
-      @if(pedido.solicita_cuenta){
+      <!-- Cuenta solicitada - Escanear QR Propina (si no cargó propina aún) -->
+      @if(pedido.solicita_cuenta && pedido.propina === null){
         <div class="pedido-actions">
-          <button class="btn-pedir-cuenta">
-            <ion-icon name="receipt-outline"></ion-icon>
-            Cuenta solicitada
+          <button class="btn-escanear-propina" (click)="escanearQRPropina(pedido)">
+            <ion-icon name="qr-code-outline"></ion-icon>
+            Escanear QR Propina
           </button>
         </div>
       }
-      @if(pedido.cuenta_habilitada && !pedido.solicita_cuenta){
+
+      <!-- Propina cargada - Esperando que el mozo habilite la cuenta -->
+      @if(pedido.solicita_cuenta && pedido.propina !== null && !pedido.cuenta_habilitada){
+        <div class="propina-cargada">
+          <ion-icon name="checkmark-circle"></ion-icon>
+          <span>Propina: {{pedido.propina}}%</span>
+          <span class="estado-espera">Esperando habilitación del mozo...</span>
+        </div>
+      }
+
+      <!-- Cuenta habilitada - Mostrar detalle completo y botón pagar -->
+      @if(pedido.cuenta_habilitada && pedido.estado !== 'pagado_pendiente' && pedido.estado !== 'finalizado'){
+        <div class="detalle-cuenta">
+          <h4 class="detalle-titulo">
+            <ion-icon name="receipt-outline"></ion-icon>
+            Detalle de la Cuenta
+          </h4>
+          
+          <!-- Productos pedidos con precios unitarios -->
+          <div class="seccion-productos">
+            @if(pedido.comidas && pedido.comidas.length > 0){
+              <div class="categoria-productos">
+                <span class="categoria-titulo">🍔 Comidas</span>
+                @for(item of pedido.comidas; track item.nombre){
+                  <div class="producto-linea">
+                    <div class="producto-info">
+                      <span class="producto-cantidad">{{item.cantidad}}x</span>
+                      <span class="producto-nombre">{{item.nombre}}</span>
+                      <span class="producto-precio-unit">({{item.precio | currency}} c/u)</span>
+                    </div>
+                    <span class="producto-importe">{{item.precio * item.cantidad | currency}}</span>
+                  </div>
+                }
+              </div>
+            }
+            
+            @if(pedido.bebidas && pedido.bebidas.length > 0){
+              <div class="categoria-productos">
+                <span class="categoria-titulo">🥤 Bebidas</span>
+                @for(item of pedido.bebidas; track item.nombre){
+                  <div class="producto-linea">
+                    <div class="producto-info">
+                      <span class="producto-cantidad">{{item.cantidad}}x</span>
+                      <span class="producto-nombre">{{item.nombre}}</span>
+                      <span class="producto-precio-unit">({{item.precio | currency}} c/u)</span>
+                    </div>
+                    <span class="producto-importe">{{item.precio * item.cantidad | currency}}</span>
+                  </div>
+                }
+              </div>
+            }
+            
+            @if(pedido.postres && pedido.postres.length > 0){
+              <div class="categoria-productos">
+                <span class="categoria-titulo">🍰 Postres</span>
+                @for(item of pedido.postres; track item.nombre){
+                  <div class="producto-linea">
+                    <div class="producto-info">
+                      <span class="producto-cantidad">{{item.cantidad}}x</span>
+                      <span class="producto-nombre">{{item.nombre}}</span>
+                      <span class="producto-precio-unit">({{item.precio | currency}} c/u)</span>
+                    </div>
+                    <span class="producto-importe">{{item.precio * item.cantidad | currency}}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          
+          <!-- Separador -->
+          <div class="separador-cuenta"></div>
+          
+          <!-- Subtotal -->
+          <div class="linea-detalle subtotal">
+            <span>Subtotal</span>
+            <span>{{calcularSubtotal(pedido) | currency}}</span>
+          </div>
+          
+          <!-- Descuento por juegos -->
+          @if(pedido.descuento > 0){
+            <div class="linea-detalle descuento">
+              <div class="descuento-info">
+                <ion-icon name="game-controller-outline"></ion-icon>
+                <span>Descuento por Juegos ({{pedido.descuento}}%)</span>
+              </div>
+              <span class="descuento-monto">-{{calcularDescuento(pedido) | currency}}</span>
+            </div>
+          }
+          
+          <!-- Propina (grado de satisfacción) -->
+          @if(pedido.propina !== null && pedido.propina !== undefined){
+            <div class="linea-detalle propina">
+              <div class="propina-info">
+                <ion-icon name="heart-outline"></ion-icon>
+                <span>Propina - Satisfacción ({{pedido.propina}}%)</span>
+              </div>
+              <span class="propina-monto">{{calcularPropina(pedido) | currency}}</span>
+            </div>
+          }
+          
+          <!-- Separador grueso -->
+          <div class="separador-total"></div>
+          
+          <!-- TOTAL grande y claro -->
+          <div class="linea-total-final">
+            <span class="total-label">TOTAL A PAGAR</span>
+            <span class="total-monto">{{calcularTotal(pedido) | currency}}</span>
+          </div>
+        </div>
+        
         <div class="pedido-actions">
-          <button class="btn-pedir-cuenta" (click)="escanearQRPropina()">
-            <ion-icon name="qr-code-outline"></ion-icon>
-            Escanear QR para pagar
+          <button class="btn-pagar" (click)="procesarPago(pedido)">
+            <ion-icon name="card-outline"></ion-icon>
+            Pagar {{calcularTotal(pedido) | currency}}
           </button>
+        </div>
+      }
+
+      <!-- Pago realizado - Esperando confirmación del mozo -->
+      @if(pedido.estado === 'pagado_pendiente'){
+        <div class="pago-pendiente">
+          <ion-icon name="hourglass-outline"></ion-icon>
+          <div class="pago-pendiente-info">
+            <span class="pago-titulo">Pago registrado: {{pedido.pagado | currency}}</span>
+            <span class="pago-estado">Esperando confirmación del mozo...</span>
+          </div>
+        </div>
+      }
+
+      <!-- Pedido finalizado -->
+      @if(pedido.estado === 'finalizado'){
+        <div class="pedido-finalizado">
+          <ion-icon name="checkmark-circle"></ion-icon>
+          <span>¡Gracias por tu visita! Pedido finalizado.</span>
         </div>
       } 
       

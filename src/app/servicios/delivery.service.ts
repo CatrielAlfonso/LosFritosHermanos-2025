@@ -717,6 +717,24 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
   }
 
   /**
+   * Actualiza el descuento ganado en un pedido delivery (por juego)
+   */
+  async actualizarDescuentoDelivery(pedidoId: number, porcentajeDescuento: number): Promise<void> {
+    const { error } = await this.supabase.supabase
+      .from('pedidos_delivery')
+      .update({ 
+        descuento_juego: porcentajeDescuento,
+        descuento_aplicado: porcentajeDescuento > 0
+      })
+      .eq('id', pedidoId);
+
+    if (error) {
+      console.error('Error al actualizar descuento:', error);
+      throw new Error(`Error al actualizar el descuento: ${error.message}`);
+    }
+  }
+
+  /**
    * Genera y envía la boleta de delivery en PDF por correo
    */
   async generarYEnviarBoletaDelivery(pedidoId: number, propina: number): Promise<void> {

@@ -49,7 +49,7 @@
     "onesignal-cordova-plugin": "^5.2.15",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
-    "sweetalert2": "^11.26.1",
+    "sweetalert2": "^11.26.3",
     "swiper": "^12.0.2",
     "tslib": "^2.3.0",
     "zone.js": "^0.15.1"

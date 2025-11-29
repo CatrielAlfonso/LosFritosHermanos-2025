@@ -73,9 +73,18 @@
           <span>{{pedido.observaciones_generales}}</span>
         </div>
 
-        <!-- Botón marcar como listo -->
+        <!-- Botón marcar como recibido (cuando está derivado) -->
         <button 
-          *ngIf="pedido.estado_comida !== 'listo'"
+          *ngIf="pedido.estado_comida === 'derivado'"
+          class="btn-recibido" 
+          (click)="marcarComoRecibido(pedido)">
+          <ion-icon name="download-outline"></ion-icon>
+          Marcar como Recibido
+        </button>
+
+        <!-- Botón marcar como listo (cuando está en preparación) -->
+        <button 
+          *ngIf="pedido.estado_comida === 'en preparacion'"
           class="btn-listo" 
           (click)="marcarComoListo(pedido)">
           <ion-icon name="checkmark-circle-outline"></ion-icon>

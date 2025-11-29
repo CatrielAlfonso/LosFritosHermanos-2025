@@ -23,8 +23,10 @@
   <div class="pedidos-container">
     <!-- Loading -->
     <div *ngIf="cargando" class="loading-container">
-      <ion-spinner name="crescent"></ion-spinner>
-      <p>Cargando tus pedidos...</p>
+      <app-fritos-spinner 
+        size="large" 
+        mensaje="Cargando tus pedidos...">
+      </app-fritos-spinner>
     </div>
 
     <!-- Sin pedidos -->
@@ -96,18 +98,49 @@
               Chat con Repartidor
             </ion-button>
 
-            <!-- Confirmar Entrega (solo si está entregado y no confirmado) -->
-            <ion-button 
-              *ngIf="pedido.estado === 'entregado'"
-              expand="block"
-              color="success"
-              (click)="confirmarEntrega(pedido)">
-              <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-              Confirmar Entrega
-            </ion-button>
+            <!-- Acciones para pedidos entregados (no confirmados aún) -->
+            <ng-container *ngIf="pedido.estado === 'entregado' && !pedidoYaConfirmado(pedido)">
+              <!-- Si NO se escaneó el QR, mostrar botón para escanear -->
+              <ng-container *ngIf="!qrEscaneado">
+                <ion-button 
+                  expand="block"
+                  color="primary"
+                  (click)="escanearQRDelivery()">
+                  <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+                  Escanear QR DELIVERY
+                </ion-button>
+                <ion-card color="light" class="info-qr-card">
+                  <ion-card-content>
+                    <p>Escaneá el código <strong>QR DELIVERY</strong> para acceder a juegos, encuesta y pagar</p>
+                  </ion-card-content>
+                </ion-card>
+              </ng-container>
+
+              <!-- Si SÍ se escaneó el QR, mostrar botones de acciones -->
+              <ng-container *ngIf="qrEscaneado">
+                <!-- Juegos -->
+                <ion-button 
+                  expand="block"
+                  fill="outline"
+                  color="warning"
+                  (click)="irAJuegos(pedido)">
+                  <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+                  🎮 Jugar por Descuento
+                </ion-button>
+
+                <!-- Confirmar Entrega / Encuesta / Pedir Cuenta (todo en uno) -->
+                <ion-button 
+                  expand="block"
+                  color="success"
+                  (click)="confirmarEntrega(pedido)">
+                  <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                  Confirmar, Encuesta y Pagar
+                </ion-button>
+              </ng-container>
+            </ng-container>
 
             <!-- Mensaje de confirmado -->
-            <div *ngIf="pedido.propina && pedido.propina > 0" class="confirmado-msg">
+            <div *ngIf="pedidoYaConfirmado(pedido)" class="confirmado-msg">
               <ion-icon name="checkmark-circle-outline"></ion-icon>
               <span>Pedido confirmado y evaluado</span>
             </div>

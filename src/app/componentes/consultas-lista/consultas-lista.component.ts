@@ -5,13 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ChatService, Consulta } from 'src/app/servicios/chat.service';
 import { Subscription } from 'rxjs';
+import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 
 @Component({
   selector: 'app-consultas-lista',
   templateUrl: './consultas-lista.component.html',
   styleUrls: ['./consultas-lista.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule]
+  imports: [CommonModule, IonicModule, FormsModule, FritosSpinnerComponent]
 })
 export class ConsultasListaComponent implements OnInit, OnDestroy {
   consultasPendientes: Consulta[] = [];
