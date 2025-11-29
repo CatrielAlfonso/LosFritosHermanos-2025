@@ -13,7 +13,7 @@ interface Game {
   descripcion: string;
   ruta: string;
   imagen: string;
-  descuento: number;
+  descuento?: number;
 }
 
 @Component({
@@ -44,6 +44,14 @@ export class GameSelectorComponent implements OnInit {
       ruta: '/atrapa-el-pollo',
       imagen: '../../assets/imgs/atrapaElPollo.png',
       descuento: JUEGOS_CONFIG['atrapa-el-pollo'].descuento
+    },
+    {
+      id: 'mozo-equilibrio',
+      nombre: 'Mozo Equilibrio',
+      descripcion: 'Evitá los obstáculos usando el giroscopio.',
+      ruta: '/mozo-quilibrio',
+      imagen: '../../assets/imgs/mozoEquilibrio.png',
+
     },
     {
       id: 'mayor-menor',

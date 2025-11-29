@@ -20,6 +20,7 @@ export interface ResultadoJuego {
 // Configuración de descuentos por juego
 export const JUEGOS_CONFIG = {
   'atrapa-el-pollo': { descuento: 10, nombre: 'Atrapa el Pollo' },
+  'mozo-equilibrio': { descuento: 5, nombre: 'Mozo Equilibrio' },
   'mayor-menor': { descuento: 15, nombre: 'Mayor o Menor' },
   'memoria-de-sabores': { descuento: 20, nombre: 'Memoria de Sabores' }
 } as const;

@@ -96,42 +96,48 @@
 
 .grid-juegos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 20px;
+  padding: 20px;
 }
 
 .card-juego {
- padding: 1rem;
-  border-radius: 1.2rem;
-  background: #f1d60f;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-  transition: transform .25s ease, box-shadow .25s ease;
+  background: #b7bd04;
+  border-radius: 14px;
+  padding: 15px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform .2s ease;
+}
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 26px rgba(0,0,0,0.18);
-  }
+.card-juego:hover {
+  transform: scale(1.03);
+}
 
-  button {
-    margin-top: 1rem;
-    background-color: #e69006;
-  }
+.juego-img {
+  width: 100%;
+  border-radius: 12px;
+  aspect-ratio: 1/1;
+  object-fit: cover;
 }
 
 .descripcion {
+  margin: 10px 0;
+  font-size: 15px;
+  text-align: center;
   color: #444;
-  font-size: 1rem;
-  margin-top: .5rem;
+}
+
+button[mat-raised-button] {
+  width: 100%;
+  padding: 12px 0;
+  font-size: 17px;
+  font-weight: bold;
+  border-radius: 10px;
 }
 
 * {
   font-family: 'Poppins', sans-serif !important;
-}
-
-.juego-img {
- width: 100%;
-  max-width: 450px;  // Ajustá a gusto
-  margin: 0 auto;
-  display: block;
-  border-radius: 1rem;
 }

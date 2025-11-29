@@ -44,15 +44,16 @@
     }
     
     ion-datetime {
-      --placeholder-color: #999 !important;
-      color: #333 !important;
+      background-color: white;
+      --placeholder-color: #d5d4d4 !important;
+      color: #200764 !important;
       
       &::part(text) {
-        color: #333 !important;
+        color: #ffffff !important;
       }
       
       &::part(placeholder) {
-        color: #999 !important;
+        color: #bababa !important;
       }
     }
   }
@@ -81,6 +82,7 @@
 }
 
 .reserva-card {
+  background-color: rgb(195, 189, 189);
   margin-bottom: 1.5rem;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

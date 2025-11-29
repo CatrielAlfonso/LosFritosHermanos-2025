@@ -1,120 +1,198 @@
+/* =========================================
+   VARIABLES DE MARCA
+   ========================================= */
+:host {
+  --fritos-orange: var(--ion-color-fritos-orange, #ff9800);
+  --fritos-yellow: var(--ion-color-fritos-yellow, #ffeb3b);
+  --fritos-blue: var(--ion-color-fritos-blue, #4666de);
+  --fritos-red: var(--ion-color-primary, #d32f2f);
+  --fritos-white: #ffffff;
+  --fritos-text: #333333;
+}
+
+/* Fondo general de la página */
 .bebida-content {
-  --background: #4666de;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  height: 100%;
-  
-  /* CLAVE PARA EL BORDE INFERIOR (Home bar en iOS o Android) */
-  --padding-bottom: var(--ion-safe-area-bottom, 16px); 
-  
-  /* Removemos el padding: 16px 0; para usar las variables oficiales de Ionic */
-  padding: 0; 
+  --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
 }
 
-/* Contenedor con aire lateral */
-/* 3. Asegurar que el contenido del formulario tenga el padding */
-.form-container {
-  padding: 0 20px; 
-  flex: 1; 
-  overflow-y: auto; 
-  margin-bottom: 16px;
-}
-
-/* Header animado */
+/* ----------------------------------- */
+/* ENCABEZADO CON ANIMACIÓN            */
+/* ----------------------------------- */
 .header-animado {
-  padding-top: var(--ion-safe-area-top);
   text-align: center;
-  color: #efbf2d;
-  margin-bottom: 20px;
-  animation: bounce 2s infinite;
+  padding: 30px 20px 20px;
+  animation: fadeInDown 0.8s ease-out;
+
+  h1 {
+    color: var(--fritos-blue);
+    font-weight: 900; /* Extra bold estilo cartoon */
+    font-size: 2.2rem;
+    margin: 0;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.4);
+    letter-spacing: 1px;
+  }
+
+  p {
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-top: 5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  }
 }
 
-.header-animado h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #efbf2d;
-  text-shadow: 2px 2px #dc2234;
+/* ----------------------------------- */
+/* TARJETA DEL FORMULARIO              */
+/* ----------------------------------- */
+.form-container {
+  background: var(--fritos-white);
+  margin: 10px 20px 40px; /* Margen para separarlo de los bordes */
+  padding: 25px;
+  border-radius: 20px;
+  border: 3px solid var(--fritos-blue); /* Borde de marca */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-.header-animado p {
-  font-size: 1.2rem;
-  color: #fff;
+/* Estilo de los Inputs (Ion-Item) */
+ion-item {
+  --background: #f8f9fa; /* Fondo gris muy claro para el input */
+  --border-radius: 12px;
+  --border-color: transparent;
+  --padding-start: 15px;
+  --highlight-color-focused: var(--fritos-orange);
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+
+  /* Etiquetas flotantes */
+  ion-label {
+    color: var(--fritos-blue) !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem;
+  }
+
+  /* Texto ingresado */
+  ion-input, ion-textarea {
+    color: var(--fritos-text);
+    font-weight: 600;
+    --padding-top: 10px;
+  }
 }
 
-/* Inputs */
-.form-bebida ion-item {
-  --background: rgba(255, 255, 255, 0.1);
-  --color: #fff;
-  border-radius: 12px;
-  margin: 0 0 15px 0; /* separación entre inputs */
-  padding: 4px;
-}
-
-/* Labels */
-ion-label {
-  color: #ffd75e !important;
-  font-weight: bold;
-}
-
-ion-input, ion-textarea {
-  color: #fff;
-}
-
-/* Botones de upload */
+/* ----------------------------------- */
+/* BOTONES DE SUBIDA DE FOTOS          */
+/* ----------------------------------- */
 .upload-container {
-  margin: 10px 0;
+  margin-bottom: 10px;
+
+  ion-button {
+    --background: #e3f2fd; /* Azul muy clarito */
+    --color: var(--fritos-blue);
+    --border-radius: 12px;
+    --box-shadow: none;
+    font-weight: 700;
+    height: 45px;
+    
+    ion-icon {
+      margin-right: 8px;
+      font-size: 1.2rem;
+    }
+
+    /* Efecto hover */
+    &:active {
+      --background: #bbdefb;
+    }
+  }
 }
 
-.upload-container ion-button {
-  --background: #efbf2d;
-  --color: #000;
-  font-weight: bold;
-  border-radius: 12px;
-}
-
-/* Vista previa fotos */
+/* ----------------------------------- */
+/* PREVIEW DE FOTOS                    */
+/* ----------------------------------- */
 .preview-fotos {
   display: flex;
-  gap: 12px;
-  margin: 20px 0;
+  gap: 10px;
+  padding: 10px 0;
+  margin-bottom: 20px;
+  overflow-x: auto; /* Scroll horizontal si hay muchas */
   justify-content: center;
+
+  img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid var(--fritos-orange);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background: white;
+    padding: 2px;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
 }
 
-.preview-fotos img {
-  width: 90px;
-  height: 90px;
-  object-fit: cover;
-  border: 2px solid #efbf2d;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-/* Botones principales */
+/* ----------------------------------- */
+/* BOTONES DE ACCIÓN (Guardar/Volver)  */
+/* ----------------------------------- */
 .btn-guardar {
-  --background: #dc2234;
   margin-top: 20px;
-  border-radius: 12px;
+  --background: var(--fritos-blue);
+  --background-activated: #3651b5;
+  --border-radius: 30px;
+  --box-shadow: 0 4px 0 #2a3f8f; /* Efecto 3D sólido */
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  height: 55px;
+  transition: transform 0.1s;
+
+  &:active {
+    transform: translateY(4px); /* Efecto de presionar */
+    --box-shadow: 0 0 0 #2a3f8f;
+  }
+
+  ion-icon {
+    margin-right: 10px;
+  }
 }
 
 .btn-volver {
-  --background: #efbf2d;
-  --color: #000;
-  margin-top: 10px;
-  margin-bottom: 20px; /* <-- separación del borde inferior */
-  border-radius: 12px;
+  margin-top: 15px;
+  --background: var(--fritos-red);
+  --border-radius: 30px;
+  font-weight: 700;
+  --box-shadow: none;
+  opacity: 0.9;
 }
 
-/* Mensajes */
+/* Mensaje de error/éxito */
 .mensaje {
-  margin-top: 20px;
   text-align: center;
-  font-size: 1.1rem;
-  color: #fff;
+  padding: 10px;
+  font-weight: bold;
+  min-height: 20px;
 }
 
-/* Animaciones */
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+/* ----------------------------------- */
+/* ANIMACIONES                         */
+/* ----------------------------------- */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

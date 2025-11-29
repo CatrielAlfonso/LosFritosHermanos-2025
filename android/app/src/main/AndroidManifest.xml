@@ -40,8 +40,10 @@
     </application>
 
     <!-- Permissions -->
-
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false"/>
+<uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false"/>
+<uses-permission android:name="android.permission.BODY_SENSORS"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
-    
+    <uses-permission android:name="android.permission.VIBRATE" />
 </manifest>
