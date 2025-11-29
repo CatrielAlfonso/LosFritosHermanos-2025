@@ -3,6 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicModule, LoadingController } from '@ionic/angular';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
+import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { LoadingService } from 'src/app/servicios/loading.service';
 import { SupabaseService } from 'src/app/servicios/supabase.service';
 
@@ -28,6 +30,8 @@ export class PlatosComponent  implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private feedbackService: FeedbackService,
+    private customLoader:CustomLoader,
     private loadingService: LoadingService,
     private sb: SupabaseService,
   ) { 
@@ -59,6 +63,7 @@ export class PlatosComponent  implements OnInit {
 
     this.mensajeError = ''
     this.mensajeExito = ''
+    this.customLoader.show();
     this.loadingService.show();
     try {
       const { nombre, descripcion, tiempoElaboracion, precio, tipo } = this.productoForm.value;
@@ -86,13 +91,16 @@ export class PlatosComponent  implements OnInit {
       const { error } = await this.sb.supabase.from('productos').insert([{ nombre, descripcion, tiempo_elaboracion: tiempoElaboracion, precio: parseFloat(precio), tipo, imagenes: imagenesURLs }]);
       if (error) throw new Error(error.message);
       this.mensajeExito = 'Producto registrado exitosamente!';
+      this.feedbackService.showToast('exito', 'Producto registrado con éxito');
       this.productoForm.reset();
       this.imagenesProductoURLs = [];
       this.imagenesProductoArchivos = [];
+      this.customLoader.hide();
       this.loadingService.hide();
     } catch (e) {
       this.mensajeError = 'Error: ' + (e as Error).message;
       this.loadingService.hide();
+      this.customLoader.hide();
     }
   }
 

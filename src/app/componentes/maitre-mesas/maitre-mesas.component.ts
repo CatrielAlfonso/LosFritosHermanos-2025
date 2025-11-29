@@ -7,6 +7,7 @@ import { ReservasService } from '../../servicios/reservas.service';
 import { AuthService } from '../../servicios/auth.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import Swal from 'sweetalert2';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 
 
 interface ClienteEspera {
@@ -52,6 +53,7 @@ export class MaitreMesasComponent  implements OnInit {
   constructor(
     private sb: SupabaseService,
     private feedback: FeedbackService,
+    private customLoader:CustomLoader,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private authService: AuthService,
@@ -257,6 +259,7 @@ export class MaitreMesasComponent  implements OnInit {
   // }
 
   async ejecutarAsignacion(cliente: ClienteEspera, mesa: Mesa) {
+    this.customLoader.show('Asignando mesa...');
     const loading = await this.feedback.showLoading('Asignando mesa...');
     
     try {
@@ -266,6 +269,7 @@ export class MaitreMesasComponent  implements OnInit {
       const tieneReservaActiva = await this.reservasService.tieneReservaConfirmadaActiva(mesa.numero);
       
       if (tieneReservaActiva) {
+        this.customLoader.hide();
         this.feedback.hide();
         this.feedback.showToast('error', `❌ La mesa ${mesa.numero} tiene una reserva activa.`);
         return;
@@ -322,6 +326,7 @@ export class MaitreMesasComponent  implements OnInit {
       console.error('💥 Error en ejecutarAsignacion:', e);
       this.feedback.showToast('error', 'Ocurrió un error: ' + e.message);
     } finally {
+      this.customLoader.hide(); 
       await loading.dismiss();
     }
   }
