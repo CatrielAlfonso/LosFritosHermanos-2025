@@ -321,8 +321,11 @@ export class AnonimoComponent  {
     toast.present();
   }
 
-  volverBienvenida() {
+  async volverBienvenida() {
+    //localStorage.removeItem('usuarioAnonimo');
+  //await this.supabase.supabase.auth.signOut();
     this.router.navigate(['/bienvenida']);
+
   }
 
 }
