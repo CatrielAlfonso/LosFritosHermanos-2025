@@ -7,6 +7,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/splash_background</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
@@ -14,6 +15,9 @@
         <item name="windowNoTitle">true</item>
         <item name="android:background">@color/splash_background</item>
         <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 
 
@@ -22,5 +26,7 @@
         <item name="android:windowBackground">@drawable/launch_splash</item>
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
     </style>
 </resources>
