@@ -272,4 +272,90 @@
       --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
   }
+
+  // Estilos para el Floating Action Button
+  ion-fab {
+    margin-bottom: 20px;
+    margin-right: 10px;
+
+    // Botón principal del FAB
+    > ion-fab-button {
+      --background: var(--ion-color-fritos-red);
+      --background-hover: var(--ion-color-fritos-red-shade);
+      --background-focused: var(--ion-color-fritos-red-shade);
+      --color: var(--ion-color-fritos-red-contrast);
+      --box-shadow: 0 4px 16px rgba(229, 62, 62, 0.4);
+      --border-radius: 50%;
+      width: 56px;
+      height: 56px;
+
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+
+    ion-fab-list {
+      right: 20px;
+      
+      ion-fab-button {
+        --border-radius: 20px;
+        width: auto !important;
+        height: 40px;
+        margin: 6px 0;
+        padding: 0 28px;
+
+        &.fab-with-label {
+          min-width: 140px;
+        }
+
+        .fab-label {
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.1px;
+          white-space: nowrap;
+          padding: 0 8px;
+        }
+
+        // Colores para cada tipo
+        &[color="warning"] {
+          --background: #f39c12;
+          --background-hover: #e67e22;
+          --color: #fff;
+          --box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
+        }
+
+        &[color="success"] {
+          --background: #27ae60;
+          --background-hover: #1e8449;
+          --color: #fff;
+          --box-shadow: 0 2px 8px rgba(39, 174, 96, 0.4);
+        }
+
+        &[color="tertiary"] {
+          --background: #8e44ad;
+          --background-hover: #7d3c98;
+          --color: #fff;
+          --box-shadow: 0 2px 8px rgba(142, 68, 173, 0.4);
+        }
+
+        &[color="primary"] {
+          --background: #3498db;
+          --background-hover: #2980b9;
+          --color: #fff;
+          --box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+        }
+
+        // Animación al hacer hover
+        &:hover {
+          transform: scale(1.05);
+          transition: transform 0.2s ease;
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
+      }
+    }
+  }
 }

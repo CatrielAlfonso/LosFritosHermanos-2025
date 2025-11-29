@@ -10,13 +10,13 @@ const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TEST_EMAIL = 'tomasbehrens0@gmail.com';
-const PEDIDO_ID = 53;
+const PEDIDO_ID = 55;
 
 // Función para generar el PDF
 function generarPDFFactura(pedido) {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument({ size: 'A4', margin: 50 });
+      const doc = new PDFDocument({ size: 'A4', margin: 20 }); // Márgenes más chicos para aprovechar espacio
 
       const chunks = [];
       const stream = new PassThrough();
@@ -24,127 +24,229 @@ function generarPDFFactura(pedido) {
       stream.on('end', () => resolve(Buffer.concat(chunks)));
       doc.pipe(stream);
 
-      const pageMargin = 50;
-      const pageWidth = doc.page.width - pageMargin * 2;
+      // --- Variables de Diseño ---
+      const x = 30; // Margen izquierdo
+      const w = 535; // Ancho útil (A4 width ~595 - márgenes)
+      const centerX = x + (w / 2);
+      let y = 30; // Cursor vertical inicial
+
+      // ============================================
+      // 1. TÍTULO "ORIGINAL"
+      // ============================================
+      doc.rect(x, y, w, 25).stroke();
+      doc.fontSize(14).font('Helvetica-Bold').text('ORIGINAL', x, y + 7, { width: w, align: 'center' });
+      y += 25;
+
+      // ============================================
+      // 2. ENCABEZADO PRINCIPAL (Caja Grande)
+      // ============================================
+      const headerHeight = 130;
+      doc.rect(x, y, w, headerHeight).stroke(); // Caja contenedora
       
-      // ENCABEZADO
-      doc.fontSize(22).font('Helvetica-Bold')
-         .fillColor('#E53E3E')
-         .text('Los Fritos Hermanos', pageMargin, 40);
+      // Línea vertical divisoria
+      doc.moveTo(centerX, y).lineTo(centerX, y + headerHeight).stroke();
+
+      // --- LA "C" FLOTANTE (Cuadrado del medio) ---
+      const boxSize = 35;
+      const boxX = centerX - (boxSize / 2);
       
-      doc.fontSize(10).font('Helvetica')
-         .fillColor('#666')
-         .text('Av. Mitre 750, Buenos Aires', pageMargin, 65)
-         .text('Tel: (011) 1234-5678', pageMargin, 78);
+      // Borramos la línea vertical en el centro para poner la caja
+      doc.rect(boxX, y, boxSize, boxSize).fillAndStroke('white', 'black'); 
       
-      // DATOS DE FACTURA
-      doc.fontSize(12).font('Helvetica-Bold')
-         .fillColor('#333')
-         .text(`FACTURA`, pageMargin, 40, { align: 'right' });
+      doc.fillColor('black').fontSize(20).font('Helvetica-Bold').text('C', boxX, y + 5, { width: boxSize, align: 'center' });
+      doc.fontSize(8).font('Helvetica-Bold').text('COD. 011', boxX, y + 23, { width: boxSize, align: 'center' });
+
+      // --- LADO IZQUIERDO (Empresa) ---
+      // Logo (si existe)
+      const logoPath = path.join(__dirname, '..', 'assets', 'crispy2.png');
+      try {
+        doc.image(logoPath, x + 10, y + 10, { width: 60 });
+      } catch (e) { /* Si falla no pasa nada */ }
+
+      doc.fontSize(18).font('Helvetica-Bold').text('Los Fritos Hermanos', x + 80, y + 15);
       
-      doc.fontSize(10).font('Helvetica')
-         .fillColor('#666')
-         .text(`N°: 0001-${String(pedido.id).padStart(8, '0')}`, pageMargin, 55, { align: 'right' })
-         .text(`Fecha: ${new Date(pedido.fecha).toLocaleDateString('es-AR')}`, pageMargin, 68, { align: 'right' })
-         .text(`Pedido #: ${pedido.id}`, pageMargin, 81, { align: 'right' })
-         .text(`Mesa: ${pedido.mesa}`, pageMargin, 94, { align: 'right' });
+      doc.fontSize(9).font('Helvetica')
+         .text('Razón Social: Los Fritos Hermanos', x + 10, y + 60)
+         .text('Domicilio Comercial: Av. Mitre 750 - Avellaneda', x + 10, y + 75)
+         .text('Condición frente al IVA: Responsable Inscripto', x + 10, y + 90);
+
+      // --- LADO DERECHO (Datos Factura) ---
+      const rightColX = centerX + 20;
+      doc.fontSize(18).font('Helvetica-Bold').text('FACTURA', rightColX, y + 15);
       
-      // Línea separadora
-      doc.moveTo(pageMargin, 115).lineTo(pageMargin + pageWidth, 115).stroke('#E53E3E');
+      doc.fontSize(9).font('Helvetica')
+         .text(`Punto de Venta: 00001   Comp. Nro: 0000${String(pedido.id).padStart(4, '0')}`, rightColX, y + 45)
+         .text(`Fecha de Emisión: ${new Date(pedido.fecha).toLocaleDateString('es-AR')}`, rightColX, y + 60)
+         .text('CUIT: 30-12345678-9', rightColX, y + 75)
+         .text('Ingresos Brutos: Exento', rightColX, y + 90)
+         .text('Fecha de Inicio de Actividades: 01/01/2025', rightColX, y + 105);
+
+      y += headerHeight; // Bajamos el cursor
+
+      // ============================================
+      // 3. PERÍODO FACTURADO (Fila)
+      // ============================================
+      doc.rect(x, y, w, 20).stroke();
+      const periodY = y + 6;
+      doc.fontSize(8).font('Helvetica');
+      doc.text(`Período Facturado Desde: ${new Date(pedido.fecha).toLocaleDateString('es-AR')}`, x + 10, periodY);
+      doc.text(`Hasta: ${new Date(pedido.fecha).toLocaleDateString('es-AR')}`, x + 200, periodY);
+      doc.text(`Fecha de Vto. para el pago: ${new Date(pedido.fecha).toLocaleDateString('es-AR')}`, x + 400, periodY);
       
-      // DATOS DEL CLIENTE
-      let y_cliente = 130;
-      doc.fontSize(11).font('Helvetica-Bold')
-         .fillColor('#E53E3E')
-         .text('DATOS DEL CLIENTE', pageMargin, y_cliente);
+      y += 25; // Margen para la siguiente caja
+
+      // ============================================
+      // 4. DATOS DEL CLIENTE
+      // ============================================
+      doc.rect(x, y, w, 45).stroke();
+      const clientY = y + 8;
       
-      y_cliente += 18;
-      doc.fontSize(10).font('Helvetica')
-         .fillColor('#333')
-         .text(`Nombre: ${pedido.cliente?.nombre || 'Cliente'} ${pedido.cliente?.apellido || ''}`, pageMargin, y_cliente);
+      doc.fontSize(9).font('Helvetica-Bold').text('CUIT:', x + 10, clientY);
+      doc.font('Helvetica').text('20-12345678-9', x + 40, clientY); // Simulado o del cliente si tuvieras
+
+      doc.font('Helvetica-Bold').text('Apellido y Nombre / Razón Social:', x + 150, clientY);
+      const nombreCliente = pedido.cliente ? `${pedido.cliente.nombre} ${pedido.cliente.apellido || ''}` : 'Consumidor Final';
+      doc.font('Helvetica').text(nombreCliente, x + 330, clientY);
+
+      doc.font('Helvetica-Bold').text('Condición frente al IVA:', x + 10, clientY + 15);
+      doc.font('Helvetica').text('Consumidor Final', x + 120, clientY + 15);
+
+      doc.font('Helvetica-Bold').text('Domicilio:', x + 250, clientY + 15);
+      doc.font('Helvetica').text('Domicilio del Cliente', x + 300, clientY + 15); // Simulado
+
+      doc.font('Helvetica-Bold').text('Condición de venta:', x + 10, clientY + 30);
+      doc.font('Helvetica').text('Contado', x + 100, clientY + 30);
+
+      y += 55; // Margen antes de la tabla
+
+      // ============================================
+      // 5. TABLA DE PRODUCTOS
+      // ============================================
+      const tableHeaders = ['Código', 'Producto / Servicio', 'Cant.', 'U. Medida', 'Precio Unit.', '% Bonif', 'Subtotal', 'IVA', 'Subtotal c/IVA'];
+      const colWidths = [40, 180, 40, 50, 60, 40, 50, 30, 45]; // Ajuste de anchos
+      let currentX = x;
       
-      // TABLA DE PRODUCTOS
-      const tableTop = y_cliente + 35;
+      // Cabecera (Fondo gris)
+      doc.rect(x, y, w, 20).fill('#cccccc').stroke();
+      doc.fillColor('black').font('Helvetica-Bold').fontSize(8);
       
-      doc.rect(pageMargin, tableTop - 5, pageWidth, 22).fill('#E53E3E');
+      tableHeaders.forEach((header, i) => {
+        // Alinear a la derecha si es número
+        const align = i >= 4 ? 'right' : 'left'; 
+        doc.text(header, currentX + 2, y + 6, { width: colWidths[i] - 4, align: align });
+        // Líneas verticales de la grilla (opcional, el diseño HTML no las tiene todas, solo borde)
+        currentX += colWidths[i];
+      });
+
+      y += 20; // Empezamos a listar items
+
+      // Items
+      doc.font('Helvetica').fontSize(8);
       
-      const col1_x = pageMargin + 10;
-      const col2_x = pageMargin + 50;
-      const col3_x = pageMargin + 320;
-      const col4_x = pageMargin + 420;
-      
-      doc.fontSize(10).font('Helvetica-Bold')
-         .fillColor('#FFF')
-         .text('Cant.', col1_x, tableTop, { width: 35 })
-         .text('Descripción', col2_x, tableTop, { width: 260 })
-         .text('P. Unit.', col3_x, tableTop, { width: 90, align: 'right' })
-         .text('Importe', col4_x, tableTop, { width: 80, align: 'right' });
-      
-      let y = tableTop + 28;
-      doc.font('Helvetica').fillColor('#333');
-      
-      for (const item of pedido.items) {
-        if ((pedido.items.indexOf(item) % 2) === 0) {
-          doc.rect(pageMargin, y - 5, pageWidth, 20).fill('#f9f9f9');
-        }
+      pedido.items.forEach((item, index) => {
+        currentX = x;
+        const subtotal = item.cantidad * item.precioUnitario;
         
-        doc.fillColor('#333')
-           .fontSize(10)
-           .text(item.cantidad, col1_x, y, { width: 35 })
-           .text(item.nombre, col2_x, y, { width: 260 })
-           .text(`$${item.precioUnitario.toFixed(2)}`, col3_x, y, { width: 90, align: 'right' })
-           .text(`$${(item.cantidad * item.precioUnitario).toFixed(2)}`, col4_x, y, { width: 80, align: 'right' });
-        y += 20;
-      }
+        // Simulo filas de tabla
+        const rowData = [
+          String(index + 1), // Código
+          item.nombre,       // Producto
+          String(item.cantidad), // Cantidad
+          'unidades',        // U. Medida
+          item.precioUnitario.toFixed(2), // Precio Unit
+          '0.00',            // Bonif
+          subtotal.toFixed(2), // Subtotal
+          '21%',             // IVA (Simulado para Factura C/B)
+          subtotal.toFixed(2)  // Subtotal c/IVA
+        ];
+
+        rowData.forEach((text, i) => {
+          const align = i >= 4 ? 'right' : 'left';
+          doc.text(text, currentX + 2, y + 5, { width: colWidths[i] - 4, align: align });
+          currentX += colWidths[i];
+        });
+        
+        y += 15;
+      });
+
+      // Dibujar borde alrededor de toda la tabla (desde cabecera hasta final de items)
+      // Ojo: Si son muchos items hay que manejar paginación, pero asumo pedido corto
+      // doc.rect(x, y - (pedido.items.length * 15) - 20, w, (pedido.items.length * 15) + 20).stroke();
+
+
+      // ============================================
+      // 6. PIE DE PÁGINA (Totales y Tributos)
+      // ============================================
+      // Mandamos esto al fondo de la página como en el HTML (margin-top: 300px)
+      // Usaremos una Y fija cerca del final
+      y = 650; 
+
+      // -- OTROS TRIBUTOS (Izquierda) --
+      const tributosX = x;
+      const tributosW = 300;
       
-      y += 10;
-      doc.moveTo(pageMargin + 250, y).lineTo(pageMargin + pageWidth, y).stroke('#ccc');
+      doc.font('Helvetica-Bold').text('Otros tributos', tributosX, y);
       y += 15;
       
-      // TOTALES
-      const labelX = pageMargin + 320;
-      const valueX = pageMargin + 420;
+      // Cabecera tributos
+      doc.rect(tributosX, y, tributosW, 15).fill('#cccccc').stroke();
+      doc.fillColor('black').text('Descripción', tributosX + 2, y + 4);
+      doc.text('Detalle', tributosX + 150, y + 4);
+      doc.text('Alíc %', tributosX + 200, y + 4);
+      doc.text('Importe', tributosX + 250, y + 4);
       
-      doc.fontSize(10).font('Helvetica')
-         .fillColor('#666')
-         .text('Subtotal:', labelX, y, { width: 90, align: 'right' })
-         .text(`$${pedido.subtotal.toFixed(2)}`, valueX, y, { width: 80, align: 'right' });
-      y += 18;
+      y += 15;
+      doc.font('Helvetica');
+      // Fila vacía simulada
+      doc.rect(tributosX, y, tributosW, 15).stroke();
+      doc.text('Per./Ret de Impuesto a las Ganancias', tributosX + 2, y + 4);
+      doc.text('0,00', tributosX + 250, y + 4);
       
-      if (pedido.descuentoPorcentaje > 0) {
-        doc.fillColor('#2E7D32')
-           .text(`Descuento Juegos (${pedido.descuentoPorcentaje}%):`, labelX - 30, y, { width: 120, align: 'right' })
-           .text(`-$${pedido.descuentoMonto.toFixed(2)}`, valueX, y, { width: 80, align: 'right' });
-        y += 18;
-      }
+      // -- TOTALES (Derecha) --
+      const totalsX = x + 320;
+      const totalsW = w - 320;
+      let totalsY = 650; // A la misma altura que empieza tributos
+
+      const labels = ['Importe Neto Gravado:', 'IVA 27%:', 'IVA 21%:', 'IVA 10.5%:', 'IVA 0%:', 'Importe Otros Tributos:'];
+      const values = [`$ ${pedido.total.toFixed(2)}`, '$ 0,00', '$ 0,00', '$ 0,00', '$ 0,00', '$ 0,00'];
+
+      doc.font('Helvetica-Bold');
+      labels.forEach((label, i) => {
+        doc.text(label, totalsX, totalsY, { width: 120, align: 'right' });
+        doc.text(values[i], totalsX + 130, totalsY, { width: 80, align: 'right' });
+        totalsY += 15;
+      });
+
+      // TOTAL FINAL
+      totalsY += 5;
+      doc.fontSize(11).text('Importe Total:', totalsX, totalsY, { width: 120, align: 'right' });
+      doc.text(`$ ${pedido.total.toFixed(2)}`, totalsX + 130, totalsY, { width: 80, align: 'right' });
+
+
+      // ============================================
+      // 7. FOOTER (CAE y QR)
+      // ============================================
+      const footerY = 770;
       
-      if (pedido.propinaPorcentaje > 0) {
-        doc.fillColor('#1565C0')
-           .text(`Propina (${pedido.propinaPorcentaje}%):`, labelX, y, { width: 90, align: 'right' })
-           .text(`$${pedido.propinaMonto.toFixed(2)}`, valueX, y, { width: 80, align: 'right' });
-        y += 18;
-      }
+      // QR Simulado
+      doc.rect(x, footerY, 70, 70).stroke(); // Placeholder del QR
+      doc.fontSize(8).text('QR AFIP', x + 15, footerY + 30);
+
+      // Logo AFIP y Textos
+      doc.fontSize(10).font('Helvetica-BoldOblique')
+         .text('Comprobante Autorizado', x + 80, footerY + 20);
       
-      y += 5;
-      doc.moveTo(pageMargin + 320, y).lineTo(pageMargin + pageWidth, y).stroke('#E53E3E');
-      y += 12;
-      
-      doc.fontSize(14).font('Helvetica-Bold')
-         .fillColor('#E53E3E')
-         .text('TOTAL:', labelX, y, { width: 90, align: 'right' })
-         .text(`$${pedido.total.toFixed(2)}`, valueX, y, { width: 80, align: 'right' });
-      
-      // PIE DE PÁGINA
-      const footerY = doc.page.height - 80;
-      
-      doc.fontSize(10).font('Helvetica')
-         .fillColor('#666')
-         .text('¡Gracias por su visita!', pageMargin, footerY, { align: 'center', width: pageWidth });
-      
-      doc.fontSize(8)
-         .fillColor('#999')
-         .text('Los Fritos Hermanos - Documento no válido como factura fiscal', pageMargin, footerY + 15, { align: 'center', width: pageWidth })
-         .text(`Generado el ${new Date().toLocaleString('es-AR')}`, pageMargin, footerY + 28, { align: 'center', width: pageWidth });
+      doc.fontSize(7).font('Helvetica-Oblique')
+         .text('Esta Administración Federal no se responsabiliza por los datos ingresados en el detalle de la operación', x + 80, footerY + 35);
+
+      // CAE y Vencimiento
+      doc.fontSize(9).font('Helvetica-Bold')
+         .text('CAE N°:', x + 350, footerY + 20, { width: 50, align: 'right' })
+         .font('Helvetica').text('12345678901234', x + 410, footerY + 20);
+
+      doc.font('Helvetica-Bold')
+         .text('Fecha de Vto. de CAE:', x + 300, footerY + 35, { width: 100, align: 'right' })
+         .font('Helvetica').text('01/01/2030', x + 410, footerY + 35);
 
       doc.end();
 

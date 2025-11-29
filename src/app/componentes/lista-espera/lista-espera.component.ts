@@ -8,6 +8,7 @@ import { ReservasService } from '../../servicios/reservas.service';
 import { Router } from '@angular/router';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
+import { Haptics } from '@capacitor/haptics';
 
 interface ClienteEnLista {
   id: number;
@@ -366,7 +367,14 @@ export class ListaEsperaComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  mostrarMensajeErrorQR(mensaje: string) {
+  async mostrarMensajeErrorQR(mensaje: string) {
+    // Vibrar al mostrar error
+    try {
+      await Haptics.vibrate({ duration: 300 });
+    } catch (err) {
+      console.warn('No se pudo vibrar');
+    }
+    
     this.mensajeErrorQR = mensaje;
     setTimeout(() => {
       this.mensajeErrorQR = '';

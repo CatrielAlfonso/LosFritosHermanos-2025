@@ -194,31 +194,47 @@ export class ReservasService {
    */
   async puedeHacerReserva(): Promise<boolean> {
     try {
-      const { data: { user } } = await this.supabase.supabase.auth.getUser();
+      const { data: { user }, error: authError } = await this.supabase.supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('Error al obtener usuario:', authError);
+        return false;
+      }
+
       if (!user || !user.email) {
+        console.log('No hay usuario o email');
         return false;
       }
 
       const perfil = this.authService.getPerfilUsuario();
       if (perfil !== 'cliente') {
+        console.log('Usuario no es cliente, perfil:', perfil);
         return false;
       }
 
       // Verificar que el cliente esté validado y aceptado
-      const { data: cliente } = await this.supabase.supabase
+      const { data: cliente, error: clienteError } = await this.supabase.supabase
         .from('clientes')
         .select('validado, aceptado')
         .eq('correo', user.email)
         .single();
 
-      if (!cliente) {
+      if (clienteError) {
+        console.error('Error al obtener datos del cliente:', clienteError);
         return false;
       }
 
+      if (!cliente) {
+        console.log('No se encontró el cliente en la BD');
+        return false;
+      }
+
+      console.log('Estado del cliente - validado:', cliente.validado, 'aceptado:', cliente.aceptado);
+      
       // El cliente debe estar validado y aceptado
       return cliente.validado === true && cliente.aceptado === true;
     } catch (error) {
-      console.error('Error verificando si puede hacer reserva:', error);
+      console.error('Error inesperado verificando si puede hacer reserva:', error);
       return false;
     }
   }
@@ -226,7 +242,7 @@ export class ReservasService {
   /**
    * Obtiene información del cliente autenticado
    */
-  async obtenerInfoCliente(): Promise<{ id: number; nombre: string; apellido: string; email: string } | null> {
+  async obtenerInfoCliente(): Promise<{ id: number; nombre: string; apellido: string; email: string; validado?: boolean; aceptado?: boolean } | null> {
     try {
       const { data: { user } } = await this.supabase.supabase.auth.getUser();
       if (!user || !user.email) {
@@ -235,7 +251,7 @@ export class ReservasService {
 
       const { data: cliente } = await this.supabase.supabase
         .from('clientes')
-        .select('id, nombre, apellido, correo')
+        .select('id, nombre, apellido, correo, validado, aceptado')
         .eq('correo', user.email)
         .single();
 
@@ -247,7 +263,9 @@ export class ReservasService {
         id: cliente.id,
         nombre: cliente.nombre,
         apellido: cliente.apellido || '',
-        email: cliente.correo
+        email: cliente.correo,
+        validado: cliente.validado,
+        aceptado: cliente.aceptado
       };
     } catch (error) {
       console.error('Error obteniendo info del cliente:', error);
