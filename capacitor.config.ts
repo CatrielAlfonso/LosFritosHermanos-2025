@@ -4,29 +4,18 @@ const config: CapacitorConfig = {
   appId: 'io.ionic.starter',
   appName: 'losFritosHermanos',
   webDir: 'www',
-  backgroundColor: '#1942d7',
-  server: {
-    androidScheme: 'https'
-  },
-  android: {
-    backgroundColor: '#1942d7'
-  },
-  plugins: {
+   "plugins": 
+  {
     CapacitorHttp: {
-      enabled: true
+      enabled:true
     },
-    SplashScreen: {
-      backgroundColor: '#1942d7',
-      showSpinner: false,
-      androidScaleType: 'CENTER_CROP',
-      splashFullScreen: true,
-      splashImmersive: true,
-      launchShowDuration: 2000,
-      launchAutoHide: false
+    "SplashScreen": {
+      "launchAutoHide": false, // Asegúrate de que esté en false
+       backgroundColor: '#1942d7',
     },
-    PushNotifications: {
-      presentationOptions: ['badge', 'sound', 'alert']
-    }
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }          
   }
 };
 
