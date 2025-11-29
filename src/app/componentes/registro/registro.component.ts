@@ -449,6 +449,7 @@ export class RegistroComponent implements OnInit {
       this.mensajeError = 'Por favor completa todos los campos correctamente';
       return;
     }
+    this.customLoadService.show();
     this.loadingService.show();
     try {
       const { nombre, apellido, correo, contrasenia, dni } = this.clienteForm.value;
@@ -462,6 +463,7 @@ export class RegistroComponent implements OnInit {
       const usuario = await this.authService.registro(correo, contrasenia, 'cliente' ,nombre);
       if (!usuario) {
         this.mensajeError = 'Error al crear el usuario';
+        this.customLoadService.hide();
         this.loadingService.hide();
         return;
       }
@@ -478,12 +480,15 @@ export class RegistroComponent implements OnInit {
         console.error('Error al enviar notificación:', error);
       }
       this.mensajeExito = 'Cliente registrado exitosamente! Estado: Pendiente de aprobación.';
+      this.feedback.showToast('exito', '✅ Cliente registrado exitosamente! Estado: Pendiente de aprobación.');
       this.clienteForm.reset();
       this.imagenClienteURL = null;
+      this.customLoadService.hide();
       this.loadingService.hide();
     } catch (e) {
       this.mensajeError = 'Error: ' + (e as Error).message;
       this.loadingService.hide();
+      this.customLoadService.hide();
     }
   }
 
@@ -492,7 +497,7 @@ export class RegistroComponent implements OnInit {
       this.mensajeError = 'Por favor completa todos los campos correctamente';
       return;
     }
-
+    this.customLoadService.show();
     this.loadingService.show();
 
     try {
@@ -556,10 +561,12 @@ export class RegistroComponent implements OnInit {
       this.mesaForm.reset();
       this.imagenMesaURL = null;
       this.qrMesaURL = qrUrl;
+      this.customLoadService.hide();
       this.loadingService.hide();
 
     } catch (e) {
       this.mensajeError = 'Error inesperado: ' + (e as Error).message;
+      this.customLoadService.hide();
       this.loadingService.hide();
     }
   }
