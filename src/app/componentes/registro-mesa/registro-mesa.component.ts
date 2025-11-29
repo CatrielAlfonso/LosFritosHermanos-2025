@@ -10,6 +10,7 @@ import { IonIcon,IonItem, IonButtons,
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 
 @Component({
   selector: 'app-registro-mesa',
@@ -45,6 +46,7 @@ export class RegistroMesaComponent {
   constructor(
     private fb: FormBuilder,
     private sb: SupabaseService,
+    private customLoader: CustomLoader,
     private loadingService: LoadingService,
     private feedback: FeedbackService,
   ) {}
@@ -56,6 +58,7 @@ export class RegistroMesaComponent {
       return;
     }
 
+    this.customLoader.show('Registrando mesa...');
     this.loadingService.show();
     try {
       const { numero, comensales, tipo, imagen } = this.mesaForm.value;
@@ -70,6 +73,7 @@ export class RegistroMesaComponent {
       if (mesaExistente) {
         this.feedback.showToast('error', 'Esta mesa ya existe');
         this.mensajeError = 'Esta mesa ya existe';
+        this.customLoader.hide();
         this.loadingService.hide();
         return;
       }
@@ -113,7 +117,7 @@ export class RegistroMesaComponent {
       this.feedback.showToast('error', 'Error al registrar mesa: ' + e.message);
       this.mensajeError = 'Error: ' + e.message;
     } finally {
-      
+      this.customLoader.hide();
       this.loadingService.hide();
     }
   }
