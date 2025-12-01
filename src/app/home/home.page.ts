@@ -476,12 +476,9 @@ export class HomePage implements OnInit, ViewWillEnter {
             }
           ]);
 
-          // Notificar al maître
+          // Notificar al maître que hay cliente en lista de espera
           try {
-            await this.pushNotificationService.notificarMaitreNuevoCliente(
-              this.clienteAnonimo.nombre,
-              ''
-            );
+            await this.pushNotificationService.notificarMaitreListaEspera(this.clienteAnonimo.nombre);
           } catch (error) {
             console.error('Error al notificar maître:', error);
           }
@@ -514,12 +511,9 @@ export class HomePage implements OnInit, ViewWillEnter {
             }
           ]);
 
-          // Notificar al maître
+          // Notificar al maître que hay cliente en lista de espera
           try {
-            await this.pushNotificationService.notificarMaitreNuevoCliente(
-              this.clienteAnonimo.nombre,
-              ''
-            );
+            await this.pushNotificationService.notificarMaitreListaEspera(this.clienteAnonimo.nombre);
           } catch (error) {
             console.error('Error al notificar maître:', error);
           }
@@ -1427,10 +1421,7 @@ export class HomePage implements OnInit, ViewWillEnter {
 
       try {
         console.log('🔔 [agregarAListaEspera] Enviando notificación al maître');
-        await this.pushNotificationService.notificarMaitreNuevoCliente(
-          nombre,
-          apellido || ''
-        );
+        await this.pushNotificationService.notificarMaitreListaEspera(nombre);
         console.log('✅ [agregarAListaEspera] Notificación enviada');
       } catch (error) {
         console.log('⚠️ [agregarAListaEspera] Error al enviar notificación:', error);
