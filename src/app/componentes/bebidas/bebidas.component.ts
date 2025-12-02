@@ -1,7 +1,7 @@
 import { Component, NgModule, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BebidaService } from '../../servicios/bebida.service';
-import { IonContent, IonText,IonLabel, IonInput, IonItem, IonTextarea,IonButton,IonIcon } from "@ionic/angular/standalone";
+import { IonContent, IonTitle,IonToolbar,IonText,IonLabel, IonInput, IonItem, IonTextarea,IonButton,IonIcon, IonHeader, IonButtons, IonBackButton } from "@ionic/angular/standalone";
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 import { VistaPreviaFotosPipe } from 'src/app/pipes/vista-previa-fotos-pipe';
@@ -13,7 +13,7 @@ import { ViewChildren, QueryList, ElementRef } from '@angular/core';
   selector: 'app-bebidas',
   templateUrl: './bebidas.component.html',
   styleUrls: ['./bebidas.component.scss'],
-  imports: [IonItem, IonContent, IonLabel, ReactiveFormsModule,IonInput, IonItem,  IonTextarea, IonButton, IonIcon, IonText,
+  imports: [IonBackButton, IonBackButton,IonButtons, IonHeader, IonItem, IonContent, IonLabel, IonToolbar,ReactiveFormsModule,IonInput, IonItem, IonTitle, IonTextarea, IonButton, IonIcon, IonText,
     VistaPreviaFotosPipe, CommonModule, RouterLink
   ]
 })

@@ -14,51 +14,180 @@
 .fritos-theme {
   --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
   display: flex;
-  justify-content: center;
-  align-items: center; 
-  min-height: 100%;
+  flex-direction: column;
+  height: 100%; /* FORZAR altura completa */
+  padding: 0;
+  
+  /* Asegurar que ion-content ocupe todo */
+  ion-content {
+    --padding-top: 0;
+    --padding-bottom: 0;
+  }
 }
 
-/* 2. CONTENEDOR PRINCIPAL (Tarjeta central) */
+/* 2. CONTENEDOR PRINCIPAL - OCUPA MÁXIMO ESPACIO */
 #container {
-  /* Quitamos posición absoluta para que fluya mejor */
-  position: relative; 
-  left: auto;
-  right: auto;
-  top: auto;
-  transform: none;
-  
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   
-  min-height: 70%;
-  width: 90%;
-  max-width: 500px; /* Un poco más ancho para pantallas grandes */
-  margin: 40px auto; /* Margen arriba y abajo para que no pegue */
-  padding: 30px 20px;
+  /* ALTURA TOTAL: Desde el header hasta el piso */
+  height: calc(100vh - 56px); /* 56px es la altura típica del header en Ionic */
+  min-height: calc(100vh - 56px);
+  
+  width: 92%;
+  max-width: 500px;
+  margin: 10px auto 10px auto; /* Margen mínimo arriba y abajo */
+  padding: 20px 15px 20px 15px; /* Padding interno */
   box-sizing: border-box;
   
-  /* ESTILO DE LA TARJETA: Azul claro semitransparente */
-  background: rgba(159, 196, 222, 0.85); /* Azul muy suave con transparencia */
-  backdrop-filter: blur(10px); /* Efecto vidrio esmerilado */
-  border: 2px solid rgba(255, 255, 255, 0.5); /* Borde sutil */
+  /* ESTILO DE LA TARJETA */
+  background: rgba(159, 196, 222, 0.85);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.5);
   border-radius: 25px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); /* Sombra suave */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
   
-  /* Animación de entrada */
   animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* IMPORTANTE: Evitar overflow */
+  overflow: hidden;
 }
 
-/* Logo animado */
+/* Logo y textos - TAMAÑO FIJO para que los botones aprovechen espacio */
 .login-logo {
-  width: 150px; /* Un poco más chico para que no coma toda la pantalla */
-  height: auto;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+  flex-shrink: 0; /* No se encoge */
 }
+
+.fritos-bounce {
+  animation: bounce 2s infinite;
+}
+
+.fritos-logo {
+  color: rgb(165, 40, 40);
+  font-size: 1.4rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+  flex-shrink: 0;
+}
+
+.fritos-subtitle {
+  color: var(--fritos-blue);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  opacity: 0.9;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* 3. CONTENEDORES DE OPCIONES - SE EXPANDEN PARA LLENAR ESPACIO */
+.admin-options, 
+.maitre-options, 
+.cocinero-options, 
+.bartender-options, 
+.mozo-options,
+.repartidor-options,
+.cliente-options {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  
+  /* CLAVE: Se expande para ocupar todo el espacio disponible */
+  flex: 1;
+  min-height: 0;
+  
+  /* Distribuye el espacio entre los botones */
+  justify-content: space-evenly;
+}
+
+/* 4. BOTONES AUTOAJUSTABLES */
+.fritos-button {
+  width: 100%;
+  
+  /* CLAVE: Los botones crecen para ocupar TODO el espacio */
+  flex: 1 1 auto; /* Grow, shrink, auto base */
+  min-height: 45px; /* Mínimo legible */
+  max-height: none; /* SIN LÍMITE MÁXIMO - ocupan todo */
+  
+  --border-radius: 12px;
+  --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2vw, 1.1rem); /* Texto adaptativo */
+  
+  /* Ajuste interno del contenido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  
+  ion-icon {
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+}
+
+/* Botones especiales de 2 líneas */
+.btn-pedidos,
+.btn-solicitar-mesa {
+  flex: 1.2 1 auto; /* Un poco más grandes que los demás */
+  max-height: none; /* Sin límite */
+  
+  .boton-contenido-columna {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+    
+    ion-icon {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      margin: 0;
+    }
+    
+    .boton-texto {
+      font-size: clamp(0.85rem, 2vw, 1.05rem);
+      text-align: center;
+      line-height: 1.3;
+      font-weight: 700;
+    }
+  }
+}
+
+/* Tarjetas de advertencia (lista de espera) */
+ion-card {
+  margin: 10px 0;
+  flex-shrink: 0; /* No se expande como los botones */
+}
+
+/* Header */
+.fritos-header {
+  ion-toolbar {
+    --border-width: 0;
+  }
+  
+  .titulo {
+    font-weight: 900;
+    color: var(--fritos-yellow);
+    text-shadow: 2px 2px 0px #b71c1c;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: 7px;
+  }
+}
+
 .logout-button {
   width: 40px !important;
   height: 40px !important;
@@ -68,105 +197,252 @@
   margin-right: 10px;
   color: black;
   
-  /* Agranda el icono dentro */
   ion-icon {
-    font-size: 32px !important; /* Icono bien grande */
-    margin: 0 !important;       /* Centrado perfecto */
+    font-size: 32px !important;
+    margin: 0 !important;
   }
 }
-.icono-cerrar{
+
+.icono-cerrar {
   height: 100%;
   width: 100%;
 }
 
-.fritos-bounce {
-  animation: bounce 2s infinite;
-}
+/* =========================================
+   RESPONSIVE: Ajuste según cantidad de botones
+   ========================================= */
 
-/* Textos */
-.fritos-logo {
-  color: rgb(165, 40, 40);
-  font-size: 1.5rem;
-  font-weight: 900;
-  text-align: center;
-  text-transform: uppercase;
-  margin-bottom: 15px;
-  text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
-}
+/* Ya no necesitamos límites de max-height porque queremos que ocupen todo */
+/* Pero podemos ajustar el gap según la cantidad */
 
-.fritos-subtitle {
-  color: var(--fritos-blue);
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  opacity: 0.9;
-  text-align: center;
-}
-
-/* 3. BOTONES ADAPTATIVOS */
-.fritos-button {
-  width: 100%;
-  margin-bottom: 15px; /* Espacio entre botones */
-  --border-radius: 12px;
-  --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  font-weight: 700;
-  font-size: 1rem;
-  height: 55px; /* Altura fija cómoda para el dedo */
+/* Cuando hay MUCHOS botones (6+), reducir gap para aprovechar más espacio */
+.admin-options:has(ion-button:nth-child(6)),
+.maitre-options:has(ion-button:nth-child(6)),
+.cliente-options:has(ion-button:nth-child(6)),
+.cocinero-options:has(ion-button:nth-child(6)),
+.bartender-options:has(ion-button:nth-child(6)),
+.mozo-options:has(ion-button:nth-child(6)),
+.repartidor-options:has(ion-button:nth-child(6)) {
+  gap: 6px;
   
-  /* Iconos dentro del botón */
-  ion-icon {
-    font-size: 1.3rem;
+  .fritos-button {
+    font-size: clamp(0.8rem, 1.8vw, 0.95rem);
+    padding: 10px 14px;
+    
+    ion-icon {
+      font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+    }
+  }
+}
+
+/* =========================================
+   MODAL CONSULTAS MOZO
+   ========================================= */
+.modal-title-container {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background: var(--fritos-red);
+  color: white;
+  
+  .close-button {
+    margin-right: 10px;
+  }
+  
+  .modal-title {
+    flex: 1;
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+}
+
+.clientes-container {
+  padding: 15px;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.modal-empty {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+  font-style: italic;
+}
+
+.cliente-item {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.cliente-info {
+  margin-bottom: 10px;
+  
+  .cliente-nombre {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--fritos-red);
+  }
+  
+  .cliente-meta {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+  }
+  
+  .cliente-correo {
+    margin-top: 8px;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+}
+
+.mesa-actions {
+  margin-top: 10px;
+}
+
+.respuesta-form {
+  margin-top: 10px;
+  
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    resize: vertical;
+  }
+  
+  .error-consulta-mozo {
+    color: var(--fritos-red);
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+  }
+  
+  .btn-accion {
     margin-right: 10px;
   }
 }
 
-/* Botón especial de 2 líneas (Lista de Espera) */
-.btn-pedidos {
-  height: auto; 
-  min-height: 55px;
+.respuesta-mozo {
+  background: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
   
-  .boton-contenido-columna {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px 0;
-  }
-}
-
-/* 4. CONTENEDORES DE OPCIONES */
-/* Hacemos que ocupen todo el ancho disponible */
-.admin-options, .maitre-options, .cocinero-options, .bartender-options, .cliente-options {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 5px; 
-}
-
-/* Header */
-.fritos-header {
-  ion-toolbar {
-    --border-width: 0; /* Sin borde abajo */
+  .respuesta-label {
+    font-weight: bold;
+    color: #2e7d32;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
   }
   
-  .titulo {
-    font-weight: 900;
-    color: var(--fritos-yellow); /* Amarillo de la marca */
-    text-shadow: 2px 2px 0px #b71c1c; /* Sombra sólida para contraste */
-    letter-spacing: 1px;
-    text-align: center;
-    margin-top: 7px;
+  .respuesta-texto {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+  }
+  
+  .respuesta-meta {
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
   }
 }
 
-/* Animaciones */
+/* =========================================
+   ANIMACIONES
+   ========================================= */
 @keyframes popIn {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
+  from { 
+    opacity: 0; 
+    transform: scale(0.8); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
+  0%, 20%, 50%, 80%, 100% { 
+    transform: translateY(0); 
+  }
+  40% { 
+    transform: translateY(-10px); 
+  }
+  60% { 
+    transform: translateY(-5px); 
+  }
+}
+
+/* =========================================
+   AJUSTES PARA PANTALLAS MUY PEQUEÑAS
+   ========================================= */
+@media (max-height: 600px) {
+  #container {
+    height: calc(100vh - 50px); /* Header más pequeño en pantallas chicas */
+    min-height: calc(100vh - 50px);
+    padding: 12px 10px;
+    margin: 5px auto;
+  }
+  
+  .login-logo {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 8px;
+  }
+  
+  .fritos-logo {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+  
+  .fritos-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+  
+  .admin-options, 
+  .maitre-options, 
+  .cocinero-options, 
+  .bartender-options, 
+  .mozo-options,
+  .repartidor-options,
+  .cliente-options {
+    gap: 5px;
+  }
+  
+  .fritos-button {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+}
+
+/* =========================================
+   AJUSTES PARA PANTALLAS MUY GRANDES
+   ========================================= */
+@media (min-height: 800px) {
+  #container {
+    height: calc(100vh - 60px); /* Header un poco más grande */
+    min-height: calc(100vh - 60px);
+  }
+  
+  .login-logo {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .fritos-button {
+    min-height: 55px;
+  }
 }

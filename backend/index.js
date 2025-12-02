@@ -2414,3 +2414,294 @@ app.post("/notify-delivery-confirmed", async (req, res) => {
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
+
+
+//probando enviar especificamente por mail
+app.post("/notify-specific-client", async (req, res) => {
+  const { clienteEmail, title, body, data } = req.body;
+  
+  try {
+    // Buscar SOLO ese cliente específico
+    const { data: cliente, error } = await supabase
+      .from("clientes")
+      .select("fcm_token, nombre, apellido")
+      .eq("correo", clienteEmail) // FILTRO: solo este email
+      .single(); // Devuelve un solo resultado
+
+    if (error || !cliente) {
+      return res.status(404).send({ error: "Cliente no encontrado" });
+    }
+
+    if (!cliente.fcm_token) {
+      return res.status(200).send({ 
+        message: "Cliente no tiene token FCM registrado" 
+      });
+    }
+
+    // Enviar a UN solo token
+    const message = {
+      notification: { title, body },
+      token: cliente.fcm_token, // UN solo token, no array
+      data: data || {}
+    };
+
+    const response = await admin.messaging().send(message);
+    
+    res.status(200).send({ 
+      success: true,
+      message: `Notificación enviada a ${cliente.nombre} ${cliente.apellido}`,
+      response 
+    });
+    
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+
+app.post("/notify-only-mozos", async (req, res) => {
+  const { title, body, data } = req.body;
+  
+  try {
+    // Obtener SOLO empleados con perfil "mozo"
+    const { data: mozos, error } = await supabase
+      .from("empleados")
+      .select("fcm_token, nombre, apellido")
+      .eq("perfil", "mozo") // 🔥 FILTRO: solo mozos
+      .not("fcm_token", "is", null);
+
+    if (error) {
+      throw new Error(`Error al buscar mozos: ${error.message}`);
+    }
+
+    if (!mozos || mozos.length === 0) {
+      return res.status(200).send({ 
+        message: "No hay mozos con notificaciones habilitadas" 
+      });
+    }
+
+    const tokens = mozos.map(m => m.fcm_token).filter(t => t);
+
+    const message = {
+      notification: { title, body },
+      tokens: tokens, // Array de tokens solo de mozos
+      data: data || {}
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    
+    res.status(200).send({ 
+      success: true,
+      message: `Notificación enviada a ${mozos.length} mozos`,
+      response 
+    });
+    
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+app.post("/notify-only-bartenders", async (req, res) => {
+  const { title, body } = req.body;
+  
+  try {
+    const { data: bartenders, error } = await supabase
+      .from("empleados")
+      .select("fcm_token")
+      .eq("perfil", "bartender") // 🔥 FILTRO: solo bartenders
+      .not("fcm_token", "is", null);
+
+    if (error || !bartenders?.length) {
+      return res.status(200).send({ 
+        message: "No hay bartenders disponibles" 
+      });
+    }
+
+    const tokens = bartenders.map(b => b.fcm_token).filter(t => t);
+
+    const message = {
+      notification: { title, body },
+      tokens: tokens
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    res.status(200).send({ success: true, response });
+    
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+app.post("/notify-order-ready", async (req, res) => {
+  const { pedidoId, mesaNumero, clienteEmail, productos } = req.body;
+  
+  try {
+    // 1. Notificar al CLIENTE específico
+    const { data: cliente } = await supabase
+      .from("clientes")
+      .select("fcm_token, nombre")
+      .eq("correo", clienteEmail)
+      .single();
+    
+    if (cliente?.fcm_token) {
+      await admin.messaging().send({
+        notification: {
+          title: "🍽️ ¡Tu pedido está listo!",
+          body: `Mesa ${mesaNumero}: ${productos.join(', ')}`
+        },
+        token: cliente.fcm_token,
+        data: { pedidoId: pedidoId.toString() }
+      });
+    }
+    
+    // 2. Notificar a TODOS los MOZOS
+    const { data: mozos } = await supabase
+      .from("empleados")
+      .select("fcm_token")
+      .eq("perfil", "mozo")
+      .not("fcm_token", "is", null);
+    
+    if (mozos?.length) {
+      const tokens = mozos.map(m => m.fcm_token);
+      await admin.messaging().sendEachForMulticast({
+        notification: {
+          title: "📋 Pedido listo para servir",
+          body: `Mesa ${mesaNumero} - Llevar a la mesa`
+        },
+        tokens: tokens
+      });
+    }
+    
+    res.status(200).send({ 
+      success: true, 
+      message: "Notificaciones enviadas" 
+    });
+    
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+
+// curl -X POST http://localhost:3000/notify-maitre-lista-espera \
+//   -H "Content-Type: application/json" \
+//   -d '{
+//     "clienteNombre": "Juan",
+//     "clienteApellido": "Pérez",
+//     "clienteCorreo": "juan@test.com",
+//     "tipoCliente": "anonimo"
+//   }'
+/**
+ * Notifica SOLO al Maître cuando un cliente ingresa a lista de espera
+ * POST /notify-maitre-lista-espera
+ */
+app.post("/notify-maitre-lista-espera", async (req, res) => {
+  const { clienteNombre, clienteApellido, clienteCorreo, tipoCliente } = req.body;
+  
+  try {
+    // Validar datos requeridos
+    if (!clienteNombre) {
+      return res.status(400).send({ 
+        error: "clienteNombre es requerido" 
+      });
+    }
+
+    const nombreCompleto = `${clienteNombre}${clienteApellido ? ' ' + clienteApellido : ''}`;
+    const esAnonimo = tipoCliente === 'anonimo';
+    
+    // Construir mensaje personalizado
+    const title = esAnonimo 
+      ? "🔔 Cliente Anónimo en Lista de Espera"
+      : "🔔 Nuevo Cliente en Lista de Espera";
+    
+    const body = esAnonimo
+      ? `${nombreCompleto} está esperando asignación de mesa`
+      : `${nombreCompleto} se unió a la lista de espera`;
+
+    console.log(`📨 Enviando notificación al maître para: ${nombreCompleto}`);
+
+    // 1️⃣ Obtener SOLO tokens de empleados con perfil "maitre"
+    const { data: maitres, error } = await supabase
+      .from("empleados")
+      .select("fcm_token, nombre, apellido")
+      .eq("perfil", "maitre")
+      .not("fcm_token", "is", null);
+
+    if (error) {
+      console.error("❌ Error al buscar maîtres:", error);
+      return res.status(500).send({ 
+        error: `Error en base de datos: ${error.message}` 
+      });
+    }
+
+    // 2️⃣ Validar que haya maîtres disponibles
+    if (!maitres || maitres.length === 0) {
+      console.log("⚠️ No se encontraron maîtres con token FCM");
+      return res.status(200).send({ 
+        success: true, 
+        message: "No hay maîtres disponibles para notificar",
+        warning: true
+      });
+    }
+
+    // 3️⃣ Filtrar tokens válidos
+    const tokens = maitres.map(m => m.fcm_token).filter(t => t);
+    
+    if (tokens.length === 0) {
+      console.log("⚠️ Maîtres encontrados pero sin tokens FCM válidos");
+      return res.status(200).send({ 
+        success: true, 
+        message: "Maîtres sin tokens FCM válidos",
+        warning: true
+      });
+    }
+
+    // 4️⃣ Preparar notificación con data extra
+    const message = {
+      notification: { 
+        title, 
+        body 
+      },
+      tokens: tokens,
+      data: {
+        link: '/maitre-mesas',           // Ruta para navegar en la app
+        tipo: 'lista_espera',             // Tipo de notificación
+        clienteNombre: nombreCompleto,
+        clienteCorreo: clienteCorreo || '',
+        esAnonimo: esAnonimo.toString(),
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    // 5️⃣ Enviar notificación push
+    const response = await admin.messaging().sendEachForMulticast(message);
+    
+    // 6️⃣ Log de éxito
+    console.log(`✅ Notificación enviada a ${maitres.length} maître(s):`);
+    maitres.forEach(m => {
+      console.log(`   - ${m.nombre} ${m.apellido}`);
+    });
+    console.log(`📊 Resultados: ${response.successCount} éxitos, ${response.failureCount} fallos`);
+
+    res.status(200).send({ 
+      success: true, 
+      message: `Notificación enviada a ${maitres.length} maître(s)`,
+      details: {
+        maitresNotificados: maitres.length,
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+        clienteNombre: nombreCompleto,
+        esAnonimo: esAnonimo
+      },
+      response 
+    });
+
+  } catch (error) {
+    console.error("💥 Error al notificar al maître:", error);
+    res.status(500).send({ 
+      error: `Failed to send notification: ${error.message}` 
+    });
+  }
+});

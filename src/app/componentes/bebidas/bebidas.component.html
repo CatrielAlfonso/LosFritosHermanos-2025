@@ -1,11 +1,17 @@
 <ion-content fullscreen class="bebida-content">
 
-  <!-- Encabezado con animación -->
-  <div class="header-animado">
-    <h1>🍹 Nueva Bebida</h1>
-    <p>Agrega tu creación al menú</p>
-  </div>
-
+  <ion-header class="fritos-header-modern">
+    <header class="header-minimal">
+            <div class="brand-section">
+                <div class="brand-icon">🍟</div>
+                <div class="brand-text">
+                    <div class="brand-title">FRITOS</div>
+                    <div class="brand-tag">HERMANOS</div>
+                </div>
+            </div>
+            <button class="action-btn" routerLink="/home" >VOLVER</button>
+        </header>
+  </ion-header>
   <!-- Formulario de carga -->
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-bebida form-container">
 

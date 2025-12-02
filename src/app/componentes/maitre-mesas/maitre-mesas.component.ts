@@ -151,115 +151,9 @@ export class MaitreMesasComponent  implements OnInit {
           }
         })
 
-  //   const alert = await this.alertCtrl.create({
-  //     header: 'Confirmar Asignación',
-  //     message: `¿Asignar la Mesa N° ${mesa.numero} a ${cliente.nombre}?`,
-  //     buttons: [
-  //       { text: 'Cancelar', role: 'cancel' },
-  //       {
-  //         text: 'Asignar',
-  //         handler: async () => {
-  //           await this.ejecutarAsignacion(cliente, mesa);
-  //         }
-  //       }
-  //     ]
-  //   });
-  //   await alert.present();
+
   }
 
-  // async ejecutarAsignacion(cliente: ClienteEspera, mesa: Mesa) {
-  //   const loading = await this.feedback.showLoading('Asignando mesa...');
-    
-  //   try {
-  //     console.log('🔵 [ejecutarAsignacion] Iniciando asignación');
-  //     console.log('👤 Cliente:', cliente);
-  //     console.log('🪑 Mesa:', mesa);
-
-  //     // 0. Verificar si la mesa tiene una reserva confirmada activa
-  //     const tieneReservaActiva = await this.reservasService.tieneReservaConfirmadaActiva(mesa.numero);
-      
-  //     if (tieneReservaActiva) {
-  //       this.feedback.hide();
-  //       this.feedback.showToast('error', `❌ La mesa ${mesa.numero} está reservada y no puede ser asignada a otro cliente.`);
-  //       return;
-  //     }
-
-  //     // 1. Primero, actualizar lista_espera con mesa asignada
-  //     const { error: errorEspera } = await this.sb.supabase
-  //       .from('lista_espera')
-  //       .update({ mesa_asignada: mesa.numero })
-  //       .eq('id', cliente.id);
-        
-  //     if (errorEspera) throw errorEspera;
-  //     console.log('✅ Cliente agregado a lista_espera con mesa_asignada:', mesa.numero);
-
-  //     // 2. Contar cuántos clientes están asignados a esta mesa DESPUÉS de la asignación
-  //     const { data: clientesEnMesa, error: errorConteo } = await this.sb.supabase
-  //       .from('lista_espera')
-  //       .select('id')
-  //       .eq('mesa_asignada', mesa.numero);
-
-  //     if (errorConteo) {
-  //       console.error('❌ Error al contar clientes:', errorConteo);
-  //     }
-
-  //     const cantidadClientesAsignados = clientesEnMesa?.length || 0;
-  //     const capacidadMesa = mesa.comensales;
-
-  //     console.log('📊 Cantidad de clientes asignados:', cantidadClientesAsignados);
-  //     console.log('📊 Capacidad de la mesa:', capacidadMesa);
-
-  //     // 3. Solo marcar como ocupada si alcanzó o superó la capacidad
-  //     const debeMarcarComoOcupada = cantidadClientesAsignados >= capacidadMesa;
-  //     console.log('🔍 ¿Debe marcar como ocupada?:', debeMarcarComoOcupada);
-
-  //     // Actualizar la tabla 'mesas' - NO sobrescribir clienteAsignadoId
-  //     const updateData: any = {};
-  //     if (debeMarcarComoOcupada) {
-  //       updateData.ocupada = true;
-  //       console.log('🔴 Marcando mesa como OCUPADA');
-  //     } else {
-  //       console.log('🟢 Mesa sigue DISPONIBLE para más comensales');
-  //     }
-
-  //     const { error: errorMesa } = await this.sb.supabase
-  //       .from('mesas')
-  //       .update(updateData)
-  //       .eq('numero', mesa.numero);
-
-  //     if (errorMesa) throw errorMesa;
-
-  //     // NO marcar cliente como sentado aquí - eso debe hacerlo el cliente al escanear el QR de la mesa
-  //     // const {error: errorCliente }= await this.sb.supabase.from('clientes').update(
-  //     //   {
-  //     //     sentado: true,
-  //     //   }).eq('id', cliente.id,);
-
-  //     // if (errorCliente) throw errorCliente;
-
-  //     // 3. ENVIAR PUSH NOTIFICATION al cliente (A IMPLEMENTAR)
-  //     // Lógica simulada: notificar al dispositivo del cliente (celular 3)
-  //     // Ejemplo: this.notificationService.sendPush(cliente.correo, `Tu mesa asignada es la N° ${mesa.numero}`);
-      
-  //     const mensajeCapacidad = debeMarcarComoOcupada 
-  //       ? `Mesa ${mesa.numero} completa (${cantidadClientesAsignados}/${capacidadMesa}). ¡Mesa llena!`
-  //       : `Mesa ${mesa.numero} asignada a ${cliente.nombre} (${cantidadClientesAsignados}/${capacidadMesa}).`;
-      
-  //     this.feedback.showToast('exito', `✅ ${mensajeCapacidad}`);
-  //     console.log('🎉 Asignación completada exitosamente');
-
-  //     // Limpiar selección y recargar datos
-  //     this.clienteSeleccionado = null;
-  //     this.mesaSeleccionada = null;
-  //     await this.cargarDatos();
-
-  //   } catch (e: any) {
-  //     console.error('💥 Error en ejecutarAsignacion:', e);
-  //     this.feedback.showToast('error', 'Error al asignar: ' + e.message);
-  //   } finally {
-  //     await loading.dismiss();
-  //   }
-  // }
 
   async ejecutarAsignacion(cliente: ClienteEspera, mesa: Mesa) {
     this.customLoader.show('Asignando mesa...');
@@ -431,7 +325,7 @@ export class MaitreMesasComponent  implements OnInit {
         .single();
 
       if (clienteEnLista) {
-        await this.mostrarNotificacion('Ya en Lista', 'exito');
+        await this.mostrarNotificacion('Ya estás en la lista de espera', 'info');
         return;
       }
 
@@ -475,19 +369,40 @@ export class MaitreMesasComponent  implements OnInit {
         return;
       }
 
-      // try {
-      //   await this.pushNotificationService.notificarMaitreNuevoCliente(
-      //     cliente.nombre,
-      //     cliente.apellido
-      //   );
-      // } catch (error) {
-      // }
+      // 🔥 NUEVO: Llamar al endpoint de notificaciones
+      try {
+        const response = await fetch('http://localhost:3000/notify-maitre-lista-espera', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            clienteNombre: cliente.nombre,
+            clienteApellido: cliente.apellido,
+            clienteCorreo: cliente.correo,
+            //tipoCliente: cliente. ? 'anonimo' : 'registrado' // Asume que tienes este campo
+          })
+        });
 
-      await this.mostrarNotificacion('Has sido agregado exitosamente a la lista de espera.', 'exito');
-      
-    } catch (error) {
-      await this.mostrarNotificacion('Error inesperado al agregar a la lista de espera.', 'error');
-    }
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('✅ Maître notificado correctamente');
+        } else {
+          console.warn('⚠️ Notificación enviada pero con advertencias:', result.message);
+        }
+        
+      } catch (notifError) {
+        // No detenemos el flujo si falla la notificación
+        console.error('❌ Error al notificar al maître:', notifError);
+      }
+
+        await this.mostrarNotificacion('Has sido agregado exitosamente a la lista de espera.', 'exito');
+        
+      } catch (error) {
+        console.error('Error en agregarAListaEspera:', error);
+        await this.mostrarNotificacion('Error inesperado al agregar a la lista de espera.', 'error');
+      }
   }
 
   async escanearMesaAsignada() {

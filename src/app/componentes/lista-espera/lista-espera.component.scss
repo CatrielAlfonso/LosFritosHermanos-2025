@@ -1,5 +1,5 @@
 ion-content {
-  --background: #0f4400;
+  --background: #dc2234;
 }
 
 .lista-espera-container {
@@ -123,7 +123,7 @@ ion-content {
 }
 
 .table-header {
-  background: linear-gradient(90deg, #003604 0%, #000000 100%);
+  background: linear-gradient(90deg, #f39c12 0%, #000000 100%);
   color: #fff;
   font-weight: bold;
   font-size: 13px;
@@ -356,8 +356,8 @@ ion-modal {
   padding: 20px;
   
   .cliente-item {
-    background: rgba(108, 194, 114, 0.15);
-    border: 2px solid rgba(108, 194, 114, 0.3);
+    background: rgba(192, 92, 5, 0.15);
+    border: 2px solid rgba(183, 100, 6, 0.3);
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 12px;
@@ -366,12 +366,12 @@ ion-modal {
     justify-content: space-between;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(108, 194, 114, 0.1);
+    box-shadow: 0 2px 8px rgba(220, 125, 17, 0.1);
     
     &:hover {
-      background: rgba(108, 194, 114, 0.25);
+      background: rgba(207, 137, 7, 0.25);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(108, 194, 114, 0.2);
+      box-shadow: 0 4px 12px rgba(192, 78, 7, 0.2);
     }
     
     .cliente-info {
@@ -442,8 +442,8 @@ ion-modal {
 .qr-btn {
   --border-radius: 48px;
   --background: #fff;
-  --color: #4CAF50;
-  --border-color: #4CAF50;
+  --color: #f39c12;
+  --border-color: #f39c12;
   --box-shadow: 0 2px 8px rgba(76,175,80,0.10);
   font-weight: bold;
   font-size: 28px;
@@ -472,7 +472,7 @@ ion-modal {
   span {
     font-size: 25px;
     font-weight: bold;
-    color: #4CAF50;
+    color: #f39c12;
     display: block;
     text-align: center;
   }
