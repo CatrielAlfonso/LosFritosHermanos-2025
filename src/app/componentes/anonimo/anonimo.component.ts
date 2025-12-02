@@ -243,12 +243,9 @@ export class AnonimoComponent  {
       
       await loading.dismiss();
 
-      // Notificar al maître
+      // Notificar al maître que hay un nuevo cliente en lista de espera
       try {
-        await this.pushNotificationService.notificarMaitreNuevoCliente(
-          nombreAnonimo,
-          '' // Sin apellido para anónimos
-        );
+        await this.pushNotificationService.notificarMaitreListaEspera(nombreAnonimo);
       } catch (error) {
         console.error('Error al notificar al maître:', error);
         // No lanzamos el error para no interrumpir el flujo del usuario

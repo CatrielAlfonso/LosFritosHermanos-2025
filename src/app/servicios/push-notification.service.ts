@@ -101,6 +101,32 @@ export class PushNotificationService {
     }
   }
 
+  // Notificar SOLO al maître cuando un cliente entra en lista de espera
+  async notificarMaitreListaEspera(clienteNombre: string) {
+    try {
+      const response = await fetch(`${this.backendUrl}/notify-maitre-lista-espera`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clienteNombre
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+      
+    } catch (error) {
+      console.error('Error al notificar al maître:', error);
+      throw error;
+    }
+  }
+
   async notificarClienteAsignadaMesa(
     clienteEmail: string, 
     mesaNumero: string, 
