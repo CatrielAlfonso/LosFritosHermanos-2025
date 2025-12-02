@@ -79,7 +79,10 @@ export class MaitreMesasComponent  implements OnInit {
         .is('mesa_asignada', null); // Asumiendo que la tabla tiene este campo
 
       if (error) throw error;
-      this.clientesEspera = data as ClienteEspera[];
+      //this.clientesEspera = data as ClienteEspera[];
+      this.clientesEspera = data 
+      .sort((a, b) => new Date(b.fecha_ingreso).getTime() - new Date(a.fecha_ingreso).getTime());
+
     } catch (e: any) {
       this.feedback.showToast('error', 'Error al cargar clientes: ' + e.message);
     }

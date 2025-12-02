@@ -50,8 +50,11 @@
 
 /* Panel Izquierdo */
 .espera-panel {
-  flex-basis: 35%;
+   flex-basis: 35%;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Panel Derecho */
