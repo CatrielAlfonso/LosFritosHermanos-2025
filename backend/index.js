@@ -2582,7 +2582,7 @@ app.post("/notify-order-ready", async (req, res) => {
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
-});
+});  
 
 
 // curl -X POST http://localhost:3000/notify-maitre-lista-espera \
