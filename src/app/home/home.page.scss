@@ -138,33 +138,6 @@
   }
 }
 
-/* Botones especiales de 2 líneas */
-.btn-pedidos,
-.btn-solicitar-mesa {
-  flex: 1.2 1 auto; /* Un poco más grandes que los demás */
-  max-height: none; /* Sin límite */
-  
-  .boton-contenido-columna {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 100%;
-    
-    ion-icon {
-      font-size: clamp(1.4rem, 4vw, 2rem);
-      margin: 0;
-    }
-    
-    .boton-texto {
-      font-size: clamp(0.85rem, 2vw, 1.05rem);
-      text-align: center;
-      line-height: 1.3;
-      font-weight: 700;
-    }
-  }
-}
 
 /* Tarjetas de advertencia (lista de espera) */
 ion-card {

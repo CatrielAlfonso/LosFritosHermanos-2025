@@ -1,5 +1,5 @@
 ion-content {
-  --background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --background: linear-gradient(135deg, var(--ion-color-fritos-yellow) 0%, var(--ion-color-fritos-orange) 100%);
 }
 
 .summary-card {
@@ -38,10 +38,17 @@ ion-content {
 
 .filter-segment {
   margin-bottom: 20px;
-  background-color: white;
+  background-color: rgba(146, 231, 145, 0.629);
   border-radius: 12px;
   padding: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  ion-segment-button {
+    --color: #ffffff;
+    --color-checked: #ffffff;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .loading-container {
