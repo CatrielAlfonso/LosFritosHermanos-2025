@@ -1,7 +1,16 @@
 /* ion-content host: fondo app */
+:host {
+  --fritos-orange: var(--ion-color-fritos-orange, #ff9800);
+  --fritos-yellow: var(--ion-color-fritos-yellow, #ffeb3b);
+  --fritos-blue: var(--ion-color-fritos-blue, #4666de);
+  --fritos-red: var(--ion-color-primary, #d32f2f);
+  --fritos-white: #ffffff;
+  --fritos-text: #333333;
+}
+
 .anonimo-page {
   // Color principal de fondo
-  --background: #4666de; 
+  --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
 }
 
 /* ----------------------------------- */
@@ -40,24 +49,25 @@
 
 // Logo y títulos
 .anonimo-logo {
-  width: 80px;
-  height: 80px;
+  width: 130px;
+  height: 130px;
+  padding: 10px;
   border-radius: 50%;
   object-fit: cover;
   margin: 0 auto 8px auto;
   box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 .anonimo-title { 
-  color: #efbf2d; 
+  color: var(--fritos-blue); 
   font-size: 1.8rem; 
   margin-bottom: 4px;
 }
 .anonimo-subtitle { 
-  color: #fff; 
+  color: var(--fritos-blue); 
   margin-bottom: 20px; 
 }
 .qr-subtitle {
-  color: #fff; 
+  color: var(--fritos-blue); 
   opacity: 0.8;
   margin-bottom: 15px;
   font-weight: 300;
@@ -65,12 +75,12 @@
 
 // Items e Inputs (Usamos tu estilo de "glassmorphism" sutil)
 .fritos-input {
-  --background: rgba(255,255,255,0.12);
+  --background: rgba(202, 210, 211, 0.811);
   border-radius: 10px;
   margin-bottom: 12px;
   --color: #fff;
-  ion-label { color: #ffd351 !important; font-weight: 600; }
-  ion-input { color: #fff; }
+  ion-label { color: var(--fritos-blue) !important; font-weight: 600; }
+  ion-input { color: #000000; }
 }
 
 // Preview Foto
@@ -84,7 +94,7 @@
   height: 80px; 
   object-fit: cover; 
   border-radius: 50%; // Circular para perfil
-  border: 3px solid #efbf2d; 
+  border: 3px solid var(--fritos-blue); 
   box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 

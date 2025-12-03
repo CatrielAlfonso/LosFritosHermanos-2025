@@ -15,16 +15,16 @@
       
       <form [formGroup]="anonimoForm" (ngSubmit)="registrarAnonimo()" class="ion-padding">
         <ion-item class="fritos-input">
-          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-icon slot="start" name="person-outline" color="fritos-blue"></ion-icon>
           <ion-label position="floating">Tu Nombre</ion-label>
           <ion-input type="text" formControlName="nombre"></ion-input>
         </ion-item>
 
         <ion-item class="fritos-input">
-          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          <ion-icon slot="start" name="camera-outline" color="fritos-blue"></ion-icon>
           <ion-label>Foto de Perfil</ion-label>
           <ion-button fill="clear" color="secondary" slot="end" (click)="tomarFoto()">
-            <ion-icon slot="icon-only" name="camera"></ion-icon>
+            <ion-icon slot="icon-only" name="camera" color="fritos-blue"></ion-icon>
           </ion-button>
         </ion-item>
 
@@ -40,9 +40,9 @@
 
     </div>
     
-    <div class="volver-panel ion-padding">
-      <ion-button expand="block" fill="clear" color="light" class="ion-margin-top" (click)="volverBienvenida()">
-        <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+    <div class="volver-panel ion-padding" style="background-color: #d32f2fc6; color: white;" >
+      <ion-button expand="block" color="secondary" fill="clear" class="ion-margin-top" (click)="volverBienvenida()">
+        <ion-icon slot="start" color="secondary" name="arrow-back-outline"></ion-icon>
         Volver
       </ion-button>
     </div>
