@@ -1,4 +1,4 @@
-import { inject, Injectable, signal, WritableSignal, OnInit} from '@angular/core';
+import { inject, Injectable, signal, WritableSignal, OnInit, Injector} from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
@@ -12,6 +12,7 @@ export class AuthService implements OnInit {
   sb = inject(SupabaseService);
   router = inject(Router);
   audio = inject(AudioService);
+  private injector = inject(Injector);
   
   // Exponer supabase para acceso externo si es necesario
   get supabase() {
@@ -362,12 +363,12 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
 
       if (email) {
         try {
-          //const { PushNotificationService } = await import('./push-notification.service');
-          //const pushService = new PushNotificationService();
-          //await pushService.borrarFcmToken(email);
+          const { PushNotificationService } = await import('./push-notification.service');
+          const pushService = this.injector.get(PushNotificationService);
+          await pushService.borrarFcmToken(email);
+          console.log('✅ Token FCM eliminado para:', email);
         } catch (error) {
           console.error('Error al borrar FCM token:', error);
-          
         }
       }
     } catch (error) {
@@ -548,8 +549,9 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
       if (email) {
         try {
           const { PushNotificationService } = await import('./push-notification.service');
-          const pushService = new PushNotificationService();
+          const pushService = this.injector.get(PushNotificationService);
           await pushService.borrarFcmToken(email);
+          console.log('✅ Token FCM eliminado para:', email);
         } catch (error) {
           console.error('Error al borrar FCM token:', error);
         }

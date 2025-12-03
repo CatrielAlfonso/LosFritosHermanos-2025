@@ -80,6 +80,11 @@ export class HomePage implements OnInit, ViewWillEnter {
 
   pedidoHecho: boolean = true;
 
+  // Variables para el menú de perfil
+  imagenPerfil: string = '';
+  mostrarMenuPerfil: boolean = false;
+  perfilLabel: string = '';
+
   authUser = computed(() => this.authService.userActual());
   // userDataAuth = computed(() => {
   //   const user = this.authUser()
@@ -205,6 +210,9 @@ export class HomePage implements OnInit, ViewWillEnter {
     this.userData = user || null;
       this.nombreUsuario = user?.datos.nombre;
       this.perfilUsuario = user?.tipo || null;
+      // Soporta tanto imagenPerfil como foto_perfil (para repartidores)
+      this.imagenPerfil = user?.datos?.imagenPerfil || user?.datos?.foto_perfil || '';
+      this.perfilLabel = this.obtenerPerfilLabel(user?.tipo);
       console.log('user: ', user);
       console.log('userData: ', this.userData);
       
@@ -237,6 +245,8 @@ export class HomePage implements OnInit, ViewWillEnter {
         this.perfilUsuario = 'cliente';
         this.nombreUsuario = this.clienteAnonimo.nombre;
         this.clienteInfo = this.clienteAnonimo;
+        this.imagenPerfil = this.clienteAnonimo?.imagenPerfil || '';
+        this.perfilLabel = 'Cliente Anónimo';
         
         // Limpiar flags de empleados para clientes anónimos
         this.esAdmin = false;
@@ -476,12 +486,9 @@ export class HomePage implements OnInit, ViewWillEnter {
             }
           ]);
 
-          // Notificar al maître
+          // Notificar al maître que hay cliente en lista de espera
           try {
-            await this.pushNotificationService.notificarMaitreNuevoCliente(
-              this.clienteAnonimo.nombre,
-              ''
-            );
+            await this.pushNotificationService.notificarMaitreListaEspera(this.clienteAnonimo.nombre);
           } catch (error) {
             console.error('Error al notificar maître:', error);
           }
@@ -514,12 +521,9 @@ export class HomePage implements OnInit, ViewWillEnter {
             }
           ]);
 
-          // Notificar al maître
+          // Notificar al maître que hay cliente en lista de espera
           try {
-            await this.pushNotificationService.notificarMaitreNuevoCliente(
-              this.clienteAnonimo.nombre,
-              ''
-            );
+            await this.pushNotificationService.notificarMaitreListaEspera(this.clienteAnonimo.nombre);
           } catch (error) {
             console.error('Error al notificar maître:', error);
           }
@@ -906,6 +910,7 @@ export class HomePage implements OnInit, ViewWillEnter {
   }
 
   async cerrarSesion() {
+    this.mostrarMenuPerfil = false;
     this.customLoader.show();
     await this.authService.signOut();
     
@@ -917,8 +922,31 @@ export class HomePage implements OnInit, ViewWillEnter {
     this.customLoader.hide();
     this.nombreUsuario = '';
     this.usuario = null;
+    this.imagenPerfil = '';
     this.router.navigate(['/login']);
     this.feedback.showToast('exito', 'Has cerrado sesión correctamente.');
+  }
+
+  toggleMenuPerfil() {
+    this.mostrarMenuPerfil = !this.mostrarMenuPerfil;
+  }
+
+  cerrarMenuPerfil() {
+    this.mostrarMenuPerfil = false;
+  }
+
+  obtenerPerfilLabel(tipo: string | null): string {
+    const labels: { [key: string]: string } = {
+      'cliente': 'Cliente',
+      'supervisor': 'Supervisor',
+      'dueño': 'Dueño',
+      'maitre': 'Maître',
+      'mozo': 'Mozo',
+      'cocinero': 'Cocinero',
+      'bartender': 'Bartender',
+      'repartidor': 'Repartidor'
+    };
+    return labels[tipo || ''] || 'Usuario';
   }
 
    async escanearQR() {
@@ -1427,10 +1455,7 @@ export class HomePage implements OnInit, ViewWillEnter {
 
       try {
         console.log('🔔 [agregarAListaEspera] Enviando notificación al maître');
-        await this.pushNotificationService.notificarMaitreNuevoCliente(
-          nombre,
-          apellido || ''
-        );
+        await this.pushNotificationService.notificarMaitreListaEspera(nombre);
         console.log('✅ [agregarAListaEspera] Notificación enviada');
       } catch (error) {
         console.log('⚠️ [agregarAListaEspera] Error al enviar notificación:', error);

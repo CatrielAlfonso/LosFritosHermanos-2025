@@ -52,17 +52,32 @@
 .espera-panel {
   flex-basis: 35%;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Área scrolleable de clientes en espera */
+.espera-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  min-height: 0; /* Importante para que flex + overflow funcione */
 }
 
 /* Panel Derecho */
 .mesas-panel {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .mesas-scroll-area {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
+  min-height: 0;
 }
 
 /* ----------------------------------- */

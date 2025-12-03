@@ -16,25 +16,29 @@
     <div class="panel espera-panel">
       <h3 class="panel-title ion-padding-horizontal">Clientes en Espera ({{ clientesEspera.length }})</h3>
 
-      <ion-list lines="none" class="ion-no-padding">
-        <ion-item 
-          *ngFor="let cliente of clientesEspera" 
-          (click)="seleccionarCliente(cliente)"
-          [class.item-selected]="clienteSeleccionado?.id === cliente.id"
-          class="cliente-item"
-        >
-          <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-          <ion-label>
-            <h2>{{ cliente.nombre }}</h2>
-            <p>Ingreso: {{ cliente.fecha_ingreso | date:'shortTime' }}</p>
-          </ion-label>
-        </ion-item>
-        <ion-item *ngIf="clientesEspera.length === 0" lines="full">
-            <ion-label class="ion-text-center ion-padding">
-                <p>No hay clientes esperando. ¡Genial!</p>
+      
+      <div class="espera-scroll-area">
+        <ion-list lines="none" class="ion-no-padding">
+          <ion-item
+            *ngFor="let cliente of clientesEspera"
+            (click)="seleccionarCliente(cliente)"
+            [class.item-selected]="clienteSeleccionado?.id === cliente.id"
+            class="cliente-item"
+          >
+            <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+            <ion-label>
+              <h2>{{ cliente.nombre }}</h2>
+              <p>Ingreso: {{ cliente.fecha_ingreso | date:'shortTime' }}</p>
             </ion-label>
-        </ion-item>
-      </ion-list>
+          </ion-item>
+
+          <ion-item *ngIf="clientesEspera.length === 0" lines="full">
+            <ion-label class="ion-text-center ion-padding">
+              <p>No hay clientes esperando. ¡Genial!</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
     </div>
 
     <div class="panel mesas-panel ion-padding">

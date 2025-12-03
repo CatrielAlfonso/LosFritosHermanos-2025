@@ -296,59 +296,30 @@
 
     ion-fab-list {
       right: 20px;
-      
+
       ion-fab-button {
         --border-radius: 20px;
+
+        /* 🔥 Ajustes de tamaño */
         width: auto !important;
-        height: 40px;
-        margin: 6px 0;
-        padding: 0 28px;
+        height: 48px;         // antes 40px
+        margin: 5px 0;       // más separación entre botones
+        padding: 0 34px;      // más espacio lateral
 
         &.fab-with-label {
-          min-width: 140px;
+          min-width: 160px;   // antes 140px, más espacio para texto largo
         }
 
         .fab-label {
-          font-size: 0.75rem;
+          font-size: 0.85rem; // un poquito más grande
           font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.1px;
-          white-space: nowrap;
-          padding: 0 8px;
+          letter-spacing: 0.2px;
+          padding: 0 10px;
         }
 
-        // Colores para cada tipo
-        &[color="warning"] {
-          --background: #f39c12;
-          --background-hover: #e67e22;
-          --color: #fff;
-          --box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
-        }
-
-        &[color="success"] {
-          --background: #27ae60;
-          --background-hover: #1e8449;
-          --color: #fff;
-          --box-shadow: 0 2px 8px rgba(39, 174, 96, 0.4);
-        }
-
-        &[color="tertiary"] {
-          --background: #8e44ad;
-          --background-hover: #7d3c98;
-          --color: #fff;
-          --box-shadow: 0 2px 8px rgba(142, 68, 173, 0.4);
-        }
-
-        &[color="primary"] {
-          --background: #3498db;
-          --background-hover: #2980b9;
-          --color: #fff;
-          --box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
-        }
-
-        // Animación al hacer hover
+        /* Animación */
         &:hover {
-          transform: scale(1.05);
+          transform: scale(1.07);
           transition: transform 0.2s ease;
         }
 

@@ -42,7 +42,7 @@ export class GameSelectorComponent implements OnInit {
       nombre: 'Atrapa el Pollo',
       descripcion: 'Tocá el pollo para ganar antes de que escape.',
       ruta: '/atrapa-el-pollo',
-      imagen: '../../assets/imgs/atrapaElPollo.png',
+      imagen: '../../assets/imgs/atrapapollo.png',
       descuento: JUEGOS_CONFIG['atrapa-el-pollo'].descuento
     },
     {
@@ -58,7 +58,7 @@ export class GameSelectorComponent implements OnInit {
       nombre: 'Mayor o Menor',
       descripcion: 'Adiviná si la próxima carta es mayor o menor.',
       ruta: '/mayor-menor',
-      imagen: '../../assets/imgs/mozoEquilibrio.png',
+      imagen: '../../assets/imgs/mayormenor.png',
       descuento: JUEGOS_CONFIG['mayor-menor'].descuento
     },
     {
