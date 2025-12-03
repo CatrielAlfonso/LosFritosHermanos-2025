@@ -549,8 +549,9 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
       if (email) {
         try {
           const { PushNotificationService } = await import('./push-notification.service');
-          const pushService = new PushNotificationService();
+          const pushService = this.injector.get(PushNotificationService);
           await pushService.borrarFcmToken(email);
+          console.log('✅ Token FCM eliminado para:', email);
         } catch (error) {
           console.error('Error al borrar FCM token:', error);
         }
