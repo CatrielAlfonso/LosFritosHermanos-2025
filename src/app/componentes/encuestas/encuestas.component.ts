@@ -29,9 +29,10 @@ interface Encuesta {
 
 @Component({
   selector: 'app-encuestas',
+  standalone: true,
   templateUrl: './encuestas.component.html',
   styleUrls: ['./encuestas.component.scss'],
-   imports: [
+  imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
