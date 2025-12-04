@@ -480,12 +480,16 @@ export class RegistroComponent implements OnInit {
       // } catch (error) {
       //   console.error('Error al enviar notificación:', error);
       // }
-      this.mensajeExito = 'Cliente registrado exitosamente! Estado: Pendiente de aprobación.';
-      this.feedback.showToast('exito', '✅ Cliente registrado exitosamente! Estado: Pendiente de aprobación.');
+      this.mensajeExito = 'Tu cuenta está pendiente de aprobación. Serás redirigido al inicio de sesión y podrás acceder una vez que aprueben tu solicitud.';
+      this.feedback.showToast('exito', '✅ Registro exitoso!');
       this.clienteForm.reset();
       this.imagenClienteURL = null;
       this.customLoadService.hide();
       this.loadingService.hide();
+
+      setTimeout(() => {
+        this.router.navigateByUrl('/login');
+      }, 6500);
     } catch (e) {
       this.mensajeError = 'Error: ' + (e as Error).message;
       this.loadingService.hide();

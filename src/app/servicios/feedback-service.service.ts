@@ -35,13 +35,13 @@ export class FeedbackService {
     ]
   };
 
-  async showToast(tipo: 'exito' | 'error', mensaje?: string) {
+  async showToast(tipo: 'exito' | 'error', mensaje?: string, duration = 2500) {
     const textos = this.mensajesGraciosos[tipo];
     const texto = mensaje || textos[Math.floor(Math.random() * textos.length)];
 
     const toast = await this.toastCtrl.create({
       message: texto,
-      duration: 2500,
+      duration: duration,
       position: 'top',
       color: tipo === 'exito' ? 'success' : 'danger',
       cssClass: 'custom-toast'

@@ -592,7 +592,7 @@ async function enviarFacturaPorEmail(clienteEmail, pdfUrl, pedido) {
             
             <!-- Botón de descarga -->
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${pdfUrl}" 
+              <a href="${pdfUrl}" target="_blank"
                  style="display: inline-block; background: linear-gradient(135deg, #E53E3E 0%, #C53030 100%); 
                         color: #fff; padding: 15px 40px; text-decoration: none; border-radius: 25px; 
                         font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4);">
