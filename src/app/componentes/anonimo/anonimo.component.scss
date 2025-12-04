@@ -140,3 +140,34 @@ ion-button {
     margin: 0 2px;
   }
 }
+
+
+.boton-grande-entrar {
+  min-height: 350px; // Botón más grande
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  flex-shrink: 0; // Evita que se comprima
+  
+  ion-icon {
+    font-size: 2rem;
+  }
+}
+
+// Ajusta el espaciado del formulario para que el botón ocupe más espacio
+form.ion-padding {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  
+  ion-button[type="submit"] {
+    margin-top: auto;
+  }
+}
+
+// Opcional: ajusta el panel para que use flexbox
+.anonimo-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
