@@ -140,6 +140,9 @@ export class HomePage implements OnInit, ViewWillEnter {
     
     // Verificar pedidos de delivery inmediatamente después de cargar usuario
     await this.verificarPedidoDeliveryConfirmado();
+    
+    // Suscribirse a cambios en tiempo real de pedidos para actualizar el estado automáticamente
+    this.suscribirseACambiosDePedido();
 
     console.log('Perfil usuario en HomePage:', this.perfilUsuario);
 
@@ -769,6 +772,51 @@ export class HomePage implements OnInit, ViewWillEnter {
     }
 
     await this.cargarClienteInfo();
+  }
+
+  /**
+   * Suscribe a cambios en tiempo real de pedidos para actualizar el estado automáticamente
+   * Esto permite que los botones de Propina, Pagar, etc. aparezcan sin escanear QR
+   */
+  private suscribirseACambiosDePedido() {
+    // Solo suscribirse si es cliente (registrado o anónimo) y tiene mesa asignada
+    const esCliente = this.perfilUsuario === 'cliente' || this.esClienteAnonimo;
+    if (!esCliente) return;
+
+    console.log('🔔 [suscribirseACambiosDePedido] Suscribiendo a cambios de pedidos...');
+    
+    this.supabase.supabase
+      .channel('pedidos-cliente-home')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'pedidos'
+        },
+        async (payload) => {
+          console.log('📦 [REALTIME] Cambio en pedido detectado:', payload);
+          
+          // Si tenemos un pedido activo y es el mismo que cambió, actualizarlo
+          if (this.pedidoActualCliente && payload.new && 
+              (payload.new as any).id === this.pedidoActualCliente.id) {
+            console.log('📦 [REALTIME] Actualizando pedidoActualCliente con nuevos datos');
+            this.pedidoActualCliente = payload.new;
+          }
+          
+          // Si tenemos mesa asignada, verificar si hay cambios relevantes
+          if (this.mesaAsignada) {
+            const pedidoActualizado = payload.new as any;
+            if (pedidoActualizado.mesa === String(this.mesaAsignada)) {
+              console.log('📦 [REALTIME] Pedido de nuestra mesa actualizado');
+              await this.verificarPedidoExistente();
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 [REALTIME] Estado suscripción pedidos-cliente-home:', status);
+      });
   }
 
   async verificarUsuario() {
