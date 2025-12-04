@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { PushNotifications, PushNotificationSchema } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Router } from '@angular/router';
+import { Browser } from '@capacitor/browser';
 
 @Injectable({
   providedIn: 'root'
@@ -34,13 +35,26 @@ export class PushNotificationService {
     });
 
     // Listener para cuando el usuario TOCA la notificación (y la app estaba cerrada/segundo plano)
-    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+    PushNotifications.addListener('pushNotificationActionPerformed', async (action) => {
       console.log('El usuario tocó la notificación:', action);
       
       const data = action.notification.data;
       if (data && data.link) {
-        this.router.navigateByUrl(data.link);
-      }else {
+        // Si es una URL externa (ej: PDF de factura), abrirla en el navegador
+        if (data.link.startsWith('http://') || data.link.startsWith('https://')) {
+          console.log('Abriendo URL externa:', data.link);
+          try {
+            await Browser.open({ url: data.link });
+          } catch (error) {
+            console.error('Error al abrir el navegador:', error);
+            // Fallback: intentar navegar internamente
+            this.router.navigateByUrl('/home');
+          }
+        } else {
+          // Es una ruta interna de la app
+          this.router.navigateByUrl(data.link);
+        }
+      } else {
         this.router.navigateByUrl('/home');
       }
     });

@@ -206,10 +206,12 @@
         </ion-card>
       }
       
-      <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']" (click)="ocultarMensajeListaEspera()">
-        <ion-icon name="restaurant-outline" slot="start"></ion-icon>
-        Ver Carta
-      </ion-button>
+      @if (qrMesaEscaneado) {
+        <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']" (click)="ocultarMensajeListaEspera()">
+          <ion-icon name="restaurant-outline" slot="start"></ion-icon>
+          Ver Carta
+        </ion-button>
+      }
 
       <ion-button expand="block" color="fritos-orange" class="fritos-button" [routerLink]="['/reservas']" (click)="ocultarMensajeListaEspera()">
         <ion-icon name="calendar-outline" slot="start"></ion-icon>
