@@ -181,19 +181,7 @@
 
     <div *ngIf="tipoUsuario === 'cliente' || esClienteAnonimo" class="cliente-options">
       
-      <!-- Botón para clientes anónimos: Escanear QR para Ver Encuestas -->
-      @if (esClienteAnonimo)
-      {
-        <ion-button
-          expand="block" 
-          color="fritos-red" 
-          class="fritos-button" 
-          (click)="ocultarMensajeListaEspera(); escanearQRParaVerEncuestas()">
-          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
-          Escanear QR para Ver Encuestas
-        </ion-button>
-      }
-      
+      <!-- Mensaje de lista de espera -->
       @if (esClienteAnonimo && yaEnListaEspera && !mesaAsignada && mostrarMensajeListaEspera)
       {
         <ion-card color="warning">
@@ -205,7 +193,18 @@
           </ion-card-content>
         </ion-card>
       }
+
+      <!-- BOTÓN ÚNICO DE ESCANEAR QR -->
+      <ion-button 
+        expand="block" 
+        color="fritos-red"
+        class="fritos-button"
+        (click)="escanearQRUnificado()">
+        <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+        Escanear QR
+      </ion-button>
       
+      <!-- Ver Carta - visible después de escanear QR de mesa -->
       @if (qrMesaEscaneado) {
         <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']" (click)="ocultarMensajeListaEspera()">
           <ion-icon name="restaurant-outline" slot="start"></ion-icon>
@@ -229,7 +228,6 @@
           <ion-icon name="qr-code-outline" slot="start"></ion-icon>
           Escanear QR Envíos a Domicilio
         </ion-button>
-
       }
 
       <!-- Mis Pedidos a Domicilio - visible solo después de escanear QR DELIVERY (si tiene pedido confirmado) -->
@@ -245,16 +243,6 @@
         <ion-button expand="block" color="fritos-red" class="fritos-button" (click)="irAJuegos()">
           <ion-icon name="game-controller-outline" slot="start"></ion-icon>
           🎮 Jugar por Descuento
-        </ion-button>
-      }
-
-      <!-- Botón Escanear QR Mesa - siempre visible mientras tenga mesa asignada -->
-      @if ((tipoUsuario === 'cliente' || esClienteAnonimo) && mostrarBotonEscanearMesa)
-      {
-        <ion-button
-        expand="block" color="fritos-orange" class="fritos-button" (click)="escanearMesaAsignada()">
-          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
-          Escanear QR Mesa
         </ion-button>
       }
       
@@ -288,24 +276,59 @@
         </ion-button>
       }
 
+      <!-- Pedir Cuenta - visible después de confirmar recepción y antes de solicitar cuenta -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.recepcion && pedidoActualCliente?.estado === 'entregado' && !pedidoActualCliente?.solicita_cuenta && qrMesaEscaneado)
+      {
+        <ion-button expand="block" color="fritos-yellow" class="fritos-button" (click)="pedirCuenta()">
+          <ion-icon name="receipt-outline" slot="start"></ion-icon>
+          Pedir Cuenta
+        </ion-button>
+      }
+
+      <!-- Escanear QR Propina - visible automáticamente después de solicitar cuenta (sin necesidad de escanear QR) -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.solicita_cuenta && pedidoActualCliente?.propina === null)
+      {
+        <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="escanearQRPropina()">
+          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+          Escanear QR Propina
+        </ion-button>
+      }
+
+      <!-- Propina cargada - Esperando habilitación del mozo (visible automáticamente) -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.solicita_cuenta && pedidoActualCliente?.propina !== null && !pedidoActualCliente?.cuenta_habilitada)
+      {
+        <ion-card color="warning" class="fritos-card">
+          <ion-card-content>
+            <p>✅ Propina: {{pedidoActualCliente.propina}}% - Esperando habilitación del mozo...</p>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- Pagar Cuenta - visible automáticamente cuando el mozo habilitó la cuenta -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.cuenta_habilitada && pedidoActualCliente?.estado !== 'pagado_pendiente' && pedidoActualCliente?.estado !== 'finalizado')
+      {
+        <ion-button expand="block" color="fritos-green" class="fritos-button" (click)="irAPagarCuenta()">
+          <ion-icon name="card-outline" slot="start"></ion-icon>
+          Pagar Cuenta
+        </ion-button>
+      }
+
+      <!-- Pago pendiente de confirmación (visible automáticamente) -->
+      @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && pedidoActualCliente?.estado === 'pagado_pendiente')
+      {
+        <ion-card color="success" class="fritos-card">
+          <ion-card-content>
+            <p>💳 Pago registrado - Esperando confirmación del mozo...</p>
+          </ion-card-content>
+        </ion-card>
+      }
+
       <!-- Ver Resultados de Encuestas - visible si ya completó la encuesta -->
       @if ((perfilUsuario === 'cliente' || esClienteAnonimo) && clienteInfo?.encuesta && qrMesaEscaneado)
       {
         <ion-button expand="block" color="fritos-orange" class="fritos-button" (click)="verResultadosEncuestas()">
           <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
           Ver Resultados de Encuestas
-        </ion-button>
-      }
-
-      @if((perfilUsuario === 'cliente' || esClienteAnonimo) && !yaEnListaEspera && !clienteSentado)
-      {
-        <ion-button 
-          expand="block" 
-          color="fritos-red"
-          class="fritos-button"
-          (click)="ocultarMensajeListaEspera(); escanearQR()">
-          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
-          Solicitar Mesa
         </ion-button>
       }
 

@@ -1,5 +1,5 @@
 import { Component, computed, OnInit, OnDestroy } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular';
+import { ViewWillEnter, AlertController } from '@ionic/angular';
 import { AuthService } from '../servicios/auth.service';
 import { Router,RouterLink } from '@angular/router';
 import { UserService } from '../servicios/user';
@@ -108,7 +108,7 @@ export class HomePage implements OnInit, ViewWillEnter {
     private pushNotificationService: PushNotificationService,
     private notificationsService: NotificationsService,
     private reservasService: ReservasService,
-    //private cdr: ChangeDetectorRef
+    private alertController: AlertController
   ) {
       
   }
@@ -949,6 +949,114 @@ export class HomePage implements OnInit, ViewWillEnter {
     return labels[tipo || ''] || 'Usuario';
   }
 
+  /**
+   * MÉTODO UNIFICADO para escanear QR
+   * Maneja todos los casos según el estado del cliente:
+   * 1. Si no está en lista de espera y no tiene mesa → Solicitar mesa (QR entrada)
+   * 2. Si está en lista de espera pero no tiene mesa asignada → Ver encuestas (QR entrada)
+   * 3. Si tiene mesa asignada → Escanear QR de la mesa
+   */
+  async escanearQRUnificado() {
+    console.log('📷 [escanearQRUnificado] INICIANDO escaneo unificado');
+    console.log('   - yaEnListaEspera:', this.yaEnListaEspera);
+    console.log('   - mesaAsignada:', this.mesaAsignada);
+    console.log('   - mostrarBotonEscanearMesa:', this.mostrarBotonEscanearMesa);
+    console.log('   - clienteSentado:', this.clienteSentado);
+    console.log('   - qrMesaEscaneado:', this.qrMesaEscaneado);
+
+    this.ocultarMensajeListaEspera();
+    this.qrEnProceso = true;
+    this.customLoader.show();
+
+    try {
+      const { barcodes } = await BarcodeScanner.scan();
+      
+      if (barcodes.length === 0) {
+        console.log('⚠️ [escanearQRUnificado] No se detectó ningún código QR');
+        await this.swal.showTemporaryAlert('Info', 'No se detectó ningún código QR.', 'info');
+        return;
+      }
+
+      const codigoEscaneado = barcodes[0].rawValue || barcodes[0].displayValue;
+      console.log('📷 [escanearQRUnificado] Código escaneado:', codigoEscaneado);
+
+      // Determinar qué tipo de QR es
+      const esQREntrada = codigoEscaneado === 'b71c9d3a4e1f5a62c3340b87df0e8a129cab6e3d' || 
+                          codigoEscaneado.startsWith('ENTRADA:') ||
+                          codigoEscaneado.startsWith('RESTAURANT_CHECKIN_') ||
+                          codigoEscaneado === 'verEncuestas';
+
+      const esQRMesa = this.esQRDeMesa(codigoEscaneado);
+
+      console.log('📷 [escanearQRUnificado] esQREntrada:', esQREntrada);
+      console.log('📷 [escanearQRUnificado] esQRMesa:', esQRMesa);
+
+      // CASO 1: Tiene mesa asignada y escanea QR de mesa
+      if (this.mostrarBotonEscanearMesa && esQRMesa) {
+        console.log('📷 [escanearQRUnificado] → Procesando como QR de mesa asignada');
+        await this.validarMesaEscaneada(codigoEscaneado);
+        return;
+      }
+
+      // CASO 2: Ya está en lista de espera (sin mesa) y escanea QR de entrada → Ver encuestas
+      if (this.yaEnListaEspera && !this.mesaAsignada && esQREntrada) {
+        console.log('📷 [escanearQRUnificado] → Ya en lista de espera, mostrando encuestas');
+        await this.router.navigate(['/encuestas'], { queryParams: { modo: 'ver' } });
+        return;
+      }
+
+      // CASO 3: No está en lista de espera y escanea QR de entrada → Solicitar mesa
+      if (!this.yaEnListaEspera && !this.clienteSentado && esQREntrada) {
+        console.log('📷 [escanearQRUnificado] → Agregando a lista de espera');
+        await this.agregarAListaEspera();
+        return;
+      }
+
+      // CASO 4: Cliente sentado y escanea QR de su mesa → Ya está procesado arriba
+      if (this.clienteSentado && esQRMesa) {
+        console.log('📷 [escanearQRUnificado] → Cliente ya sentado, validando mesa');
+        await this.validarMesaEscaneada(codigoEscaneado);
+        return;
+      }
+
+      // Si llegamos aquí, el QR no es válido para el estado actual
+      console.log('❌ [escanearQRUnificado] QR no válido para el estado actual');
+      
+      if (this.mostrarBotonEscanearMesa) {
+        await this.swal.showTemporaryAlert('Error', 'Escaneá el QR de tu mesa asignada', 'error');
+      } else if (this.yaEnListaEspera) {
+        await this.swal.showTemporaryAlert('Error', 'Escaneá el QR de entrada para ver encuestas', 'error');
+      } else {
+        await this.swal.showTemporaryAlert('Error', 'QR inválido', 'error');
+      }
+
+    } catch (error: any) {
+      console.error('❌ [escanearQRUnificado] Error:', error);
+      if (!error.message?.includes('cancelled') && !error.message?.includes('cancelado')) {
+        await this.swal.showTemporaryAlert('Error', 'Error al escanear el código QR', 'error');
+      }
+    } finally {
+      this.customLoader.hide();
+      this.qrEnProceso = false;
+      console.log('✅ [escanearQRUnificado] Proceso finalizado');
+    }
+  }
+
+  /**
+   * Verifica si un código QR es de una mesa
+   */
+  private esQRDeMesa(codigo: string): boolean {
+    try {
+      const datos = JSON.parse(codigo);
+      return datos.numeroMesa !== undefined;
+    } catch {
+      // Intentar formato alternativo
+      return /numeroMesa[:\s]+\d+/.test(codigo) || 
+             /mesa[:\s]+\d+/i.test(codigo) ||
+             codigo.includes('"numeroMesa"');
+    }
+  }
+
    async escanearQR() {
     console.log('📷 [escanearQR] INICIANDO escaneo QR');
     this.qrEnProceso = true;
@@ -1771,6 +1879,154 @@ export class HomePage implements OnInit, ViewWillEnter {
   verResultadosEncuestas()
   {
     this.router.navigate(['/encuestas'], { queryParams: { modo: 'ver' } });
+  }
+
+  // ========== FLUJO DE CUENTA Y PAGO ==========
+  
+  /**
+   * Cliente pide la cuenta al mozo (push notification)
+   */
+  async pedirCuenta() {
+    if (!this.pedidoActualCliente) {
+      this.feedback.showToast('error', 'No hay pedido activo');
+      return;
+    }
+    
+    try {
+      // Notificar al mozo
+      await this.pushNotificationService.solicitarCuentaMozo(
+        this.pedidoActualCliente.mesa,
+        this.nombreUsuario || 'Cliente',
+        ''
+      );
+      
+      // Actualizar el pedido
+      await this.supabase.actualizarPedido(this.pedidoActualCliente.id, {
+        solicita_cuenta: true
+      });
+      
+      // Actualizar el pedido local
+      this.pedidoActualCliente.solicita_cuenta = true;
+      
+      this.feedback.showToast('exito', '✅ Se ha notificado al mozo. Escaneá el QR de propina.');
+    } catch (error) {
+      console.error('Error al pedir cuenta:', error);
+      this.feedback.showToast('error', 'Error al solicitar la cuenta. Intentá nuevamente.');
+    }
+  }
+
+  /**
+   * Escanea el QR de propina para ingresar el grado de satisfacción
+   */
+  async escanearQRPropina() {
+    if (!this.pedidoActualCliente) {
+      this.feedback.showToast('error', 'No hay pedido activo');
+      return;
+    }
+    
+    try {
+      this.customLoader.show();
+      const { barcodes } = await BarcodeScanner.scan();
+      
+      if (barcodes && barcodes.length > 0) {
+        const codigoEscaneado = barcodes[0].rawValue || barcodes[0].displayValue;
+        await this.procesarQRPropina(codigoEscaneado);
+      } else {
+        this.feedback.showToast('error', 'No se detectó ningún código QR');
+      }
+    } catch (error: any) {
+      console.error('Error al escanear QR para propina:', error);
+      if (!error.message?.includes('cancelled')) {
+        this.feedback.showToast('error', 'Error al escanear el código QR');
+      }
+    } finally {
+      this.customLoader.hide();
+    }
+  }
+
+  /**
+   * Procesa el QR de propina y muestra selector de porcentaje
+   */
+  async procesarQRPropina(codigoEscaneado: string) {
+    // Verificar si es QR de propina válido o QR de mesa
+    const esQRPropina = codigoEscaneado === 'PROPINA_FRITOS_HERMANOS' || 
+                        codigoEscaneado.includes('propina') ||
+                        codigoEscaneado.includes('PROPINA');
+    
+    let esQRMesaValido = false;
+    if (!esQRPropina) {
+      // Verificar si es QR de la mesa del cliente
+      try {
+        const datosQR = JSON.parse(codigoEscaneado);
+        if (datosQR.numeroMesa && datosQR.numeroMesa === this.mesaAsignada) {
+          esQRMesaValido = true;
+        }
+      } catch {
+        const match = codigoEscaneado.match(/numeroMesa[:\s]+(\d+)/);
+        if (match && parseInt(match[1]) === this.mesaAsignada) {
+          esQRMesaValido = true;
+        }
+      }
+    }
+    
+    if (!esQRPropina && !esQRMesaValido) {
+      this.feedback.showToast('error', 'QR inválido. Escaneá el QR de propina o el de tu mesa.');
+      return;
+    }
+    
+    // Mostrar selector de propina
+    const alert = await this.alertController.create({
+      header: '💰 Ingresá la Propina',
+      message: '¿Qué porcentaje de propina querés dejar?',
+      inputs: [
+        { name: 'propina', type: 'radio', label: '0% - Sin propina', value: '0' },
+        { name: 'propina', type: 'radio', label: '5%', value: '5' },
+        { name: 'propina', type: 'radio', label: '10%', value: '10', checked: true },
+        { name: 'propina', type: 'radio', label: '15%', value: '15' },
+        { name: 'propina', type: 'radio', label: '20%', value: '20' },
+        { name: 'propina', type: 'radio', label: '25%', value: '25' }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Confirmar',
+          handler: async (data) => {
+            const propina = parseInt(data);
+            await this.guardarPropina(propina);
+          }
+        }
+      ]
+    });
+    
+    await alert.present();
+  }
+
+  /**
+   * Guarda la propina en el pedido
+   */
+  async guardarPropina(propina: number) {
+    if (!this.pedidoActualCliente) return;
+    
+    try {
+      await this.supabase.actualizarPedido(this.pedidoActualCliente.id, {
+        propina: propina
+      });
+      
+      // Actualizar pedido local
+      this.pedidoActualCliente.propina = propina;
+      
+      this.feedback.showToast('exito', `✅ Propina del ${propina}% registrada. Esperando habilitación del mozo.`);
+    } catch (error) {
+      console.error('Error al guardar propina:', error);
+      this.feedback.showToast('error', 'Error al guardar la propina. Intentá nuevamente.');
+    }
+  }
+
+  /**
+   * Navega a la pantalla de pago
+   */
+  irAPagarCuenta() {
+    this.router.navigate(['/pedidos']);
   }
 
   irAPedidosMozo()
