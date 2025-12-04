@@ -441,14 +441,21 @@ async function enviarFacturaPorEmailTest(clienteEmail, pdfUrl, pedido) {
     </html>
   `;
 
-  await sendEmail({
+  console.log('📧 Intentando enviar email a:', clienteEmail);
+  
+  const result = await sendEmail({
     to: clienteEmail,
     subject: `🧪 TEST - Factura #${pedido.id} - Los Fritos Hermanos`,
     text: `TEST: Aquí puedes descargar tu factura del pedido #${pedido.id}: ${pdfUrl}. Total: $${pedido.total.toFixed(2)}`,
     html: htmlBody
   });
   
-  console.log('✅ Email de test enviado a:', clienteEmail);
+  if (result.success) {
+    console.log('✅ Email de test enviado a:', clienteEmail);
+  } else {
+    console.error('❌ Error al enviar email:', result.error);
+    throw new Error(`Error al enviar email: ${result.error}`);
+  }
 }
 
 module.exports = router;

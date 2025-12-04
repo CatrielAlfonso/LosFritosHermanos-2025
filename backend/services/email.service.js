@@ -2,11 +2,14 @@ const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
 // Configurar API Key de SendGrid
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
 sgMail.setApiKey(SENDGRID_API_KEY);
 
 const sendEmail = async ({ to, subject, text, html }) => {
   try {
+    console.log('📧 [sendEmail] Preparando email para:', to);
+    console.log('📧 [sendEmail] Subject:', subject);
+    
     const msg = {
       to,
       from: {
@@ -26,10 +29,15 @@ const sendEmail = async ({ to, subject, text, html }) => {
       }
     };
     
-    await sgMail.send(msg);
+    console.log('📧 [sendEmail] Enviando con SendGrid...');
+    const response = await sgMail.send(msg);
+    console.log('📧 [sendEmail] Respuesta SendGrid:', response[0].statusCode);
     return { success: true };
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ [sendEmail] Error sending email:', error);
+    if (error.response) {
+      console.error('❌ [sendEmail] SendGrid response body:', error.response.body);
+    }
     return { success: false, error: error.message };
   }
 };
