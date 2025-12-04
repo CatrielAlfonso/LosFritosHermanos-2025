@@ -10,7 +10,7 @@
           class="anonimo-logo"
         />
         <h2 class="anonimo-title">Ingreso Anónimo</h2>
-        <p class="anonimo-subtitle">Registrate con nombre y foto para la lista de espera.</p>
+        <p class="anonimo-subtitle">Registrate con nombre y foto para ingresar.</p>
       </header>
       
       <form [formGroup]="anonimoForm" (ngSubmit)="registrarAnonimo()" class="ion-padding">
@@ -34,7 +34,7 @@
         
         <ion-button expand="block" type="submit" [disabled]="anonimoForm.invalid" class="ion-margin-top">
           <ion-icon slot="start" name="log-in-outline"></ion-icon>
-          ENTRAR A LA FILA
+          ENTRAR A LA APLICACION
         </ion-button>
       </form>
 
