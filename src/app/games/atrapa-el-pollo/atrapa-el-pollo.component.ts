@@ -43,6 +43,7 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
   private juegosService = inject(JuegosService);
   private authService = inject(AuthService);
 
+  user : any = null
   // Para delivery
   esDelivery: boolean = false;
   pedidoDeliveryId: number | null = null;
@@ -97,6 +98,7 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
   constructor(private router: Router) { }
 
   async ngOnInit() {
+    this.user = this.authService.userActual;
     // Verificar si viene de un pedido delivery
     const pedidoIdStr = localStorage.getItem('pedidoDeliveryActual');
     if (pedidoIdStr) {
@@ -276,42 +278,54 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
   }
 
   async terminarJuego(gano: boolean) {
-  this.detenerJuego();
-  this.gameState = 'terminado';
-
-  const descuentoObtenido = this.calcularDescuento();
-
-  this.resultadoFinal = {
-    exito: gano,
-    porcentaje: descuentoObtenido,
-    distancia: this.paredesPasadas
-  };
-
-  // Si es delivery, guardar el descuento en el pedido
-  if (this.esDelivery && this.pedidoDeliveryId) {
-    await this.guardarDescuentoDelivery(descuentoObtenido);
-  } else {
-    // Para pedidos en restaurante, usar el servicio de juegos
-    const resultado = await this.juegosService.registrarResultadoJuego(
-      'atrapa-el-pollo', 
-      descuentoObtenido > 0
-    );
+    this.detenerJuego();
+    this.gameState = 'terminado';
     
-    // ✅ CORRECCIÓN: Generar mensaje basado en el estado real
-    this.mensajeResultado = this.generarMensajeResultado(descuentoObtenido > 0, resultado);
-    
-    // Actualizar estado después de jugar
-    await this.verificarElegibilidad();
+    const descuentoObtenido = this.calcularDescuento();
+
+    this.resultadoFinal = {
+      exito: gano,
+      porcentaje: descuentoObtenido,
+      distancia: this.paredesPasadas
+    };
+
+    // Si es delivery, guardar el descuento en el pedido
+    if (this.esDelivery && this.pedidoDeliveryId) {
+      await this.guardarDescuentoDelivery(descuentoObtenido);
+    } else {
+      // Para pedidos en restaurante, usar el servicio de juegos
+      const resultado = await this.juegosService.registrarResultadoJuego(
+        'atrapa-el-pollo', 
+        descuentoObtenido > 0
+      );
+      
+      // ✅ CORRECCIÓN: Generar mensaje basado en el estado real
+      this.mensajeResultado = this.generarMensajeResultado(descuentoObtenido > 0, resultado);
+      
+      // Actualizar estado después de jugar
+      await this.verificarElegibilidad();
+    }
+
+    this.juegoTerminado.emit(this.resultadoFinal);
   }
-
-  this.juegoTerminado.emit(this.resultadoFinal);
-}
 
 // ✅ NUEVO MÉTODO: Genera el mensaje correcto según el contexto
 generarMensajeResultado(ganoEnEsteIntento: boolean, resultado: any): string {
   // Caso 1: Es el primer intento y ganó descuento
+  // if (resultado.descuentoAplicado && ganoEnEsteIntento) {
+  //   return `🎉 ¡Ganaste ${resultado.porcentajeDescuento}% de descuento en tu primer intento!`;
+  // } CASO 1 ANTERIOR
+
+  // Caso 0: Cliente anónimo - usar mensaje del servicio directamente
+  if (this.esAnonimo) {
+    return resultado.mensaje || (ganoEnEsteIntento 
+      ? '🎮 ¡Ganaste! Los descuentos son solo para clientes registrados.' 
+            : '¡Buen intento! Seguí practicando.');
+  }
+
+  // Caso 1: Es el primer intento y ganó descuento
   if (resultado.descuentoAplicado && ganoEnEsteIntento) {
-    return `🎉 ¡Ganaste ${resultado.porcentajeDescuento}% de descuento en tu primer intento!`;
+    return '🎉 ¡Ganaste ${resultado.porcentaje}% de descuento en tu primer intento!'
   }
   
   // Caso 2: Es el primer intento pero no alcanzó el descuento
