@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonContent, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChatService, Mensaje, Consulta } from 'src/app/servicios/chat.service';
@@ -19,7 +19,8 @@ import { Subscription } from 'rxjs';
 })
 export class ConsultaMozoComponent implements OnInit, OnDestroy {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
-
+  @ViewChild(IonContent, { static: false }) content: IonContent | undefined;
+  
   mensajes: Mensaje[] = [];
   nuevoMensaje: string = '';
   mesa: number | null = null;
@@ -311,15 +312,25 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
     }
   }
 
+  // scrollToBottom() {
+  //   try {
+  //     if (this.chatContainer) {
+  //       console.log('haciendo scroll hgacia abajo')
+  //       const element = this.chatContainer.nativeElement;
+  //       element.scrollTop = element.scrollHeight;
+  //     }
+  //   } catch (err) {
+  //     console.error('Error al hacer scroll:', err);
+  //   }
+  // }
+
   scrollToBottom() {
-    try {
-      if (this.chatContainer) {
-        const element = this.chatContainer.nativeElement;
-        element.scrollTop = element.scrollHeight;
+    // Usamos setTimeout para dar tiempo al renderizado
+    setTimeout(() => {
+      if (this.content) {
+        this.content.scrollToBottom(300); // 300ms de animación suave
       }
-    } catch (err) {
-      console.error('Error al hacer scroll:', err);
-    }
+    }, 100);
   }
 
   formatearFecha(fecha: string): string {

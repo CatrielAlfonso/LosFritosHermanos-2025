@@ -59,7 +59,7 @@ export class HomePage implements OnInit, ViewWillEnter {
 
   mesaSeleccionada='12';
 
-    mostrarModalConsultaMozo: boolean = false;
+  mostrarModalConsultaMozo: boolean = false;
   consultaMozo: string = '';
   mostrarErrorConsultaMozo: boolean = false;
   animandoSalidaModalConsultaMozo: boolean = false;
