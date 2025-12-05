@@ -214,6 +214,24 @@ async function procesarReservasParaAsignarMesa() {
         continue;
       }
       
+      // Agregar al cliente a la lista de espera con su mesa asignada
+      const { error: errorListaEspera } = await supabase
+        .from('lista_espera')
+        .insert({
+          nombre: reserva.cliente_nombre || 'Cliente',
+          apellido: reserva.cliente_apellido || 'Reserva',
+          correo: reserva.cliente_email || `reserva-${reserva.id}@fritos.com`,
+          mesa_asignada: mesa.numero.toString(),
+          fecha_ingreso: ahora.toISOString()
+        });
+      
+      if (errorListaEspera) {
+        console.error(`⚠️ [CRON] Error al agregar a lista de espera:`, errorListaEspera);
+        // No revertimos, la reserva sigue válida aunque no esté en lista de espera
+      } else {
+        console.log(`📋 [CRON] Cliente agregado a lista de espera con mesa ${mesa.numero}`);
+      }
+      
       console.log(`✅ [CRON] Mesa ${mesa.numero} asignada a reserva ${reserva.id} (${reserva.cliente_nombre})`);
       // No se envía push notification al asignar mesa
     }
