@@ -225,11 +225,12 @@ export class JuegosService {
 
     try {
       // 1. Marcar que ya usó su intento en la tabla clientes
+      // Solo poner descuento_ganado: true si realmente ganó
       console.log('🎮 [registrarResultadoJuego] Paso 1: Actualizando tabla clientes...');
       const { error: errorCliente } = await this.sb.supabase
         .from('clientes')
         .update({
-          descuento_ganado: true,
+          descuento_ganado: gano, // Solo true si ganó, false si perdió
           porcentaje_desc: porcentajeFinal
         })
         .eq('id', elegibilidad.clienteId);
