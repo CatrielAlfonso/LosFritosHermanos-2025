@@ -253,7 +253,11 @@ export class GestionarReservasComponent implements OnInit {
 
   formatearFecha(fecha: string): string {
     try {
-      const date = new Date(fecha);
+      // Extraer solo la parte de la fecha (YYYY-MM-DD) sin timezone
+      const fechaLimpia = fecha.split('T')[0];
+      const [year, month, day] = fechaLimpia.split('-').map(Number);
+      // Crear fecha usando componentes locales para evitar problemas de timezone
+      const date = new Date(year, month - 1, day);
       return date.toLocaleDateString('es-AR', { 
         weekday: 'long', 
         year: 'numeric', 

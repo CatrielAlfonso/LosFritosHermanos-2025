@@ -32,6 +32,8 @@
   justify-content: flex-start; // Los elementos van al inicio
   text-align: center;
   background: rgba(255, 255, 255, 0.1); // Transparencia sutil
+  max-height: calc(100vh - 120px); /* deja espacio para el panel de volver */
+  overflow-y: auto;
 }
 
 /* PANEL INFERIOR: QR y Volver (Ocupa la parte inferior, 30% o menos) */

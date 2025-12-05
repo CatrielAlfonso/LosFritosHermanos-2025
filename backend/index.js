@@ -58,8 +58,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
  */
 cron.schedule('* * * * *', async () => {
   try {
-    const ahora = new Date();
-    console.log('🔄 [CRON] Procesando reservas...', ahora.toISOString());
+    const argentina = obtenerFechaHoraArgentina();
+    console.log(`🔄 [CRON] Procesando reservas... Hora Argentina: ${argentina.fecha} ${argentina.hora} (UTC: ${new Date().toISOString()})`);
     
     // 1. ASIGNAR MESAS A RESERVAS QUE LLEGAN A SU HORA
     await procesarReservasParaAsignarMesa();
@@ -73,13 +73,41 @@ cron.schedule('* * * * *', async () => {
 });
 
 /**
+ * Obtiene la fecha y hora actual en Argentina (UTC-3)
+ */
+function obtenerFechaHoraArgentina() {
+  const ahora = new Date();
+  // Convertir a hora de Argentina (UTC-3)
+  const offsetArgentina = -3 * 60; // -3 horas en minutos
+  const offsetLocal = ahora.getTimezoneOffset(); // offset local en minutos
+  const diferenciaMinutos = offsetArgentina - (-offsetLocal);
+  
+  const ahoraArgentina = new Date(ahora.getTime() + diferenciaMinutos * 60 * 1000);
+  
+  const year = ahoraArgentina.getUTCFullYear();
+  const month = String(ahoraArgentina.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(ahoraArgentina.getUTCDate()).padStart(2, '0');
+  const hours = String(ahoraArgentina.getUTCHours()).padStart(2, '0');
+  const minutes = String(ahoraArgentina.getUTCMinutes()).padStart(2, '0');
+  
+  return {
+    fecha: `${year}-${month}-${day}`,
+    hora: `${hours}:${minutes}`,
+    timestamp: ahoraArgentina,
+    original: ahora
+  };
+}
+
+/**
  * Asigna mesas a reservas confirmadas cuando llega su hora
  */
 async function procesarReservasParaAsignarMesa() {
   try {
-    const ahora = new Date();
-    const hoy = ahora.toISOString().split('T')[0];
-    const horaActual = ahora.toTimeString().slice(0, 5); // HH:MM
+    const argentina = obtenerFechaHoraArgentina();
+    const hoy = argentina.fecha;
+    const horaActual = argentina.hora;
+    
+    console.log(`🕐 [CRON] Hora Argentina: ${hoy} ${horaActual}`);
     
     // Buscar reservas confirmadas de hoy sin mesa asignada cuya hora ya llegó
     const { data: reservas, error } = await supabase
@@ -103,7 +131,12 @@ async function procesarReservasParaAsignarMesa() {
     
     for (const reserva of reservas) {
       // Verificar que no hayan pasado más de 45 minutos desde la hora de reserva
-      const fechaHoraReserva = new Date(`${reserva.fecha_reserva}T${reserva.hora_reserva}`);
+      // Crear fecha de reserva en hora local
+      const [year, month, day] = reserva.fecha_reserva.split('-').map(Number);
+      const [hour, minute] = reserva.hora_reserva.split(':').map(Number);
+      const fechaHoraReserva = new Date(year, month - 1, day, hour, minute);
+      
+      const ahora = new Date();
       const minutosDiferencia = (ahora.getTime() - fechaHoraReserva.getTime()) / (1000 * 60);
       
       if (minutosDiferencia > 45) {
@@ -185,6 +218,9 @@ async function procesarReservasParaAsignarMesa() {
 async function liberarMesasReservasExpiradas() {
   try {
     const ahora = new Date();
+    const argentina = obtenerFechaHoraArgentina();
+    
+    console.log(`🕐 [CRON-LIBERAR] Verificando reservas expiradas - Hora Argentina: ${argentina.fecha} ${argentina.hora}`);
     
     // Buscar reservas confirmadas con mesa asignada donde:
     // - El cliente NO llegó (cliente_llego = false o null)
@@ -210,6 +246,7 @@ async function liberarMesasReservasExpiradas() {
     for (const reserva of reservas) {
       if (!reserva.hora_asignacion) continue;
       
+      // hora_asignacion está en formato ISO (UTC), la comparación es directa
       const horaAsignacion = new Date(reserva.hora_asignacion);
       const minutosDiferencia = (ahora.getTime() - horaAsignacion.getTime()) / (1000 * 60);
       
