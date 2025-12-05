@@ -307,7 +307,7 @@ export class LoginPage implements OnInit {
   accesoRapido(type: string) {
     const presets: { [key: string]: { correo: string; contrasenia: string } } = {
       supervisor: { correo: 'supervisor-uno@gmail.com', contrasenia: '123456' },
-      dueno: { correo: 'tomasbehrens0@gmail.com', contrasenia: '123456' },
+      dueno: { correo: 'gaston-edul@gmail.com', contrasenia: '123456' },
       maitre: { correo: 'lucas-2@gmail.com', contrasenia: '123456' },
       mozo: { correo: 'mozola@gmail.com', contrasenia: '123456' },
       cocinero: { correo: 'catriel@gmail.com', contrasenia: '123456' },

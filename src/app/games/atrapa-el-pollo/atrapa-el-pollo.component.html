@@ -59,46 +59,60 @@
     </div>
 
     <!-- PANTALLA DE RESULTADO (gameState === 'terminado') -->
-    <div class="game-overlay resultado-final" *ngIf="gameState === 'terminado'">
-        <h1 class="fritos-logo">
-            {{ resultadoFinal.exito ? '🎉 ¡GANASTE!' : '💔 Game Over' }}
-        </h1>
+    <!-- PANTALLA DE RESULTADO (gameState === 'terminado') -->
+<div class="game-overlay resultado-final" *ngIf="gameState === 'terminado'">
+    <h1 class="fritos-logo">
+        {{ resultadoFinal.exito ? '🎉 ¡GANASTE!' : '🔥 Game Over' }}
+    </h1>
+    
+    <div class="score-card">
+        <h2 class="fritos-subtitle">Paredes Pasadas:</h2>
+        <p class="data-score">{{ paredesPasadas }} / {{ totalParedes }}</p>
         
-        <div class="score-card">
-            <h2 class="fritos-subtitle">Puntuación Final:</h2>
-            <p class="data-score">{{ resultadoFinal.distancia | number:'1.0-0' }} Puntos</p>
-            
-            @if (resultadoFinal.exito && resultadoFinal.porcentaje > 0) {
-              <h2 class="fritos-subtitle">🎉 Descuento Obtenido:</h2>
-              <p class="data-desc ganado">{{ resultadoFinal.porcentaje }}%</p>
+        @if (resultadoFinal.porcentaje > 0) {
+          <h2 class="fritos-subtitle">🎉 Descuento Obtenido:</h2>
+          <p class="data-desc ganado">{{ resultadoFinal.porcentaje }}%</p>
+          
+          <div class="nivel-alcanzado">
+            @if (paredesPasadas >= 8) {
+              <p>✨ ¡Nivel Maestro! - 20% de descuento</p>
+            } @else if (paredesPasadas >= 5) {
+              <p>🌟 ¡Nivel Avanzado! - 15% de descuento</p>
+            } @else if (paredesPasadas >= 3) {
+              <p>⭐ ¡Nivel Básico! - 10% de descuento</p>
             }
-        </div>
-        
-        <div class="mensaje-desc">
-            @if (mensajeResultado) {
-              <p>{{ mensajeResultado }}</p>
-            } @else {
-              <p *ngIf="resultadoFinal.exito">
-                  ¡El descuento ha sido registrado en tu pedido!
-              </p>
-              <p *ngIf="!resultadoFinal.exito">
-                  No ganaste esta vez. ¡Podés seguir jugando por diversión!
-              </p>
-            }
-        </div>
-
-        <!-- Botones de acción -->
-        <ion-button expand="block" color="secondary" (click)="reiniciarJuego()">
-            <ion-icon name="refresh-outline" slot="start"></ion-icon>
-            Jugar de Nuevo
-        </ion-button>
-        
-        <ion-button expand="block" fill="outline" color="medium" (click)="volverAlHome()">
-            <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-            Volver al Menú de Juegos
-        </ion-button>
-
+          </div>
+        } @else {
+          <p class="mensaje-sin-descuento">
+            💪 ¡Necesitás pasar al menos 3 paredes para ganar descuento!
+          </p>
+        }
     </div>
+    
+    <div class="mensaje-desc">
+        @if (mensajeResultado) {
+          <p>{{ mensajeResultado }}</p>
+        } @else {
+          <p *ngIf="resultadoFinal.porcentaje > 0">
+              ¡El descuento ha sido registrado en tu pedido!
+          </p>
+          <p *ngIf="resultadoFinal.porcentaje === 0">
+              Seguí intentando, ¡podés lograrlo!
+          </p>
+        }
+    </div>
+
+    <!-- Botones de acción -->
+    <ion-button expand="block" color="secondary" (click)="reiniciarJuego()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Jugar de Nuevo
+    </ion-button>
+    
+    <ion-button expand="block" fill="outline" color="medium" (click)="volverAlHome()">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Volver al Menú de Juegos
+    </ion-button>
+</div>
 
     <!-- <div class="game-overlay" *ngIf="!juegoActivo">
       </div> -->
@@ -132,7 +146,7 @@
 
         <!-- Indicador de Puntuación/Distancia (Opcional) -->
         <div class="score-display">
-          Distancia: {{ distanciaRecorrida | number:'1.0-0' }}
+          Paredes Pasadas: {{ paredesPasadas }}
         </div>
     </ng-container>
 
