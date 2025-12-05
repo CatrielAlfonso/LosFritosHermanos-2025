@@ -9,7 +9,7 @@
       <div class="header-info">
         <span *ngIf="esCliente">Consulta al Mozo</span>
         <span *ngIf="esMozo">Cliente - Mesa {{mesa}}</span>
-        <small *ngIf="consulta">{{ esCliente ? (consulta.mozo_nombre || 'Esperando respuesta...') : consulta.cliente_nombre }}</small>
+        <small *ngIf="consulta" style="margin-left: 10px;">{{ esCliente ? (consulta.mozo_nombre || 'Esperando respuesta...') : consulta.cliente_nombre }}</small>
       </div>
     </ion-title>
   </ion-toolbar>
