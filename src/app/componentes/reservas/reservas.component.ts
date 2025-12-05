@@ -209,11 +209,24 @@ export class ReservasComponent implements OnInit {
   onFechaChange(event: any) {
     const fechaSeleccionada = event.detail.value;
     if (fechaSeleccionada) {
-      this.fechaSeleccionada = fechaSeleccionada.split('T')[0];
+      // Extraer la fecha correctamente sin problemas de zona horaria
+      // El ion-datetime puede devolver formato ISO con timezone
+      // Usamos substring para obtener solo YYYY-MM-DD
+      if (fechaSeleccionada.includes('T')) {
+        // Si viene con hora, extraer solo la fecha
+        this.fechaSeleccionada = fechaSeleccionada.substring(0, 10);
+      } else {
+        this.fechaSeleccionada = fechaSeleccionada;
+      }
+      
+      // Actualizar el formulario con la fecha limpia
+      this.reservaForm.patchValue({ fecha_reserva: this.fechaSeleccionada });
       
       // Si la fecha seleccionada es hoy, la hora mínima debe ser ahora + 1 hora
-      const hoy = new Date().toISOString().split('T')[0];
-      if (this.fechaSeleccionada === hoy) {
+      const hoy = new Date();
+      const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+      
+      if (this.fechaSeleccionada === hoyStr) {
         const horaMinima = new Date();
         horaMinima.setHours(horaMinima.getHours() + 1);
         this.horaMinima = horaMinima.toTimeString().slice(0, 5);
@@ -237,12 +250,17 @@ export class ReservasComponent implements OnInit {
     // Determinar desde qué hora empezar
     let horaActual = horaInicio;
     
-    // Si es hoy, empezar desde la hora mínima
-    const hoy = new Date().toISOString().split('T')[0];
-    if (this.fechaSeleccionada === hoy) {
-      const ahora = new Date();
-      ahora.setHours(ahora.getHours() + 1);
-      horaActual = Math.max(horaInicio, ahora.getHours());
+    // Obtener fecha de hoy en formato local (sin UTC)
+    const ahora = new Date();
+    const hoyLocal = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+    
+    const esHoy = this.fechaSeleccionada === hoyLocal;
+    
+    // Si es hoy, empezar desde la hora actual + 1
+    if (esHoy) {
+      // Usar hora local directamente
+      const horaActualLocal = ahora.getHours();
+      horaActual = Math.max(horaInicio, horaActualLocal + 1);
     }
     
     // Generar horas cada 30 minutos
@@ -250,14 +268,14 @@ export class ReservasComponent implements OnInit {
       for (let minuto = 0; minuto < 60; minuto += 30) {
         const horaStr = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
         
-        // Si es hoy y la hora ya pasó, no agregarla
-        if (this.fechaSeleccionada === hoy) {
-          const ahora = new Date();
+        // Si es hoy, verificar que la hora no haya pasado
+        if (esHoy) {
+          const horaActualLocal = ahora.getHours();
+          const minutoActualLocal = ahora.getMinutes();
           const [h, m] = horaStr.split(':').map(Number);
-          const horaComparar = new Date();
-          horaComparar.setHours(h, m, 0, 0);
           
-          if (horaComparar > ahora) {
+          // Comparar hora:minuto directamente
+          if (h > horaActualLocal || (h === horaActualLocal && m > minutoActualLocal)) {
             this.horasDisponibles.push(horaStr);
           }
         } else {
@@ -344,25 +362,50 @@ export class ReservasComponent implements OnInit {
 
       const formValue = this.reservaForm.value;
       
+      console.log('📋 [crearReserva COMPONENT] formValue:', formValue);
+      console.log('📋 [crearReserva COMPONENT] formValue.fecha_reserva:', formValue.fecha_reserva);
+      console.log('📋 [crearReserva COMPONENT] formValue.hora_reserva:', formValue.hora_reserva);
+      
+      // Extraer la fecha correctamente (puede venir con T o sin T)
+      let fechaReservaLimpia = formValue.fecha_reserva;
+      if (fechaReservaLimpia && fechaReservaLimpia.includes('T')) {
+        fechaReservaLimpia = fechaReservaLimpia.substring(0, 10);
+      }
+      
+      console.log('📋 [crearReserva COMPONENT] fechaReservaLimpia:', fechaReservaLimpia);
+      
       // Validar que la fecha y hora sean futuras
-      const fechaHoraReserva = new Date(`${formValue.fecha_reserva}T${formValue.hora_reserva}`);
+      // Crear la fecha usando los componentes para evitar problemas de timezone
+      const [year, month, day] = fechaReservaLimpia.split('-').map(Number);
+      const [hour, minute] = formValue.hora_reserva.split(':').map(Number);
+      
+      console.log('📋 [crearReserva COMPONENT] Componentes:', { year, month, day, hour, minute });
+      
+      const fechaHoraReserva = new Date(year, month - 1, day, hour, minute);
       const ahora = new Date();
       
+      console.log('📋 [crearReserva COMPONENT] fechaHoraReserva:', fechaHoraReserva.toString());
+      console.log('📋 [crearReserva COMPONENT] ahora:', ahora.toString());
+      console.log('📋 [crearReserva COMPONENT] ¿Es futuro?:', fechaHoraReserva > ahora);
+      
       if (fechaHoraReserva <= ahora) {
+        console.error('❌ [crearReserva COMPONENT] RECHAZADO en componente');
         this.mostrarMensaje('La reserva debe ser en una fecha y hora futuras', 'warning');
         setTimeout(() => {
           this.customLoader.hide();
         }, 1000);
         return;
       }
+      
+      console.log('✅ [crearReserva COMPONENT] Validación componente pasada');
 
-      // Crear la reserva
+      // Crear la reserva con la fecha limpia (YYYY-MM-DD)
       const nuevaReserva: Omit<Reserva, 'id' | 'created_at' | 'updated_at'> = {
         cliente_id: this.clienteInfo.id,
         cliente_email: this.clienteInfo.email,
         cliente_nombre: this.clienteInfo.nombre,
         cliente_apellido: this.clienteInfo.apellido,
-        fecha_reserva: formValue.fecha_reserva.split('T')[0],
+        fecha_reserva: fechaReservaLimpia,
         hora_reserva: formValue.hora_reserva,
         cantidad_comensales: formValue.cantidad_comensales,
         estado: 'pendiente',
