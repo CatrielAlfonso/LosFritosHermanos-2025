@@ -16,46 +16,59 @@
 .form-card {
   margin-bottom: 2rem;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background: #2a2a3d; // Fondo oscuro azulado
+  border: 2px solid var(--ion-color-fritos-yellow);
   
   ion-card-header {
     ion-card-title {
-      color: var(--ion-color-fritos-red);
+      color: var(--ion-color-fritos-yellow);
       font-weight: 700;
     }
   }
   
+  ion-card-content {
+    background: #2a2a3d;
+  }
+  
   ion-item {
-    --background: rgba(255, 255, 255, 0.95);
+    --background: #3d3d54;
     --border-radius: 12px;
-    --color: #333;
+    --color: #fff;
     margin-bottom: 1rem;
     border-radius: 12px;
     
     ion-label {
-      color: var(--ion-color-fritos-blue) !important;
+      color: var(--ion-color-fritos-yellow) !important;
       font-weight: 600;
+      margin-bottom: 12px !important; // Separación del calendario
     }
     
     ion-input {
-      --color: #333 !important;
-      --placeholder-color: #999 !important;
+      --color: #fff !important;
+      --placeholder-color: #aaa !important;
     }
     
     ion-datetime {
-      background-color: white;
+      background-color: white; // Calendario en blanco
       --placeholder-color: #d5d4d4 !important;
       color: #200764 !important;
+      border-radius: 12px;
+      margin-top: 8px; // Separación adicional del label
       
       &::part(text) {
-        color: #ffffff !important;
+        color: #333 !important;
       }
       
       &::part(placeholder) {
         color: #bababa !important;
       }
     }
+  }
+  
+  // Botones dentro del formulario
+  ion-button {
+    margin-top: 0.5rem;
   }
 }
 

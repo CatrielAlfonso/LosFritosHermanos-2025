@@ -67,12 +67,33 @@ export class ReservasService {
     }
 
     // Validar que la fecha y hora sean futuras
-    const fechaHoraReserva = new Date(`${reserva.fecha_reserva}T${reserva.hora_reserva}`);
+    // Crear la fecha usando componentes para evitar problemas de timezone
+    console.log('📅 [crearReserva] fecha_reserva recibida:', reserva.fecha_reserva);
+    console.log('🕐 [crearReserva] hora_reserva recibida:', reserva.hora_reserva);
+    
+    const [year, month, day] = reserva.fecha_reserva.split('-').map(Number);
+    const [hour, minute] = reserva.hora_reserva.split(':').map(Number);
+    
+    console.log('📅 [crearReserva] Componentes fecha:', { year, month, day });
+    console.log('🕐 [crearReserva] Componentes hora:', { hour, minute });
+    
+    const fechaHoraReserva = new Date(year, month - 1, day, hour, minute);
     const ahora = new Date();
     
+    console.log('📅 [crearReserva] fechaHoraReserva:', fechaHoraReserva.toString());
+    console.log('📅 [crearReserva] fechaHoraReserva ISO:', fechaHoraReserva.toISOString());
+    console.log('🕐 [crearReserva] ahora:', ahora.toString());
+    console.log('🕐 [crearReserva] ahora ISO:', ahora.toISOString());
+    console.log('⏱️ [crearReserva] fechaHoraReserva.getTime():', fechaHoraReserva.getTime());
+    console.log('⏱️ [crearReserva] ahora.getTime():', ahora.getTime());
+    console.log('✅ [crearReserva] ¿Es futuro?:', fechaHoraReserva > ahora);
+    
     if (fechaHoraReserva <= ahora) {
+      console.error('❌ [crearReserva] RECHAZADO: La reserva NO es futura');
       throw new Error('La reserva debe ser en una fecha y hora futuras');
     }
+    
+    console.log('✅ [crearReserva] Validación pasada, reserva es futura');
 
     // Validar cantidad de comensales
     if (reserva.cantidad_comensales < 1) {
