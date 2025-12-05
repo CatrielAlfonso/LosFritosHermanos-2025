@@ -48,16 +48,259 @@ const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ============================================
-// CRON JOB PARA LIBERAR MESAS VENCIDAS
+// CRON JOBS PARA GESTIÓN DE RESERVAS Y MESAS
 // ============================================
 
 /**
- * Cron job que se ejecuta cada 5 minutos para liberar mesas vencidas
- * Formato cron: cada 5 minutos
+ * Cron job que se ejecuta cada minuto para:
+ * 1. Asignar mesas a reservas cuando llega su hora
+ * 2. Liberar mesas de reservas expiradas (45 min sin escanear QR)
  */
+cron.schedule('* * * * *', async () => {
+  try {
+    const ahora = new Date();
+    console.log('🔄 [CRON] Procesando reservas...', ahora.toISOString());
+    
+    // 1. ASIGNAR MESAS A RESERVAS QUE LLEGAN A SU HORA
+    await procesarReservasParaAsignarMesa();
+    
+    // 2. LIBERAR MESAS DE RESERVAS EXPIRADAS (45 min sin escanear QR)
+    await liberarMesasReservasExpiradas();
+    
+  } catch (cronError) {
+    console.error('💥 Error crítico en cron job de reservas:', cronError);
+  }
+});
+
+/**
+ * Asigna mesas a reservas confirmadas cuando llega su hora
+ */
+async function procesarReservasParaAsignarMesa() {
+  try {
+    const ahora = new Date();
+    const hoy = ahora.toISOString().split('T')[0];
+    const horaActual = ahora.toTimeString().slice(0, 5); // HH:MM
+    
+    // Buscar reservas confirmadas de hoy sin mesa asignada cuya hora ya llegó
+    const { data: reservas, error } = await supabase
+      .from('reservas')
+      .select('*')
+      .eq('estado', 'confirmada')
+      .eq('fecha_reserva', hoy)
+      .is('mesa_numero', null)
+      .lte('hora_reserva', horaActual);
+    
+    if (error) {
+      console.error('❌ Error al buscar reservas para asignar mesa:', error);
+      return;
+    }
+    
+    if (!reservas || reservas.length === 0) {
+      return; // No hay reservas para procesar
+    }
+    
+    console.log(`📋 [CRON] Encontradas ${reservas.length} reservas para asignar mesa`);
+    
+    for (const reserva of reservas) {
+      // Verificar que no hayan pasado más de 45 minutos desde la hora de reserva
+      const fechaHoraReserva = new Date(`${reserva.fecha_reserva}T${reserva.hora_reserva}`);
+      const minutosDiferencia = (ahora.getTime() - fechaHoraReserva.getTime()) / (1000 * 60);
+      
+      if (minutosDiferencia > 45) {
+        // La reserva expiró sin que el cliente llegara, marcarla como expirada
+        console.log(`⏰ [CRON] Reserva ${reserva.id} expiró sin asignar mesa (${minutosDiferencia.toFixed(0)} min)`);
+        await supabase
+          .from('reservas')
+          .update({ estado: 'expirada' })
+          .eq('id', reserva.id);
+        continue;
+      }
+      
+      // Buscar mesa disponible para la cantidad de comensales
+      const { data: mesasDisponibles, error: errorMesas } = await supabase
+        .from('mesas')
+        .select('*')
+        .eq('ocupada', false)
+        .eq('comensales', reserva.cantidad_comensales)
+        .order('numero', { ascending: true })
+        .limit(1);
+      
+      if (errorMesas || !mesasDisponibles || mesasDisponibles.length === 0) {
+        console.log(`⚠️ [CRON] No hay mesas disponibles para reserva ${reserva.id} (${reserva.cantidad_comensales} comensales)`);
+        continue;
+      }
+      
+      const mesa = mesasDisponibles[0];
+      const horaLimite = new Date(ahora.getTime() + 45 * 60 * 1000);
+      
+      // Asignar mesa a la reserva
+      const { error: errorAsignar } = await supabase
+        .from('reservas')
+        .update({
+          mesa_id: mesa.id,
+          mesa_numero: mesa.numero,
+          hora_asignacion: ahora.toISOString(),
+          hora_limite: horaLimite.toISOString()
+        })
+        .eq('id', reserva.id);
+      
+      if (errorAsignar) {
+        console.error(`❌ [CRON] Error al asignar mesa a reserva ${reserva.id}:`, errorAsignar);
+        continue;
+      }
+      
+      // Marcar mesa como ocupada
+      const { error: errorMesa } = await supabase
+        .from('mesas')
+        .update({ ocupada: true })
+        .eq('id', mesa.id);
+      
+      if (errorMesa) {
+        console.error(`❌ [CRON] Error al marcar mesa ${mesa.numero} como ocupada:`, errorMesa);
+        // Revertir la asignación
+        await supabase
+          .from('reservas')
+          .update({ mesa_id: null, mesa_numero: null, hora_asignacion: null, hora_limite: null })
+          .eq('id', reserva.id);
+        continue;
+      }
+      
+      console.log(`✅ [CRON] Mesa ${mesa.numero} asignada a reserva ${reserva.id} (${reserva.cliente_nombre})`);
+      
+      // Enviar notificación push al cliente
+      try {
+        await notificarMesaAsignadaReserva(reserva, mesa.numero);
+      } catch (notifError) {
+        console.error(`⚠️ [CRON] Error al notificar mesa asignada:`, notifError);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error en procesarReservasParaAsignarMesa:', error);
+  }
+}
+
+/**
+ * Libera mesas de reservas que expiraron (45 min sin escanear QR)
+ */
+async function liberarMesasReservasExpiradas() {
+  try {
+    const ahora = new Date();
+    
+    // Buscar reservas confirmadas con mesa asignada donde:
+    // - El cliente NO llegó (cliente_llego = false o null)
+    // - Han pasado más de 45 minutos desde hora_asignacion
+    const { data: reservas, error } = await supabase
+      .from('reservas')
+      .select('*')
+      .eq('estado', 'confirmada')
+      .not('mesa_numero', 'is', null)
+      .or('cliente_llego.is.null,cliente_llego.eq.false');
+    
+    if (error) {
+      console.error('❌ Error al buscar reservas expiradas:', error);
+      return;
+    }
+    
+    if (!reservas || reservas.length === 0) {
+      return; // No hay reservas para procesar
+    }
+    
+    let mesasLiberadas = 0;
+    
+    for (const reserva of reservas) {
+      if (!reserva.hora_asignacion) continue;
+      
+      const horaAsignacion = new Date(reserva.hora_asignacion);
+      const minutosDiferencia = (ahora.getTime() - horaAsignacion.getTime()) / (1000 * 60);
+      
+      // Si pasaron más de 45 minutos desde la asignación y el cliente no llegó
+      if (minutosDiferencia > 45) {
+        console.log(`⏰ [CRON] Liberando mesa ${reserva.mesa_numero} de reserva ${reserva.id} (expirada: ${minutosDiferencia.toFixed(0)} min)`);
+        
+        // Marcar la reserva como expirada y quitar la mesa
+        const { error: errorReserva } = await supabase
+          .from('reservas')
+          .update({
+            estado: 'expirada',
+            mesa_id: null,
+            mesa_numero: null
+          })
+          .eq('id', reserva.id);
+        
+        if (errorReserva) {
+          console.error(`❌ [CRON] Error al actualizar reserva ${reserva.id}:`, errorReserva);
+          continue;
+        }
+        
+        // Liberar la mesa
+        const { error: errorMesa } = await supabase
+          .from('mesas')
+          .update({ 
+            ocupada: false,
+            clienteAsignadoId: null
+          })
+          .eq('numero', reserva.mesa_numero);
+        
+        if (errorMesa) {
+          console.error(`❌ [CRON] Error al liberar mesa ${reserva.mesa_numero}:`, errorMesa);
+        } else {
+          mesasLiberadas++;
+          console.log(`✅ [CRON] Mesa ${reserva.mesa_numero} liberada (reserva ${reserva.id} expirada)`);
+        }
+      }
+    }
+    
+    if (mesasLiberadas > 0) {
+      console.log(`📋 [CRON] Total mesas liberadas por reservas expiradas: ${mesasLiberadas}`);
+    }
+  } catch (error) {
+    console.error('❌ Error en liberarMesasReservasExpiradas:', error);
+  }
+}
+
+/**
+ * Notifica al cliente que su mesa fue asignada
+ */
+async function notificarMesaAsignadaReserva(reserva, mesaNumero) {
+  try {
+    // Buscar el token FCM del cliente
+    const { data: cliente, error } = await supabase
+      .from('clientes')
+      .select('fcm_token')
+      .eq('correo', reserva.cliente_email)
+      .single();
+    
+    if (error || !cliente || !cliente.fcm_token) {
+      console.log(`ℹ️ [CRON] Cliente ${reserva.cliente_email} no tiene token FCM`);
+      return;
+    }
+    
+    const message = {
+      notification: {
+        title: '🪑 ¡Tu mesa está lista!',
+        body: `Tu reserva de las ${reserva.hora_reserva} tiene la mesa N° ${mesaNumero} asignada. Tienes 45 minutos para escanear el QR de tu mesa.`
+      },
+      token: cliente.fcm_token,
+      data: {
+        link: '/home',
+        reservaId: reserva.id.toString(),
+        mesaNumero: mesaNumero.toString()
+      }
+    };
+    
+    await admin.messaging().send(message);
+    console.log(`📱 [CRON] Notificación enviada a ${reserva.cliente_email} - Mesa ${mesaNumero}`);
+  } catch (error) {
+    console.error('Error al enviar notificación de mesa asignada:', error);
+  }
+}
+
+console.log('⏰ Cron job de gestión de reservas configurado: cada minuto');
+
+// Mantener el cron job original para liberar mesas de lista_espera vencidas
 cron.schedule('*/5 * * * *', async () => {
   try {
-    console.log('🔄 Ejecutando liberación de mesas vencidas...', new Date().toISOString());
+    console.log('🔄 Ejecutando liberación de mesas vencidas (lista_espera)...', new Date().toISOString());
     
     const { data, error } = await supabase.rpc('liberar_mesas_vencidas');
     
@@ -67,8 +310,6 @@ cron.schedule('*/5 * * * *', async () => {
       if (data && data.reservas_liberadas > 0) {
         console.log(`✅ Liberadas ${data.reservas_liberadas} reservas vencidas`);
         console.log(`📋 Mesas liberadas: ${data.mesas_liberadas?.join(', ') || 'ninguna'}`);
-      } else {
-        console.log('ℹ️  No hay mesas vencidas para liberar');
       }
     }
   } catch (cronError) {
@@ -76,7 +317,7 @@ cron.schedule('*/5 * * * *', async () => {
   }
 });
 
-console.log('⏰ Cron job de liberación de mesas configurado: cada 5 minutos');
+console.log('⏰ Cron job de liberación de mesas (lista_espera) configurado: cada 5 minutos');
 
 try {
   console.log('Iniciando configuración de Firebase...');
@@ -1906,6 +2147,219 @@ app.post("/enviar-correo-reserva-aprobada", async (req, res) => {
       to: correo,
       subject: '✅ Reserva Confirmada - Los Fritos Hermanos',
       text: `¡Hola ${nombre}! Tu reserva para el ${fechaFormateada} a las ${horaReserva} ha sido confirmada. ${mesaNumero ? `Mesa asignada: #${mesaNumero}` : ''} ¡Te esperamos!`,
+      html: htmlContent
+    });
+    
+    res.status(200).send({ 
+      success: true, 
+      message: "Correo de confirmación de reserva enviado exitosamente",
+      result 
+    });
+  } catch (error) {
+    console.error("Error al enviar correo de confirmación de reserva:", error);
+    res.status(500).send({ 
+      error: `Error al enviar correo: ${error.message}` 
+    });
+  }
+});
+
+/**
+ * Envía correo de confirmación de reserva SIN mesa asignada
+ * La mesa se asignará automáticamente a la hora de la reserva
+ * POST /enviar-correo-reserva-confirmada-sin-mesa
+ */
+app.post("/enviar-correo-reserva-confirmada-sin-mesa", async (req, res) => {
+  const { correo, nombre, apellido, fechaReserva, horaReserva, cantidadComensales } = req.body;
+  
+  if (!correo || !nombre || !fechaReserva || !horaReserva) {
+    return res.status(400).send({ error: "Correo, nombre, fechaReserva y horaReserva son requeridos." });
+  }
+  
+  try {
+    const { sendEmail } = require('./services/email.service');
+    
+    // Formatear fecha
+    const fechaFormateada = new Date(fechaReserva).toLocaleDateString('es-AR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset="utf-8">
+          <title>Reserva Confirmada - Los Fritos Hermanos</title>
+          <style>
+              @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700&display=swap');
+              
+              body {
+                  font-family: 'Poppins', sans-serif;
+                  line-height: 1.8;
+                  color: #2c3e50;
+                  max-width: 650px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              }
+              .container {
+                  background-color: #ffffff;
+                  border-radius: 20px;
+                  overflow: hidden;
+                  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+              }
+              .header {
+                  text-align: center;
+                  padding: 40px 20px;
+                  background: linear-gradient(135deg, #228B22 0%, #32CD32 100%);
+              }
+              .logo {
+                  width: 200px;
+                  height: auto;
+                  margin-bottom: 20px;
+                  border-radius: 15px;
+                  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+              }
+              .header-title {
+                  color: #FFD700;
+                  font-size: 32px;
+                  font-family: 'Playfair Display', serif;
+                  margin: 0;
+                  text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+              }
+              .celebration { font-size: 60px; margin: 20px 0; }
+              .content { padding: 40px 30px; }
+              .greeting {
+                  font-size: 22px;
+                  color: #228B22;
+                  font-weight: 700;
+                  margin-bottom: 25px;
+                  font-family: 'Playfair Display', serif;
+              }
+              .message { font-size: 16px; color: #34495e; line-height: 2; margin-bottom: 20px; }
+              .success-box {
+                  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+                  border-left: 6px solid #228B22;
+                  padding: 25px;
+                  margin: 30px 0;
+                  border-radius: 12px;
+              }
+              .info-box {
+                  background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+                  border-left: 6px solid #ffc107;
+                  padding: 25px;
+                  margin: 30px 0;
+                  border-radius: 12px;
+              }
+              .reservation-details {
+                  background-color: #f8f9fa;
+                  border-radius: 12px;
+                  padding: 25px;
+                  margin: 25px 0;
+                  border: 2px solid #228B22;
+              }
+              .detail-item {
+                  display: flex;
+                  align-items: center;
+                  margin: 15px 0;
+                  font-size: 17px;
+              }
+              .detail-icon { font-size: 24px; margin-right: 15px; color: #228B22; width: 30px; text-align: center; }
+              .detail-label { font-weight: 700; color: #228B22; margin-right: 10px; min-width: 140px; }
+              .detail-value { color: #2c3e50; font-weight: 600; }
+              .footer {
+                  text-align: center;
+                  font-size: 14px;
+                  color: #7f8c8d;
+                  padding: 30px;
+                  background-color: #ecf0f1;
+                  border-top: 3px solid #228B22;
+              }
+              .logo-footer {
+                  font-family: 'Playfair Display', serif;
+                  color: #228B22;
+                  font-weight: 700;
+                  font-size: 20px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="header">
+                  <img src="https://jpwlvaprtxszeimmimlq.supabase.co/storage/v1/object/public/FritosHermanos/FritosHermanos.jpg" alt="Los Fritos Hermanos Logo" class="logo">
+                  <h1 class="header-title">Los Fritos Hermanos</h1>
+                  <div class="celebration">✅</div>
+              </div>
+              
+              <div class="content">
+                  <p class="greeting">¡Reserva Confirmada, ${nombre} ${apellido || ''}!</p>
+                  
+                  <p class="message">
+                      Nos complace informarte que tu reserva ha sido <strong style="color: #228B22; font-size: 18px;">CONFIRMADA</strong> exitosamente.
+                  </p>
+                  
+                  <div class="success-box">
+                      <p style="font-size: 19px; color: #228B22; font-weight: 700; margin: 0; text-align: center;">
+                          🎉 ¡Tu reserva está confirmada! 🎉
+                      </p>
+                  </div>
+                  
+                  <div class="reservation-details">
+                      <h3 style="color: #228B22; font-family: 'Playfair Display', serif; font-size: 24px; margin-top: 0; margin-bottom: 20px; text-align: center;">
+                          Detalles de tu Reserva
+                      </h3>
+                      
+                      <div class="detail-item">
+                          <span class="detail-icon">📅</span>
+                          <span class="detail-label">Fecha:</span>
+                          <span class="detail-value">${fechaFormateada}</span>
+                      </div>
+                      
+                      <div class="detail-item">
+                          <span class="detail-icon">🕐</span>
+                          <span class="detail-label">Hora:</span>
+                          <span class="detail-value">${horaReserva}</span>
+                      </div>
+                      
+                      <div class="detail-item">
+                          <span class="detail-icon">👥</span>
+                          <span class="detail-label">Comensales:</span>
+                          <span class="detail-value">${cantidadComensales} ${cantidadComensales === 1 ? 'persona' : 'personas'}</span>
+                      </div>
+                  </div>
+                  
+                  <div class="info-box">
+                      <p style="font-size: 16px; color: #856404; font-weight: 600; margin: 0;">
+                          📱 <strong>Importante:</strong> Tu mesa será asignada automáticamente a las <strong>${horaReserva}</strong>. 
+                          Recibirás una notificación cuando tu mesa esté lista.
+                      </p>
+                      <p style="font-size: 14px; color: #856404; margin: 15px 0 0 0;">
+                          ⏰ Tendrás <strong>45 minutos</strong> desde la hora de tu reserva para escanear el QR de tu mesa. 
+                          Si no llegas a tiempo, la mesa será liberada automáticamente.
+                      </p>
+                  </div>
+                  
+                  <p class="message" style="text-align: center; font-size: 18px; color: #228B22; font-weight: 600;">
+                      ¡Te esperamos en Los Fritos Hermanos!
+                  </p>
+              </div>
+              
+              <div class="footer">
+                  <p class="logo-footer">🌮 Los Fritos Hermanos 🌮</p>
+                  <p>© 2025 Los Fritos Hermanos. Todos los derechos reservados.</p>
+                  <p style="font-size: 13px; color: #95a5a6; font-style: italic;">Este es un correo automático, por favor no responder directamente.</p>
+              </div>
+          </div>
+      </body>
+      </html>
+    `;
+    
+    const result = await sendEmail({
+      to: correo,
+      subject: '✅ Reserva Confirmada - Los Fritos Hermanos',
+      text: `¡Hola ${nombre}! Tu reserva para el ${fechaFormateada} a las ${horaReserva} ha sido confirmada. Tu mesa será asignada automáticamente a las ${horaReserva}. Tendrás 45 minutos para escanear el QR de tu mesa. ¡Te esperamos!`,
       html: htmlContent
     });
     

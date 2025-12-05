@@ -1067,6 +1067,24 @@ export class HomePage implements OnInit, ViewWillEnter {
         return;
       }
 
+      // CASO 5: Cliente con RESERVA ACTIVA escanea QR de mesa (sin estar en lista de espera)
+      // Permite al cliente con reserva confirmada escanear directamente el QR de su mesa asignada
+      if (esQRMesa && this.usuario?.email && !this.esClienteAnonimo) {
+        console.log('📷 [escanearQRUnificado] → Verificando si tiene reserva activa...');
+        const reservaActiva = await this.reservasService.obtenerReservaConfirmadaActiva(this.usuario.email);
+        
+        if (reservaActiva && reservaActiva.mesa_numero) {
+          console.log('📷 [escanearQRUnificado] → Cliente tiene reserva activa con mesa:', reservaActiva.mesa_numero);
+          // Validar que el QR escaneado corresponda a la mesa de la reserva
+          await this.validarMesaEscaneadaConReserva(codigoEscaneado, reservaActiva);
+          return;
+        } else if (reservaActiva && !reservaActiva.mesa_numero) {
+          console.log('📷 [escanearQRUnificado] → Reserva activa pero sin mesa asignada aún');
+          await this.swal.showTemporaryAlert('Info', 'Tu reserva está confirmada pero la mesa aún no ha sido asignada. Espera a la hora de tu reserva.', 'info');
+          return;
+        }
+      }
+
       // Si llegamos aquí, el QR no es válido para el estado actual
       console.log('❌ [escanearQRUnificado] QR no válido para el estado actual');
       
@@ -1103,6 +1121,63 @@ export class HomePage implements OnInit, ViewWillEnter {
              /mesa[:\s]+\d+/i.test(codigo) ||
              codigo.includes('"numeroMesa"');
     }
+  }
+
+  /**
+   * Valida el QR de mesa escaneado contra una reserva activa
+   * Permite al cliente con reserva escanear directamente su mesa sin pasar por lista de espera
+   */
+  async validarMesaEscaneadaConReserva(codigoEscaneado: string, reserva: any) {
+    console.log('🔍 [validarMesaEscaneadaConReserva] Validando QR con reserva');
+    
+    let numeroMesaQR: number | null = null;
+    
+    try {
+      const datosQR = JSON.parse(codigoEscaneado);
+      numeroMesaQR = parseInt(String(datosQR.numeroMesa), 10);
+    } catch (e) {
+      const match = codigoEscaneado.match(/numeroMesa[:\s]+(\d+)/);
+      if (match) {
+        numeroMesaQR = parseInt(match[1], 10);
+      }
+    }
+
+    if (!numeroMesaQR) {
+      console.log('❌ [validarMesaEscaneadaConReserva] No se pudo extraer número de mesa del QR');
+      this.customLoader.hide();
+      this.swal.showTemporaryAlert('Error', 'QR inválido', 'error');
+      return;
+    }
+
+    console.log('🔍 [validarMesaEscaneadaConReserva] Mesa del QR:', numeroMesaQR, '| Mesa de reserva:', reserva.mesa_numero);
+
+    // Verificar que el QR corresponda a la mesa de la reserva
+    if (numeroMesaQR !== reserva.mesa_numero) {
+      console.log('❌ [validarMesaEscaneadaConReserva] La mesa del QR no coincide con la reserva');
+      this.feedback.showToast('error', `❌ Mesa incorrecta. Tu reserva es para la mesa N° ${reserva.mesa_numero}`);
+      this.customLoader.hide();
+      return;
+    }
+
+    // El QR es válido para la reserva
+    console.log('✅ [validarMesaEscaneadaConReserva] QR válido para la reserva');
+    
+    // Confirmar llegada del cliente en la reserva
+    try {
+      await this.reservasService.confirmarLlegadaClienteReserva(reserva.id);
+    } catch (error) {
+      console.error('Error al confirmar llegada:', error);
+    }
+
+    // Asignar la mesa al cliente
+    this.mesaAsignada = numeroMesaQR;
+    this.qrMesaEscaneado = true;
+    this.mostrarBotonEscanearMesa = false;
+    
+    this.feedback.showToast('exito', `✅ ¡Bienvenido! Tu mesa N° ${numeroMesaQR} está lista. Podés ver la carta para realizar tu pedido.`);
+    
+    // Marcar cliente como sentado
+    await this.marcarClienteSentado();
   }
 
    async escanearQR() {

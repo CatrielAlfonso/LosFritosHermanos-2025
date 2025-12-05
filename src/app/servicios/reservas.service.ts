@@ -294,7 +294,8 @@ export class ReservasService {
 
   /**
    * Confirma una reserva pendiente (solo supervisores/dueños)
-   * Busca y asigna una mesa disponible para la cantidad de comensales
+   * NO asigna mesa inmediatamente - la mesa se asigna a la hora de la reserva
+   * La mesa se liberará automáticamente después de 45 minutos si el cliente no escanea el QR
    */
   async confirmarReserva(reservaId: number): Promise<void> {
     // Verificar permisos (supervisor o dueño)
@@ -315,30 +316,22 @@ export class ReservasService {
       throw new Error('Reserva no encontrada o ya procesada');
     }
 
-    // Verificar que haya mesas disponibles para esa cantidad
+    // Verificar que haya mesas disponibles para esa cantidad (validación previa)
     const hayMesas = await this.hayMesasDisponiblesParaCapacidad(reserva.cantidad_comensales);
     if (!hayMesas) {
       throw new Error(`No hay mesas disponibles para ${reserva.cantidad_comensales} comensales. No se puede confirmar la reserva.`);
     }
 
-    // Asignar automáticamente una mesa disponible
-    const mesaAsignada = await this.asignarMesaAutomatica(reserva.cantidad_comensales);
-    if (!mesaAsignada) {
-      throw new Error('No se pudo asignar una mesa. Intenta nuevamente.');
-    }
-
-    // Actualizar la reserva con la mesa asignada y estado confirmado
-    const ahora = new Date();
-    const horaLimite = new Date(ahora.getTime() + 45 * 60 * 1000); // 45 minutos
-
+    // Solo marcar como confirmada SIN asignar mesa
+    // La mesa se asignará automáticamente cuando llegue la hora de la reserva
     const { error: errorUpdate } = await this.supabase.supabase
       .from('reservas')
       .update({
-        mesa_id: mesaAsignada.id,
-        mesa_numero: mesaAsignada.numero,
         estado: 'confirmada',
-        hora_asignacion: ahora.toISOString(),
-        hora_limite: horaLimite.toISOString()
+        mesa_id: null,
+        mesa_numero: null,
+        hora_asignacion: null,
+        hora_limite: null
       })
       .eq('id', reservaId);
 
@@ -347,23 +340,44 @@ export class ReservasService {
       throw new Error(`Error al confirmar la reserva: ${errorUpdate.message}`);
     }
 
-    // Marcar la mesa como ocupada
-    const { error: errorMesa } = await this.supabase.supabase
-      .from('mesas')
-      .update({ ocupada: true })
-      .eq('id', mesaAsignada.id);
-
-    if (errorMesa) {
-      console.error('Error al marcar mesa como ocupada:', errorMesa);
-      throw new Error(`Error al asignar la mesa: ${errorMesa.message}`);
-    }
-
-    // Notificar al cliente sobre la confirmación
+    // Notificar al cliente sobre la confirmación (sin número de mesa aún)
     try {
-      await this.notificarReservaConfirmada(reserva, mesaAsignada.numero);
+      await this.notificarReservaConfirmadaSinMesa(reserva);
     } catch (notifError) {
       console.error('Error al notificar confirmación:', notifError);
       // No lanzamos error para no fallar la confirmación
+    }
+  }
+
+  /**
+   * Notifica al cliente que su reserva fue confirmada (sin mesa asignada aún)
+   */
+  private async notificarReservaConfirmadaSinMesa(reserva: Reserva): Promise<void> {
+    try {
+      const backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
+      // const backendUrl = 'http://localhost:8080'; // Para desarrollo local
+      
+      const response = await fetch(`${backendUrl}/enviar-correo-reserva-confirmada-sin-mesa`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          correo: reserva.cliente_email,
+          nombre: reserva.cliente_nombre,
+          apellido: reserva.cliente_apellido,
+          fechaReserva: reserva.fecha_reserva,
+          horaReserva: reserva.hora_reserva,
+          cantidadComensales: reserva.cantidad_comensales
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error enviando notificación de reserva confirmada:', error);
+      throw error;
     }
   }
 
@@ -392,16 +406,25 @@ export class ReservasService {
   /**
    * Aprueba una reserva (solo dueños/supervisores)
    */
+  /**
+   * Aprueba una reserva (solo dueños/supervisores)
+   * NOTA: La mesa NO se asigna al aprobar. Se asigna automáticamente a la hora de la reserva.
+   */
   async aprobarReserva(id: number, mesaNumero?: number): Promise<void> {
     const perfil = this.authService.getPerfilUsuario();
     if (perfil !== 'supervisor' && perfil !== 'dueño') {
       throw new Error('Solo dueños y supervisores pueden aprobar reservas');
     }
 
-    const updateData: any = { estado: 'confirmada' };
-    if (mesaNumero) {
-      updateData.mesa_numero = mesaNumero;
-    }
+    // Solo marcar como confirmada, SIN asignar mesa
+    // La mesa se asignará automáticamente cuando llegue la hora de la reserva
+    const updateData: any = { 
+      estado: 'confirmada',
+      mesa_id: null,
+      mesa_numero: null,
+      hora_asignacion: null,
+      hora_limite: null
+    };
 
     const { error } = await this.supabase.supabase
       .from('reservas')
@@ -540,9 +563,10 @@ export class ReservasService {
 
   /**
    * Aprueba una reserva y envía correo de confirmación
+   * NOTA: La mesa se asigna automáticamente a la hora de la reserva, no al aprobar
    */
   async aprobarReservaConCorreo(id: number, mesaNumero?: number): Promise<void> {
-    // Primero aprobar la reserva
+    // Primero aprobar la reserva (sin asignar mesa)
     await this.aprobarReserva(id, mesaNumero);
     
     // Obtener la reserva para enviar el correo
@@ -551,12 +575,12 @@ export class ReservasService {
       throw new Error('Reserva no encontrada');
     }
 
-    // Enviar correo de confirmación
+    // Enviar correo de confirmación SIN mesa (la mesa se asigna a la hora de la reserva)
     try {
       const backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
       // const backendUrl = 'http://localhost:8080'; // Para desarrollo local
       
-      const response = await fetch(`${backendUrl}/enviar-correo-reserva-aprobada`, {
+      const response = await fetch(`${backendUrl}/enviar-correo-reserva-confirmada-sin-mesa`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -567,8 +591,7 @@ export class ReservasService {
           apellido: reserva.cliente_apellido,
           fechaReserva: reserva.fecha_reserva,
           horaReserva: reserva.hora_reserva,
-          cantidadComensales: reserva.cantidad_comensales,
-          mesaNumero: mesaNumero || reserva.mesa_numero
+          cantidadComensales: reserva.cantidad_comensales
         })
       });
 
@@ -668,21 +691,24 @@ export class ReservasService {
 
   /**
    * Obtiene la reserva confirmada activa de un cliente
+   * Una reserva está activa si:
+   * - Tiene mesa asignada: desde la hora de reserva hasta 45 min después
+   * - No tiene mesa asignada: desde la hora de reserva (para asignar mesa) hasta 45 min después
    * @param clienteEmail Email del cliente
    * @returns Reserva activa o null
    */
   async obtenerReservaConfirmadaActiva(clienteEmail: string): Promise<Reserva | null> {
     try {
       const ahora = new Date();
+      const hoy = ahora.toISOString().split('T')[0];
+      
       const { data, error } = await this.supabase.supabase
         .from('reservas')
         .select('*')
         .eq('cliente_email', clienteEmail)
         .eq('estado', 'confirmada')
-        .gte('fecha_reserva', ahora.toISOString().split('T')[0])
-        .order('fecha_reserva', { ascending: true })
-        .order('hora_reserva', { ascending: true })
-        .limit(1);
+        .eq('fecha_reserva', hoy)
+        .order('hora_reserva', { ascending: true });
 
       if (error) {
         console.error('Error al obtener reserva activa:', error);
@@ -693,20 +719,173 @@ export class ReservasService {
         return null;
       }
 
-      const reserva = data[0];
-      const fechaHoraReserva = new Date(`${reserva.fecha_reserva}T${reserva.hora_reserva}`);
-      const tiempoDiferencia = fechaHoraReserva.getTime() - ahora.getTime();
-      const minutosDiferencia = tiempoDiferencia / (1000 * 60);
+      // Buscar una reserva que esté dentro del lapso válido
+      for (const reserva of data) {
+        const fechaHoraReserva = new Date(`${reserva.fecha_reserva}T${reserva.hora_reserva}`);
+        const tiempoDiferencia = ahora.getTime() - fechaHoraReserva.getTime();
+        const minutosDiferencia = tiempoDiferencia / (1000 * 60);
 
-      // Verificar que esté dentro del lapso válido (45 min antes hasta 45 min después)
-      if (minutosDiferencia >= -45 && minutosDiferencia <= 45) {
-        return reserva;
+        // Reserva válida: desde la hora de reserva hasta 45 minutos después
+        // (minutosDiferencia >= 0 significa que ya llegó la hora)
+        // (minutosDiferencia <= 45 significa que no han pasado más de 45 min)
+        if (minutosDiferencia >= 0 && minutosDiferencia <= 45) {
+          return reserva;
+        }
       }
 
       return null;
     } catch (error) {
       console.error('Error al obtener reserva activa:', error);
       return null;
+    }
+  }
+
+  /**
+   * Obtiene la reserva confirmada que está lista para asignar mesa
+   * (la hora de la reserva ya llegó pero aún no tiene mesa asignada)
+   * @param clienteEmail Email del cliente
+   * @returns Reserva lista para asignar mesa o null
+   */
+  async obtenerReservaListaParaMesa(clienteEmail: string): Promise<Reserva | null> {
+    try {
+      const ahora = new Date();
+      const hoy = ahora.toISOString().split('T')[0];
+      
+      const { data, error } = await this.supabase.supabase
+        .from('reservas')
+        .select('*')
+        .eq('cliente_email', clienteEmail)
+        .eq('estado', 'confirmada')
+        .eq('fecha_reserva', hoy)
+        .is('mesa_numero', null)
+        .order('hora_reserva', { ascending: true });
+
+      if (error) {
+        console.error('Error al obtener reserva lista para mesa:', error);
+        return null;
+      }
+
+      if (!data || data.length === 0) {
+        return null;
+      }
+
+      // Buscar una reserva cuya hora ya llegó (o está por llegar en 5 min de tolerancia)
+      for (const reserva of data) {
+        const fechaHoraReserva = new Date(`${reserva.fecha_reserva}T${reserva.hora_reserva}`);
+        const tiempoDiferencia = ahora.getTime() - fechaHoraReserva.getTime();
+        const minutosDiferencia = tiempoDiferencia / (1000 * 60);
+
+        // La hora de la reserva ya llegó (con 5 min de tolerancia antes) y no han pasado más de 45 min
+        if (minutosDiferencia >= -5 && minutosDiferencia <= 45) {
+          return reserva;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error al obtener reserva lista para mesa:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Asigna mesa a una reserva cuando llega su hora
+   * @param reservaId ID de la reserva
+   * @returns Mesa asignada o null si no hay disponibles
+   */
+  async asignarMesaAReserva(reservaId: number): Promise<Mesa | null> {
+    try {
+      const reserva = await this.obtenerReservaPorId(reservaId);
+      if (!reserva) {
+        console.error('Reserva no encontrada:', reservaId);
+        return null;
+      }
+
+      if (reserva.mesa_numero) {
+        console.log('La reserva ya tiene mesa asignada:', reserva.mesa_numero);
+        // Retornar la mesa existente
+        const { data: mesa } = await this.supabase.supabase
+          .from('mesas')
+          .select('*')
+          .eq('numero', reserva.mesa_numero)
+          .single();
+        return mesa;
+      }
+
+      // Buscar mesa disponible para la cantidad de comensales
+      const mesaDisponible = await this.asignarMesaAutomatica(reserva.cantidad_comensales);
+      if (!mesaDisponible) {
+        console.error('No hay mesas disponibles para', reserva.cantidad_comensales, 'comensales');
+        return null;
+      }
+
+      // Calcular hora límite (45 minutos desde ahora)
+      const ahora = new Date();
+      const horaLimite = new Date(ahora.getTime() + 45 * 60 * 1000);
+
+      // Actualizar la reserva con la mesa asignada
+      const { error: errorReserva } = await this.supabase.supabase
+        .from('reservas')
+        .update({
+          mesa_id: mesaDisponible.id,
+          mesa_numero: mesaDisponible.numero,
+          hora_asignacion: ahora.toISOString(),
+          hora_limite: horaLimite.toISOString()
+        })
+        .eq('id', reservaId);
+
+      if (errorReserva) {
+        console.error('Error al asignar mesa a reserva:', errorReserva);
+        return null;
+      }
+
+      // Marcar la mesa como ocupada
+      const { error: errorMesa } = await this.supabase.supabase
+        .from('mesas')
+        .update({ ocupada: true })
+        .eq('id', mesaDisponible.id);
+
+      if (errorMesa) {
+        console.error('Error al marcar mesa como ocupada:', errorMesa);
+        // Intentar revertir la asignación en la reserva
+        await this.supabase.supabase
+          .from('reservas')
+          .update({ mesa_id: null, mesa_numero: null, hora_asignacion: null, hora_limite: null })
+          .eq('id', reservaId);
+        return null;
+      }
+
+      console.log(`✅ Mesa ${mesaDisponible.numero} asignada a reserva ${reservaId}`);
+      return mesaDisponible;
+    } catch (error) {
+      console.error('Error al asignar mesa a reserva:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Confirma la llegada del cliente con reserva (escaneo de QR de mesa)
+   * @param reservaId ID de la reserva
+   */
+  async confirmarLlegadaClienteReserva(reservaId: number): Promise<void> {
+    try {
+      const { error } = await this.supabase.supabase
+        .from('reservas')
+        .update({
+          cliente_llego: true,
+          hora_llegada: new Date().toISOString()
+        })
+        .eq('id', reservaId);
+
+      if (error) {
+        console.error('Error al confirmar llegada del cliente:', error);
+        throw new Error(`Error al confirmar llegada: ${error.message}`);
+      }
+
+      console.log(`✅ Cliente llegó a reserva ${reservaId}`);
+    } catch (error) {
+      console.error('Error al confirmar llegada del cliente:', error);
+      throw error;
     }
   }
 
