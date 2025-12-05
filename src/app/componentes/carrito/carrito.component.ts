@@ -8,6 +8,7 @@ import { SupabaseService } from 'src/app/servicios/supabase.service';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 import Swal from 'sweetalert2';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 
 
 
@@ -33,7 +34,8 @@ export class CarritoComponent {
     private toastController : ToastController,
     private supabase : SupabaseService,
     private route : ActivatedRoute,
-    private pushService: PushNotificationService
+    private pushService: PushNotificationService,
+    private customLoader: CustomLoader
   ) {}
 
 
@@ -184,6 +186,7 @@ export class CarritoComponent {
       console.log('🛒 [realizarPedido] Iniciando pedido...');
       console.log('🛒 [realizarPedido] User ID:', this.user().id);
       console.log('🛒 [realizarPedido] Mesa:', this.mesa);
+      this.customLoader.show()
       
       // Si la mesa está vacía, intentar obtenerla nuevamente
       if (!this.mesa) {
@@ -194,6 +197,7 @@ export class CarritoComponent {
       
       const itemsCarrito = this.items();
       if (itemsCarrito.length === 0) {
+        this.customLoader.hide()
         throw new Error('El carrito está vacío');
       }
       
@@ -211,11 +215,11 @@ export class CarritoComponent {
       .select();
 
       if (error) {
+        this.customLoader.hide()
         throw error;
       }
 
       console.log('Pedido realizado con éxito:', data);
-
       // Notificar a todos los mozos sobre el nuevo pedido
       try {
         await this.notificarMozosNuevoPedido(data[0]);
@@ -223,7 +227,8 @@ export class CarritoComponent {
         console.error('Error al notificar mozos:', notifError);
         // No bloquear el flujo si falla la notificación
       }
-
+      
+      this.customLoader.hide() 
       const toast = await this.toastController.create({
         message: 'Pedido enviado',
         duration: 3000,
@@ -235,6 +240,7 @@ export class CarritoComponent {
       this.router.navigate(['/home']);
       
     } catch (error) {
+      this.customLoader.hide()
       console.error('Error realizando pedido:', error);
     }
   }

@@ -313,7 +313,7 @@ function generarPDFFactura(pedido) {
       doc.fontSize(8).text('QR AFIP', x + 15, footerY + 30);
 
       // Logo AFIP y Textos
-      doc.fontSize(10).font('Helvetica-Bold-Oblique')
+      doc.fontSize(10).font('Helvetica-BoldOblique')
          .text('Comprobante Autorizado', x + 80, footerY + 20);
       
       doc.fontSize(7).font('Helvetica-Oblique')

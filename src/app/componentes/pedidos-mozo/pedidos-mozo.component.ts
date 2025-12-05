@@ -85,7 +85,7 @@ segmentoActivo = 'activos';
         pedido_id: pedido.id
       });
 
-
+      await this.sb.cargarPedidos();
       const toast = await this.toastController.create({
         message: `Cuenta habilitada para mesa ${pedido.mesa}`,
         duration: 3000,

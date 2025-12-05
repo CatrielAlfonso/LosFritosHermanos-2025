@@ -431,13 +431,26 @@ export class ReservasComponent implements OnInit {
     await alert.present();
   }
 
+  // formatearFecha(fecha: string): string { METODO QUE MUESTRA MAL LA FECHA, COMENTADO ENTERO POR LAS DUDAS POR SI HAY QUE VOLVER A USARLO
+  //   const date = new Date(fecha);
+  //   return date.toLocaleDateString('es-AR', { 
+  //     weekday: 'long', 
+  //     year: 'numeric', 
+  //     month: 'long', 
+  //     day: 'numeric' 
+  //   });
+  // }
   formatearFecha(fecha: string): string {
-    const date = new Date(fecha);
+    
+    const fechaLimpia = fecha.split('T')[0]; 
+    const date = new Date(fechaLimpia);
+
     return date.toLocaleDateString('es-AR', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric' 
+      day: 'numeric',
+      timeZone: 'UTC' // <--- LO NUEVO PARA MANTENER EL DIA
     });
   }
 
