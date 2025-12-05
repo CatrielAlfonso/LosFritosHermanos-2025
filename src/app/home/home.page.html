@@ -206,7 +206,7 @@
       
       <!-- Ver Carta - visible después de escanear QR de mesa -->
       @if (qrMesaEscaneado) {
-        <ion-button expand="block" color="fritos-blue" class="fritos-button" [routerLink]="['/menu']" (click)="ocultarMensajeListaEspera()">
+        <ion-button expand="block" color="fritos-blue" class="fritos-button" (click)="irAVerCarta()">
           <ion-icon name="restaurant-outline" slot="start"></ion-icon>
           Ver Carta
         </ion-button>

@@ -669,6 +669,7 @@ async function notificarClienteAnonimo(fcmToken, pdfUrl, pedidoId) {
 async function obtenerDatosDelPedido(pedidoId) {
   console.log(`Buscando datos reales para el pedido ID: ${pedidoId}`);
 
+  // Primero obtenemos el pedido sin el join de cliente
   const { data: pedidoData, error: pedidoError } = await supabase
     .from('pedidos')
     .select(`
@@ -681,13 +682,7 @@ async function obtenerDatosDelPedido(pedidoId) {
       mesa,
       descuento,
       propina,
-      cliente:clientes (
-        id,
-        nombre,
-        apellido,
-        correo,
-        fcm_token
-      )
+      cliente_id
     `)
     .eq('id', pedidoId)
     .single(); 
@@ -699,6 +694,53 @@ async function obtenerDatosDelPedido(pedidoId) {
   if (!pedidoData) {
     throw new Error(`No se encontró ningún pedido con el ID: ${pedidoId}`);
   }
+
+  // Ahora buscamos el cliente por su UID (cliente_id es el uid de auth)
+  let clienteData = null;
+  if (pedidoData.cliente_id) {
+    console.log(`Buscando cliente con uid: ${pedidoData.cliente_id}`);
+    
+    // Primero intentamos buscar por uid
+    const { data: cliente, error: clienteError } = await supabase
+      .from('clientes')
+      .select('id, nombre, apellido, correo, fcm_token')
+      .eq('uid', pedidoData.cliente_id)
+      .maybeSingle();
+    
+    if (cliente) {
+      clienteData = cliente;
+      console.log('✅ Cliente encontrado por uid:', clienteData.nombre);
+    } else {
+      // Si no encontramos por uid, intentamos por id numérico (para clientes anónimos)
+      const clienteIdNumerico = parseInt(pedidoData.cliente_id);
+      if (!isNaN(clienteIdNumerico)) {
+        const { data: clienteById } = await supabase
+          .from('clientes')
+          .select('id, nombre, apellido, correo, fcm_token')
+          .eq('id', clienteIdNumerico)
+          .maybeSingle();
+        
+        if (clienteById) {
+          clienteData = clienteById;
+          console.log('✅ Cliente encontrado por id numérico:', clienteData.nombre);
+        }
+      }
+    }
+    
+    if (!clienteData) {
+      console.log('⚠️ No se encontró cliente, usando datos por defecto');
+      clienteData = {
+        id: null,
+        nombre: 'Cliente',
+        apellido: '',
+        correo: null,
+        fcm_token: null
+      };
+    }
+  }
+
+  // Agregamos el cliente al pedido
+  pedidoData.cliente = clienteData;
 
   
   const formatearItems = (itemArray) => {

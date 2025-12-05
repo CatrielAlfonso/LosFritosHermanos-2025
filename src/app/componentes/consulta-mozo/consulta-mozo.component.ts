@@ -191,6 +191,17 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
         );
       }
       
+      // Si es un cliente enviando mensaje, notificar a los mozos
+      if (this.esCliente) {
+        console.log('📤 Cliente envió mensaje, notificando a mozos...');
+        await this.pushService.notificarMozosConsultaCliente(
+          this.usuarioNombre,
+          '',  // apellido
+          this.mesa!.toString(),
+          contenidoMensaje
+        );
+      }
+      
       // Recargar mensajes para obtener el ID real del servidor
       await this.chatService.cargarMensajes(this.consulta.id);
     } else {

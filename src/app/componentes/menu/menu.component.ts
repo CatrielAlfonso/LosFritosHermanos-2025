@@ -93,15 +93,35 @@ export class MenuComponent  implements OnInit, OnDestroy {
   async verificarMesaAsignada() {
     try {
       console.log('🔍 [menu] Verificando mesa asignada');
-      const { data: user } = await this.authService.getCurrentUser();
       
-      if (!user?.user?.email) {
-        console.log('❌ [menu] No hay usuario logueado');
-        return;
+      let email: string | null = null;
+
+      // 1. Verificar si es cliente anónimo (localStorage)
+      const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
+      if (clienteAnonimoStr) {
+        try {
+          const clienteAnonimo = JSON.parse(clienteAnonimoStr);
+          email = `anonimo-${clienteAnonimo.id}@fritos.com`;
+          console.log('🔍 [menu] Cliente anónimo detectado, correo:', email);
+        } catch (e) {
+          console.error('Error al parsear cliente anónimo:', e);
+        }
+      }
+      
+      // 2. Si no es anónimo, verificar usuario autenticado
+      if (!email) {
+        const { data: user } = await this.authService.getCurrentUser();
+        if (user?.user?.email) {
+          this.usuario = user.user;
+          email = user.user.email;
+          console.log('🔍 [menu] Usuario autenticado, correo:', email);
+        }
       }
 
-      this.usuario = user.user;
-      const email = user.user.email;
+      if (!email) {
+        console.log('❌ [menu] No hay usuario logueado ni anónimo');
+        return;
+      }
 
       // Verificar si tiene mesa asignada en lista_espera
       const { data: clienteEnLista, error } = await this.supabaseService.supabase
@@ -112,12 +132,12 @@ export class MenuComponent  implements OnInit, OnDestroy {
         .single();
 
       if (!error && clienteEnLista) {
-        this.mesaAsignada = clienteEnLista.mesa_asignada;
+        this.mesaAsignada = parseInt(clienteEnLista.mesa_asignada);
         this.tieneMesaAsignada = true;
         console.log('✅ [menu] Cliente tiene mesa asignada:', this.mesaAsignada);
       } else {
         this.tieneMesaAsignada = false;
-        console.log('⚠️ [menu] Cliente NO tiene mesa asignada');
+        console.log('⚠️ [menu] Cliente NO tiene mesa asignada. Error:', error);
       }
     } catch (error) {
       console.error('💥 [menu] Error al verificar mesa:', error);
