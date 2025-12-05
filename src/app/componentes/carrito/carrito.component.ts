@@ -245,6 +245,7 @@ export class CarritoComponent {
 
   /**
    * Notifica a todos los mozos sobre un nuevo pedido
+   * El endpoint del backend ya envía a TODOS los mozos, así que solo llamamos UNA vez
    */
   private async notificarMozosNuevoPedido(pedido: any) {
     try {
@@ -264,28 +265,18 @@ export class CarritoComponent {
         ...pedido.postres.map((p: any) => `${p.cantidad}x ${p.nombre}`)
       ];
 
-      // Obtener todos los mozos
-      const { data: mozos } = await this.supabase.supabase
-        .from('empleados')
-        .select('correo, nombre, apellido, fcm_token')
-        .eq('perfil', 'mozo');
-
-      if (mozos && mozos.length > 0) {
-        console.log('🔔 Notificando nuevo pedido a', mozos.length, 'mozos');
-        
-        // Notificar a cada mozo
-        for (const mozo of mozos) {
-          if (mozo.fcm_token) {
-            await this.pushService.notificarMozoNuevoPedido(
-              mozo.correo,
-              pedido.mesa,
-              clienteNombre,
-              productos,
-              pedido.precio
-            );
-          }
-        }
-      }
+      console.log('🔔 Notificando nuevo pedido a todos los mozos');
+      
+      // Llamar UNA SOLA VEZ - el backend ya notifica a todos los mozos con sendEachForMulticast
+      await this.pushService.notificarMozoNuevoPedido(
+        '', // No necesitamos email individual, el backend notifica a todos
+        pedido.mesa,
+        clienteNombre,
+        productos,
+        pedido.precio
+      );
+      
+      console.log('✅ Notificación de nuevo pedido enviada');
     } catch (error) {
       console.error('Error al notificar mozos sobre nuevo pedido:', error);
       throw error;

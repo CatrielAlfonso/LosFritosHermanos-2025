@@ -215,18 +215,23 @@ async function sendNotificationToRole(role, title, body) {
       return { success: true, message: `No ${role} to notify.` };
     }
 
-    const tokens = users.map(u => u.fcm_token).filter(t => t);
+    // Eliminar tokens duplicados usando Set
+    const tokensUnicos = [...new Set(users.map(u => u.fcm_token).filter(t => t))];
 
-    if (tokens.length === 0) {
+    if (tokensUnicos.length === 0) {
       console.log(`No valid FCM tokens found for ${role}.`);
       return { success: true, message: "No valid FCM tokens found." };
     }
 
-    console.log(`📤 Enviando notificación a ${tokens.length} ${role}(s)`);
+    if (tokensUnicos.length < users.length) {
+      console.log(`   ⚠️ Se detectaron ${users.length - tokensUnicos.length} tokens duplicados`);
+    }
+
+    console.log(`📤 Enviando notificación a ${tokensUnicos.length} ${role}(s)`);
 
     const message = {
       notification: { title, body },
-      tokens: tokens,
+      tokens: tokensUnicos,
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
@@ -243,11 +248,36 @@ app.post("/notify-maitre-new-client", async (req, res) => {
   const { clienteNombre, clienteApellido } = req.body;
   
   try {
-    const title = "Nuevo cliente registrado";
+    const title = "👤 Nuevo cliente registrado";
     const body = `${clienteNombre} ${clienteApellido || ''} se ha registrado y espera aprobación`;
     
-    const result = await sendNotificationToRole('empleados', title, body);
-    res.status(200).send(result);
+    // Obtener solo los tokens de empleados con perfil "maitre"
+    const { data: maitres, error } = await supabase
+      .from("empleados")
+      .select("fcm_token")
+      .eq("perfil", "maitre")
+      .not("fcm_token", "is", null);
+
+    if (error || !maitres?.length) {
+      console.log("No se encontraron maîtres con token FCM");
+      return res.status(200).send({ success: true, message: "No hay maîtres para notificar" });
+    }
+
+    const tokens = maitres.map(m => m.fcm_token).filter(t => t);
+    
+    if (tokens.length === 0) {
+      return res.status(200).send({ success: true, message: "No hay tokens FCM válidos" });
+    }
+
+    console.log(`📤 Notificando a ${tokens.length} maître(s) sobre nuevo cliente`);
+
+    const message = {
+      notification: { title, body },
+      tokens: tokens,
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
@@ -406,34 +436,47 @@ app.post("/notify-mozos-client-query", async (req, res) => {
   const { clienteNombre, clienteApellido, mesaNumero, consulta } = req.body;
   
   try {
-    const title = "Consulta de cliente";
-    const body = `${clienteNombre} ${clienteApellido} (Mesa ${mesaNumero}): ${consulta}`;
+    const title = "💬 Consulta de cliente";
+    const body = `${clienteNombre} ${clienteApellido || ''} (Mesa ${mesaNumero}): ${consulta}`;
     
-    // Obtener solo los mozos, no todos los empleados
+    // Obtener solo los mozos (case-insensitive)
     const { data: mozos, error } = await supabase
       .from("empleados")
-      .select("fcm_token")
-      .eq("perfil", "mozo")
+      .select("fcm_token, nombre")
+      .ilike("perfil", "mozo")
       .not("fcm_token", "is", null);
 
+    console.log(`💬 [notify-mozos-client-query] Mesa ${mesaNumero} - Consulta`);
+    console.log(`   - Mozos encontrados: ${mozos?.length || 0}`);
+
     if (error || !mozos?.length) {
+      console.log(`   ⚠️ No se encontraron mozos`);
       return res.status(200).send({ message: "No mozos found" });
     }
 
-    const tokens = mozos.map(m => m.fcm_token).filter(t => t);
+    // Eliminar tokens duplicados usando Set
+    const tokensUnicos = [...new Set(mozos.map(m => m.fcm_token).filter(t => t))];
     
-    if (tokens.length === 0) {
+    if (tokensUnicos.length < mozos.length) {
+      console.log(`   ⚠️ Se detectaron ${mozos.length - tokensUnicos.length} tokens duplicados`);
+    }
+    
+    if (tokensUnicos.length === 0) {
       return res.status(200).send({ message: "No valid FCM tokens found." });
     }
 
+    console.log(`   📤 Enviando a ${tokensUnicos.length} mozo(s)`);
+
     const message = {
       notification: { title, body },
-      tokens: tokens,
+      tokens: tokensUnicos,
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
+    console.log(`   ✅ Enviado: ${response.successCount} éxitos, ${response.failureCount} fallos`);
     res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
+    console.error(`   ❌ Error:`, error.message);
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
 });
@@ -511,33 +554,50 @@ app.post("/notify-bartender-new-order", async (req, res) => {
   const { mesaNumero, bebidas } = req.body;
   
   try {
-    const title = "Nuevo pedido de bebidas";
+    const title = "🍺 Nuevo pedido de bebidas";
     const body = `Mesa ${mesaNumero}: ${bebidas.join(', ')}`;
     
+    // Buscar bartenders (case-insensitive usando ilike)
     const { data: bartenders, error } = await supabase
       .from("empleados")
-      .select("fcm_token")
-      .eq("perfil", "bartender")
+      .select("fcm_token, perfil, nombre")
+      .ilike("perfil", "bartender")
       .not("fcm_token", "is", null);
 
+    console.log(`🍺 [notify-bartender] Buscando bartenders...`);
+    console.log(`   - Encontrados: ${bartenders?.length || 0}`);
+    if (bartenders?.length > 0) {
+      console.log(`   - Perfiles: ${bartenders.map(b => b.perfil).join(', ')}`);
+    }
+
     if (error || !bartenders?.length) {
+      console.log(`   ⚠️ No se encontraron bartenders`);
       return res.status(200).send({ message: "No bartenders found" });
     }
 
-    const tokens = bartenders.map(b => b.fcm_token).filter(t => t);
+    // Eliminar tokens duplicados usando Set
+    const tokensUnicos = [...new Set(bartenders.map(b => b.fcm_token).filter(t => t))];
     
-    if (tokens.length === 0) {
+    if (tokensUnicos.length === 0) {
       return res.status(200).send({ message: "No valid FCM tokens found." });
     }
 
+    if (tokensUnicos.length < bartenders.length) {
+      console.log(`   ⚠️ Se detectaron ${bartenders.length - tokensUnicos.length} tokens duplicados`);
+    }
+
+    console.log(`   📤 Enviando a ${tokensUnicos.length} bartender(s)`);
+
     const message = {
       notification: { title, body },
-      tokens: tokens,
+      tokens: tokensUnicos,
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
+    console.log(`   ✅ Enviado: ${response.successCount} éxitos, ${response.failureCount} fallos`);
     res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
+    console.error(`   ❌ Error:`, error.message);
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
 });
@@ -547,33 +607,50 @@ app.post("/notify-cocinero-new-order", async (req, res) => {
   
   try {
     const items = [...(comidas || []), ...(postres || [])];
-    const title = "Nuevo pedido de cocina";
+    const title = "🍳 Nuevo pedido de cocina";
     const body = `Mesa ${mesaNumero}: ${items.join(', ')}`;
     
+    // Buscar cocineros (case-insensitive usando ilike)
     const { data: cocineros, error } = await supabase
       .from("empleados")
-      .select("fcm_token")
-      .eq("perfil", "cocinero")
+      .select("fcm_token, perfil, nombre")
+      .ilike("perfil", "cocinero")
       .not("fcm_token", "is", null);
 
+    console.log(`🍳 [notify-cocinero] Buscando cocineros...`);
+    console.log(`   - Encontrados: ${cocineros?.length || 0}`);
+    if (cocineros?.length > 0) {
+      console.log(`   - Perfiles: ${cocineros.map(c => c.perfil).join(', ')}`);
+    }
+
     if (error || !cocineros?.length) {
+      console.log(`   ⚠️ No se encontraron cocineros`);
       return res.status(200).send({ message: "No cocineros found" });
     }
 
-    const tokens = cocineros.map(c => c.fcm_token).filter(t => t);
+    // Eliminar tokens duplicados usando Set
+    const tokensUnicos = [...new Set(cocineros.map(c => c.fcm_token).filter(t => t))];
     
-    if (tokens.length === 0) {
+    if (tokensUnicos.length === 0) {
       return res.status(200).send({ message: "No valid FCM tokens found." });
     }
 
+    if (tokensUnicos.length < cocineros.length) {
+      console.log(`   ⚠️ Se detectaron ${cocineros.length - tokensUnicos.length} tokens duplicados`);
+    }
+
+    console.log(`   📤 Enviando a ${tokensUnicos.length} cocinero(s)`);
+
     const message = {
       notification: { title, body },
-      tokens: tokens,
+      tokens: tokensUnicos,
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
+    console.log(`   ✅ Enviado: ${response.successCount} éxitos, ${response.failureCount} fallos`);
     res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
+    console.error(`   ❌ Error:`, error.message);
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
 });
@@ -582,33 +659,46 @@ app.post("/notify-mozo-order-ready", async (req, res) => {
   const { mesaNumero, tipoProducto, productos, pedidoId } = req.body;
   
   try {
-    const title = "Pedido listo para servir";
+    const title = "✅ Pedido listo para servir";
     const body = `Mesa ${mesaNumero}: ${tipoProducto} - ${productos.join(', ')}`;
     
     const { data: mozos, error } = await supabase
       .from("empleados")
-      .select("fcm_token")
-      .eq("perfil", "mozo")
+      .select("fcm_token, nombre")
+      .ilike("perfil", "mozo")
       .not("fcm_token", "is", null);
 
+    console.log(`✅ [notify-mozo-order-ready] Mesa ${mesaNumero} - Pedido listo`);
+    console.log(`   - Mozos encontrados: ${mozos?.length || 0}`);
+
     if (error || !mozos?.length) {
+      console.log(`   ⚠️ No se encontraron mozos`);
       return res.status(200).send({ message: "No mozos found" });
     }
 
-    const tokens = mozos.map(m => m.fcm_token).filter(t => t);
+    // Eliminar tokens duplicados usando Set
+    const tokensUnicos = [...new Set(mozos.map(m => m.fcm_token).filter(t => t))];
     
-    if (tokens.length === 0) {
+    if (tokensUnicos.length < mozos.length) {
+      console.log(`   ⚠️ Se detectaron ${mozos.length - tokensUnicos.length} tokens duplicados`);
+    }
+    
+    if (tokensUnicos.length === 0) {
       return res.status(200).send({ message: "No valid FCM tokens found." });
     }
 
+    console.log(`   📤 Enviando a ${tokensUnicos.length} mozo(s)`);
+
     const message = {
       notification: { title, body },
-      tokens: tokens,
+      tokens: tokensUnicos,
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
+    console.log(`   ✅ Enviado: ${response.successCount} éxitos, ${response.failureCount} fallos`);
     res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
+    console.error(`   ❌ Error:`, error.message);
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
 });
@@ -617,36 +707,50 @@ app.post("/notify-mozo-request-bill", async (req, res) => {
   const { mesaNumero, clienteNombre, clienteApellido } = req.body;
   
   try {
-    const title = "Solicitud de cuenta";
-    const body = `${clienteNombre} ${clienteApellido} (Mesa ${mesaNumero}) solicita la cuenta`;
+    const title = "📋 Solicitud de cuenta";
+    const body = `${clienteNombre} ${clienteApellido || ''} (Mesa ${mesaNumero}) solicita la cuenta`;
     
     const { data: mozos, error } = await supabase
       .from("empleados")
-      .select("fcm_token")
-      .eq("perfil", "mozo")
+      .select("fcm_token, nombre, correo")
+      .ilike("perfil", "mozo")
       .not("fcm_token", "is", null);
 
+    console.log(`📋 [notify-mozo-request-bill] Mesa ${mesaNumero} solicita cuenta`);
+    console.log(`   - Mozos encontrados: ${mozos?.length || 0}`);
+
     if (error || !mozos?.length) {
+      console.log(`   ⚠️ No se encontraron mozos`);
       return res.status(200).send({ message: "No mozos found" });
     }
 
-    const tokens = mozos.map(m => m.fcm_token).filter(t => t);
+    // Eliminar tokens duplicados usando Set
+    const tokensUnicos = [...new Set(mozos.map(m => m.fcm_token).filter(t => t))];
     
-    if (tokens.length === 0) {
+    console.log(`   - Tokens totales: ${mozos.length}, Tokens únicos: ${tokensUnicos.length}`);
+    if (tokensUnicos.length < mozos.length) {
+      console.log(`   ⚠️ Se detectaron ${mozos.length - tokensUnicos.length} tokens duplicados`);
+    }
+    
+    if (tokensUnicos.length === 0) {
       return res.status(200).send({ message: "No valid FCM tokens found." });
     }
 
+    console.log(`   📤 Enviando a ${tokensUnicos.length} mozo(s)`);
+
     const message = {
       notification: { title, body },
-      tokens: tokens,
+      tokens: tokensUnicos,
       data : {
         link : `/pedidos-mozo`
       }
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
+    console.log(`   ✅ Enviado: ${response.successCount} éxitos, ${response.failureCount} fallos`);
     res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
+    console.error(`   ❌ Error:`, error.message);
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
 });
@@ -672,8 +776,8 @@ app.post("/clear-fcm-token", async (req, res) => {
   const { email } = req.body;
   
   try {
-    // Intentar borrar el token de las tablas de usuarios
-    const tables = ['clientes', 'empleados'];
+    // Intentar borrar el token de TODAS las tablas de usuarios
+    const tables = ['clientes', 'empleados', 'repartidores'];
     
     for (const table of tables) {
       await supabase
@@ -687,6 +791,49 @@ app.post("/clear-fcm-token", async (req, res) => {
     res.status(200).send({ message: "FCM token cleared successfully" });
   } catch (error) {
     res.status(500).send({ error: `Failed to clear FCM token: ${error.message}` });
+  }
+});
+
+/**
+ * Endpoint para limpiar tokens FCM duplicados en todas las tablas
+ * Esto asegura que un token solo esté asociado a un usuario
+ * POST /clear-duplicate-fcm-tokens
+ */
+app.post("/clear-duplicate-fcm-tokens", async (req, res) => {
+  const { token, keepEmail } = req.body;
+  
+  if (!token || !keepEmail) {
+    return res.status(400).send({ error: "token y keepEmail son requeridos" });
+  }
+  
+  try {
+    console.log(`🧹 Limpiando tokens duplicados. Manteniendo solo para: ${keepEmail}`);
+    
+    const tables = ['clientes', 'empleados', 'repartidores'];
+    let cleaned = 0;
+    
+    for (const table of tables) {
+      // Borrar el token de todos los usuarios EXCEPTO el que debe mantenerlo
+      const { data, error } = await supabase
+        .from(table)
+        .update({ fcm_token: null })
+        .eq('fcm_token', token)
+        .neq('correo', keepEmail);
+      
+      if (!error) {
+        cleaned++;
+      }
+    }
+    
+    console.log(`✅ Tokens duplicados limpiados de ${cleaned} tablas`);
+    
+    res.status(200).send({ 
+      message: "Duplicate FCM tokens cleared successfully",
+      tablesProcessed: cleaned 
+    });
+  } catch (error) {
+    console.error('Error al limpiar tokens duplicados:', error);
+    res.status(500).send({ error: `Failed to clear duplicate tokens: ${error.message}` });
   }
 });
 
@@ -2344,35 +2491,49 @@ app.post("/notify-mozo-new-order", async (req, res) => {
   const { mozoEmail, mesa, clienteNombre, productos, total } = req.body;
   
   try {
-    const title = "Nuevo pedido";
+    const title = "🍽️ Nuevo pedido";
     const productosTexto = productos.slice(0, 2).join(', ');
     const masProductos = productos.length > 2 ? `... +${productos.length - 2}` : '';
     const body = `Mesa ${mesa}: ${clienteNombre} - ${productosTexto}${masProductos} ($${total})`;
     
     const { data: mozos, error } = await supabase
       .from("empleados")
-      .select("fcm_token")
-      .eq("perfil", "mozo")
+      .select("fcm_token, nombre")
+      .ilike("perfil", "mozo")
       .not("fcm_token", "is", null);
 
+    console.log(`🍽️ [notify-mozo-new-order] Mesa ${mesa} - Nuevo pedido`);
+    console.log(`   - Mozos encontrados: ${mozos?.length || 0}`);
+
     if (error || !mozos?.length) {
+      console.log(`   ⚠️ No se encontraron mozos`);
       return res.status(200).send({ message: "No mozos found" });
     }
 
-    const tokens = mozos.map(m => m.fcm_token).filter(t => t);
+    // Eliminar tokens duplicados usando Set
+    const tokensUnicos = [...new Set(mozos.map(m => m.fcm_token).filter(t => t))];
     
-    if (tokens.length === 0) {
+    console.log(`   - Tokens totales: ${mozos.length}, Tokens únicos: ${tokensUnicos.length}`);
+    if (tokensUnicos.length < mozos.length) {
+      console.log(`   ⚠️ Se detectaron ${mozos.length - tokensUnicos.length} tokens duplicados`);
+    }
+    
+    if (tokensUnicos.length === 0) {
       return res.status(200).send({ message: "No valid FCM tokens found." });
     }
 
+    console.log(`   📤 Enviando a ${tokensUnicos.length} mozo(s)`);
+
     const message = {
       notification: { title, body },
-      tokens: tokens,
+      tokens: tokensUnicos,
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
+    console.log(`   ✅ Enviado: ${response.successCount} éxitos, ${response.failureCount} fallos`);
     res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
+    console.error(`   ❌ Error:`, error.message);
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
 });
@@ -2712,120 +2873,5 @@ app.post("/notify-order-ready", async (req, res) => {
 // curl -X POST http://localhost:3000/notify-maitre-lista-espera \
 //   -H "Content-Type: application/json" \
 //   -d '{
-//     "clienteNombre": "Juan",
-//     "clienteApellido": "Pérez",
-//     "clienteCorreo": "juan@test.com",
-//     "tipoCliente": "anonimo"
-//   }'
-/**
- * Notifica SOLO al Maître cuando un cliente ingresa a lista de espera
- * POST /notify-maitre-lista-espera
- */
-app.post("/notify-maitre-lista-espera", async (req, res) => {
-  const { clienteNombre, clienteApellido, clienteCorreo, tipoCliente } = req.body;
-  
-  try {
-    // Validar datos requeridos
-    if (!clienteNombre) {
-      return res.status(400).send({ 
-        error: "clienteNombre es requerido" 
-      });
-    }
-
-    const nombreCompleto = `${clienteNombre}${clienteApellido ? ' ' + clienteApellido : ''}`;
-    const esAnonimo = tipoCliente === 'anonimo';
-    
-    // Construir mensaje personalizado
-    const title = esAnonimo 
-      ? "🔔 Cliente Anónimo en Lista de Espera"
-      : "🔔 Nuevo Cliente en Lista de Espera";
-    
-    const body = esAnonimo
-      ? `${nombreCompleto} está esperando asignación de mesa`
-      : `${nombreCompleto} se unió a la lista de espera`;
-
-    console.log(`📨 Enviando notificación al maître para: ${nombreCompleto}`);
-
-    // 1️⃣ Obtener SOLO tokens de empleados con perfil "maitre"
-    const { data: maitres, error } = await supabase
-      .from("empleados")
-      .select("fcm_token, nombre, apellido")
-      .eq("perfil", "maitre")
-      .not("fcm_token", "is", null);
-
-    if (error) {
-      console.error("❌ Error al buscar maîtres:", error);
-      return res.status(500).send({ 
-        error: `Error en base de datos: ${error.message}` 
-      });
-    }
-
-    // 2️⃣ Validar que haya maîtres disponibles
-    if (!maitres || maitres.length === 0) {
-      console.log("⚠️ No se encontraron maîtres con token FCM");
-      return res.status(200).send({ 
-        success: true, 
-        message: "No hay maîtres disponibles para notificar",
-        warning: true
-      });
-    }
-
-    // 3️⃣ Filtrar tokens válidos
-    const tokens = maitres.map(m => m.fcm_token).filter(t => t);
-    
-    if (tokens.length === 0) {
-      console.log("⚠️ Maîtres encontrados pero sin tokens FCM válidos");
-      return res.status(200).send({ 
-        success: true, 
-        message: "Maîtres sin tokens FCM válidos",
-        warning: true
-      });
-    }
-
-    // 4️⃣ Preparar notificación con data extra
-    const message = {
-      notification: { 
-        title, 
-        body 
-      },
-      tokens: tokens,
-      data: {
-        link: '/maitre-mesas',           // Ruta para navegar en la app
-        tipo: 'lista_espera',             // Tipo de notificación
-        clienteNombre: nombreCompleto,
-        clienteCorreo: clienteCorreo || '',
-        esAnonimo: esAnonimo.toString(),
-        timestamp: new Date().toISOString()
-      }
-    };
-
-    // 5️⃣ Enviar notificación push
-    const response = await admin.messaging().sendEachForMulticast(message);
-    
-    // 6️⃣ Log de éxito
-    console.log(`✅ Notificación enviada a ${maitres.length} maître(s):`);
-    maitres.forEach(m => {
-      console.log(`   - ${m.nombre} ${m.apellido}`);
-    });
-    console.log(`📊 Resultados: ${response.successCount} éxitos, ${response.failureCount} fallos`);
-
-    res.status(200).send({ 
-      success: true, 
-      message: `Notificación enviada a ${maitres.length} maître(s)`,
-      details: {
-        maitresNotificados: maitres.length,
-        successCount: response.successCount,
-        failureCount: response.failureCount,
-        clienteNombre: nombreCompleto,
-        esAnonimo: esAnonimo
-      },
-      response 
-    });
-
-  } catch (error) {
-    console.error("💥 Error al notificar al maître:", error);
-    res.status(500).send({ 
-      error: `Failed to send notification: ${error.message}` 
-    });
-  }
-});
+// NOTA: El endpoint /notify-maitre-lista-espera ya está definido arriba (línea ~257)
+// Se eliminó el duplicado para evitar notificaciones dobles

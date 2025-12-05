@@ -28,6 +28,7 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
   usuarioNombre: string = '';
   esCliente: boolean = false;
   esMozo: boolean = false;
+  consultaRecienCreada: boolean = false; // Para evitar notificación doble al crear consulta
   
   private mensajesSubscription?: Subscription;
   private consultaSubscription?: Subscription;
@@ -119,6 +120,7 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
       
       if (nuevaConsulta) {
         this.consulta = nuevaConsulta;
+        this.consultaRecienCreada = true; // Marcar que acabamos de crear la consulta
         
         // Enviar push notification a todos los mozos
         await this.notificarMozosNuevaConsulta();
@@ -192,7 +194,8 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
       }
       
       // Si es un cliente enviando mensaje, notificar a los mozos
-      if (this.esCliente) {
+      // PERO solo si no acabamos de crear la consulta (para evitar doble notificación)
+      if (this.esCliente && !this.consultaRecienCreada) {
         console.log('📤 Cliente envió mensaje, notificando a mozos...');
         await this.pushService.notificarMozosConsultaCliente(
           this.usuarioNombre,
@@ -200,6 +203,11 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
           this.mesa!.toString(),
           contenidoMensaje
         );
+      }
+      
+      // Resetear la bandera después del primer mensaje
+      if (this.consultaRecienCreada) {
+        this.consultaRecienCreada = false;
       }
       
       // Recargar mensajes para obtener el ID real del servidor
@@ -213,25 +221,15 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
 
   async notificarMozosNuevaConsulta() {
     try {
-      // Obtener todos los mozos
-      const { data: mozos } = await this.supabaseService.supabase
-        .from('empleados')
-        .select('correo, nombre, apellido, fcm_token')
-        .eq('perfil', 'mozo');
-
-      if (mozos && mozos.length > 0) {
-        console.log('🔔 Notificando a', mozos.length, 'mozos');
-        
-        for (const mozo of mozos) {
-          if (mozo.fcm_token) {
-            await this.pushService.notificarMozoNuevaConsulta(
-              mozo.correo,
-              this.usuarioNombre,
-              this.mesa!
-            );
-          }
-        }
-      }
+      // Usar el endpoint que notifica a todos los mozos de una sola vez
+      // Esto evita duplicados y es más eficiente
+      console.log('🔔 Notificando a mozos sobre nueva consulta');
+      await this.pushService.notificarMozosConsultaCliente(
+        this.usuarioNombre,
+        '',
+        this.mesa!.toString(),
+        '📋 Nueva consulta abierta'
+      );
     } catch (error) {
       console.error('Error al notificar mozos:', error);
     }

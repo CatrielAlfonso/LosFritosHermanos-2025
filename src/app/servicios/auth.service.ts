@@ -581,6 +581,19 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
 
       const email = user.user.email;
 
+      // PRIMERO: Limpiar este token de TODOS los usuarios que lo tengan
+      // Esto evita que un mismo dispositivo tenga el token en múltiples usuarios
+      console.log('🧹 Limpiando tokens duplicados antes de guardar...');
+      try {
+        await fetch('https://los-fritos-hermanos-2025.onrender.com/clear-duplicate-fcm-tokens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, keepEmail: email })
+        });
+      } catch (cleanError) {
+        console.warn('No se pudieron limpiar tokens duplicados:', cleanError);
+      }
+
       const { data: supervisor } = await this.sb.supabase
         .from('supervisores')
         .select('id')
@@ -629,7 +642,7 @@ perfilUsuario$ = this.perfilUsuarioSubject.asObservable();
       if (error) {
         console.error('Error al guardar FCM token:', error);
       } else {
-        console.log('FCM token guardado exitosamente en', tableName);
+        console.log('✅ FCM token guardado exitosamente en', tableName, 'para', email);
       }
 
     } catch (error) {
