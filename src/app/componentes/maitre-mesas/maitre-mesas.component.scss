@@ -45,7 +45,7 @@
   border-bottom: 2px solid var(--fritos-blue); /* Separador azul */
   margin: 0;
   padding: 15px;
-  background: white;
+  background: #f39c12;
 }
 
 /* Panel Izquierdo */
@@ -55,6 +55,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  color:#f39c12;
 }
 
 /* Área scrolleable de clientes en espera */
@@ -71,6 +72,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  color:#f39c12
 }
 
 .mesas-scroll-area {
@@ -78,13 +80,14 @@
   overflow-y: auto;
   padding: 10px;
   min-height: 0;
+  color:#f39c12
 }
 
 /* ----------------------------------- */
 /* LISTA DE ESPERA (Clientes)          */
 /* ----------------------------------- */
 .cliente-item {
-  --background: white;
+  --background: #f39c12;
   border-bottom: 1px solid var(--fritos-blue); /* Líneas separadoras azules */
   margin: 0;
   
@@ -119,22 +122,22 @@
 /* ----------------------------------- */
 ion-card {
   /* Caja Blanca */
-  background: white;
+  background: #28a745;
   border: 2px solid var(--fritos-blue); /* Borde Azul */
   border-radius: 10px;
   margin: 5px;
-  color: var(--fritos-blue); /* Texto Azul */
+  color: white; /* Texto Azul */
   box-shadow: none; /* Quitamos sombras raras */
   cursor: pointer;
 
   ion-card-title {
-    color: var(--fritos-blue);
+    color: white;
     font-weight: 800;
     font-size: 1rem;
   }
   
   ion-card-subtitle {
-    color: var(--fritos-blue);
+    color: white;
     font-weight: 600;
     margin-top: 5px;
     opacity: 0.8;
@@ -144,10 +147,10 @@ ion-card {
 /* Mesa Ocupada: Cambiamos el borde a Rojo para distinguir */
 .mesa-ocupada {
   border-color: var(--fritos-red);
-  background: #fff5f5; /* Un blanco apenas rojizo muy sutil */
+  background: #dc2234; /* Un blanco apenas rojizo muy sutil */
   
-  ion-card-title { color: var(--fritos-red); }
-  ion-card-subtitle { color: var(--fritos-red); }
+  ion-card-title { color: white }
+  ion-card-subtitle { color: white }
 }
 
 /* Mesa Seleccionada: Fondo Azul solido */
@@ -163,7 +166,7 @@ ion-card {
 /* PANEL DE ACCIÓN (Abajo)             */
 /* ----------------------------------- */
 .asignacion-panel {
-  background: white;
+  background: #f39c12;
   border-top: 2px solid var(--fritos-blue);
   padding: 15px;
   
@@ -177,7 +180,7 @@ ion-card {
   }
   
   ion-item {
-    --background: white; /* 2. Forzamos al item a ser blanco también */
+    --background: #f39c12; /* 2. Forzamos al item a ser blanco también */
     margin-bottom: 10px;
     
     p {
@@ -196,7 +199,7 @@ ion-card {
     --color: white;
     font-weight: bold;
     margin-top: 10px;
-    box-shadow: 0 4px 0px #b71c1c; /* Efecto 3D simple */
+    box-shadow: 0 4px 0px #110101; /* Efecto 3D simple */
   }
 }
 
