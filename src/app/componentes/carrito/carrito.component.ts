@@ -25,6 +25,8 @@ export class CarritoComponent {
   observaciones : string = '' 
   user : any = null
   mesa = '3'
+  esClienteAnonimo: boolean = false;
+  clienteAnonimo: any = null;
 
   constructor(
     private carritoService: CarritoService,
@@ -45,10 +47,27 @@ export class CarritoComponent {
     
     console.log('🛒 [Carrito] Inicializando...');
     console.log('🛒 [Carrito] Mesa desde parámetro de ruta:', this.mesa);
+    console.log('🛒 [Carrito] User autenticado:', this.user);
     
-    // Si no hay mesa en la ruta, intentar obtenerla de lista_espera
-    if (!this.mesa && this.user) {
-      await this.obtenerMesaDelUsuario();
+    // Verificar si es cliente anónimo
+    const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
+    if (clienteAnonimoStr) {
+      try {
+        this.clienteAnonimo = JSON.parse(clienteAnonimoStr);
+        this.esClienteAnonimo = true;
+        console.log('🛒 [Carrito] Cliente anónimo detectado:', this.clienteAnonimo);
+      } catch (e) {
+        console.error('🛒 [Carrito] Error parseando cliente anónimo:', e);
+      }
+    }
+    
+    // Si no hay mesa en la ruta, intentar obtenerla
+    if (!this.mesa) {
+      if (this.esClienteAnonimo && this.clienteAnonimo) {
+        await this.obtenerMesaClienteAnonimo();
+      } else if (this.user) {
+        await this.obtenerMesaDelUsuario();
+      }
     }
     
     console.log('🛒 [Carrito] Mesa final:', this.mesa);
@@ -80,6 +99,33 @@ export class CarritoComponent {
       }
     } catch (error) {
       console.error('🛒 [Carrito] Error al obtener mesa:', error);
+    }
+  }
+
+  async obtenerMesaClienteAnonimo() {
+    try {
+      if (!this.clienteAnonimo?.correo) {
+        console.log('🛒 [Carrito] Cliente anónimo sin correo');
+        return;
+      }
+
+      console.log('🛒 [Carrito] Buscando mesa para cliente anónimo:', this.clienteAnonimo.correo);
+
+      const { data: clienteEnLista, error } = await this.supabase.supabase
+        .from('lista_espera')
+        .select('mesa_asignada')
+        .eq('correo', this.clienteAnonimo.correo)
+        .not('mesa_asignada', 'is', null)
+        .single();
+
+      if (!error && clienteEnLista?.mesa_asignada) {
+        this.mesa = String(clienteEnLista.mesa_asignada);
+        console.log('🛒 [Carrito] Mesa obtenida para anónimo:', this.mesa);
+      } else {
+        console.log('🛒 [Carrito] No se encontró mesa para cliente anónimo');
+      }
+    } catch (error) {
+      console.error('🛒 [Carrito] Error al obtener mesa anónimo:', error);
     }
   }
 
@@ -179,19 +225,26 @@ export class CarritoComponent {
 
   async realizarPedido() {
     try {
-      if (!this.user) {
+      // Verificar que haya usuario autenticado O cliente anónimo
+      if (!this.user && !this.esClienteAnonimo) {
         throw new Error('Usuario no autenticado');
       }
       
       console.log('🛒 [realizarPedido] Iniciando pedido...');
-      console.log('🛒 [realizarPedido] User ID:', this.user().id);
+      console.log('🛒 [realizarPedido] Es cliente anónimo:', this.esClienteAnonimo);
+      console.log('🛒 [realizarPedido] User:', this.user);
+      console.log('🛒 [realizarPedido] Cliente anónimo:', this.clienteAnonimo);
       console.log('🛒 [realizarPedido] Mesa:', this.mesa);
       this.customLoader.show()
       
       // Si la mesa está vacía, intentar obtenerla nuevamente
       if (!this.mesa) {
         console.log('🛒 [realizarPedido] Mesa vacía, intentando obtener...');
-        await this.obtenerMesaDelUsuario();
+        if (this.esClienteAnonimo) {
+          await this.obtenerMesaClienteAnonimo();
+        } else {
+          await this.obtenerMesaDelUsuario();
+        }
         console.log('🛒 [realizarPedido] Mesa después de obtener:', this.mesa);
       }
       
@@ -201,8 +254,19 @@ export class CarritoComponent {
         throw new Error('El carrito está vacío');
       }
       
+      // Determinar el ID del cliente
+      let clienteId: string;
+      if (this.esClienteAnonimo && this.clienteAnonimo) {
+        // Para cliente anónimo, usar su ID o correo como identificador
+        clienteId = this.clienteAnonimo.id?.toString() || this.clienteAnonimo.correo || `anonimo-${Date.now()}`;
+        console.log('🛒 [realizarPedido] Usando ID de cliente anónimo:', clienteId);
+      } else {
+        clienteId = this.user().id;
+        console.log('🛒 [realizarPedido] Usando ID de usuario autenticado:', clienteId);
+      }
+      
       const pedido = this.carritoService.generarPedidoParaConfirmacion(
-        this.user().id,
+        clienteId,
         this.mesa,
         this.observaciones,
       );
@@ -255,14 +319,21 @@ export class CarritoComponent {
    */
   private async notificarMozosNuevoPedido(pedido: any) {
     try {
-      // Obtener información del cliente
-      const { data: cliente } = await this.supabase.supabase
-        .from('clientes')
-        .select('nombre, apellido')
-        .eq('uid', pedido.cliente_id)
-        .single();
+      let clienteNombre = 'Cliente';
+      
+      // Si es cliente anónimo, usar su nombre directamente
+      if (this.esClienteAnonimo && this.clienteAnonimo) {
+        clienteNombre = this.clienteAnonimo.nombre || 'Cliente Anónimo';
+      } else {
+        // Obtener información del cliente autenticado
+        const { data: cliente } = await this.supabase.supabase
+          .from('clientes')
+          .select('nombre, apellido')
+          .eq('uid', pedido.cliente_id)
+          .single();
 
-      const clienteNombre = cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Cliente';
+        clienteNombre = cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Cliente';
+      }
       
       // Preparar lista de productos
       const productos = [
