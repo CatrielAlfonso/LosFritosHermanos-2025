@@ -4,7 +4,7 @@
   flex-direction: column;
   justify-content: space-between;
   text-align: center;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 // ion-content {
@@ -16,7 +16,7 @@
 
 
 .logo-container {
-  margin-top: 4rem;
+  margin-top: 3rem;
   animation: fadeIn 1s ease-in-out;
 }
 
@@ -47,7 +47,7 @@
   flex-direction: column; /* botones uno debajo del otro */
   justify-content: center;/* centrados verticalmente */
   padding: 1rem;
-  gap: 0.5rem;            /* espacio entre botones */
+  gap: 0.4rem;            /* espacio entre botones */
 }
 
 .fritos-btn {

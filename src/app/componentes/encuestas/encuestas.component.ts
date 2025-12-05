@@ -404,9 +404,11 @@ export class EncuestasComponent  implements OnInit {
               console.log('✅ Encuesta marcada localmente para cliente anónimo');
             }
             
-            await this.cargarEncuestas();
-            this.mostrarGraficos = true;
-            this.crearGraficos();
+            // await this.cargarEncuestas();  ACA COMENTO ESTO PARA QUE NO SE MUESTREN LOS RESULTADOS AL ENVIAR LA ENCUESTA Y PASO A REDIRIGIR AL HOME
+            // this.mostrarGraficos = true;   
+            // this.crearGraficos();
+
+            this.router.navigateByUrl('/home')
             
             setTimeout(() => {
               this.mostrarMensajeExito = false;
