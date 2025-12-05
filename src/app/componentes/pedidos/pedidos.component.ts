@@ -19,18 +19,22 @@ export class PedidosComponent  implements OnInit {
 
   pedidos : any = null
   user = this.authService.userActual
-
-// En pedidos.component.ts
-
-// En pedidos.component.ts
+  esClienteAnonimo: boolean = false;
+  clienteAnonimo: any = null;
 
 misPedidos = computed(() => {
   const user = this.user();
   const todosPedidos = this.supabase.todosLosPedidos();
   
-  // Obtenemos el rol del usuario (Asegúrate de tener acceso a esto)
-  // Puede venir de una signal en authService o de una variable local
+  // Obtenemos el rol del usuario
   const perfil = this.authService.getPerfilUsuario(); // 'cliente', 'cocinero', 'dueño', etc.
+
+  // Si es cliente anónimo, filtrar por su ID o correo
+  if (this.esClienteAnonimo && this.clienteAnonimo) {
+    const clienteId = this.clienteAnonimo.id?.toString() || this.clienteAnonimo.correo;
+    console.log(`👤 Cliente anónimo: ${this.clienteAnonimo.nombre} | ID: ${clienteId}`);
+    return todosPedidos?.filter(p => p.cliente_id === clienteId) || [];
+  }
 
   if (!user || !todosPedidos) return [];
 
@@ -46,7 +50,6 @@ misPedidos = computed(() => {
 
   // CASO 2: ES STAFF (Cocinero, Dueño, Mozo)
   // Necesita ver TODOS los pedidos para trabajar.
-  // Opcional: Puedes filtrar solo los "activos" si no quieres ver los viejos.
   else {
     // Retornamos todos (o filtra solo los pendientes/en proceso si prefieres)
     return todosPedidos.filter(p => 
@@ -70,6 +73,18 @@ misPedidos = computed(() => {
 
   ngOnInit() {
     this.supabase.cargarPedidos();
+    
+    // Verificar si es cliente anónimo
+    const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
+    if (clienteAnonimoStr) {
+      try {
+        this.clienteAnonimo = JSON.parse(clienteAnonimoStr);
+        this.esClienteAnonimo = true;
+        console.log('📋 [Pedidos] Cliente anónimo detectado:', this.clienteAnonimo);
+      } catch (e) {
+        console.error('📋 [Pedidos] Error parseando cliente anónimo:', e);
+      }
+    }
   }
 
   getEstadoTexto(estado: string): string {
