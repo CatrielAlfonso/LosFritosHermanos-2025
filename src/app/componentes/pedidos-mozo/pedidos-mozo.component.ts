@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { Haptics } from '@capacitor/haptics';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 
 @Component({
   selector: 'app-pedidos-mozo',
@@ -57,7 +58,8 @@ segmentoActivo = 'activos';
     private alertController: AlertController,
     private http: HttpClient,
     private pushNotificationService: PushNotificationService,
-    private toastService : FeedbackService
+    private toastService : FeedbackService,
+    private customLoader : CustomLoader
   ) { 
     
   }
@@ -227,7 +229,7 @@ segmentoActivo = 'activos';
       }
     ]
   });
-
+  
   await alert.present();
 }
 
@@ -259,7 +261,7 @@ segmentoActivo = 'activos';
       }
 
       // No necesitas recargar manualmente, realtime lo hará automáticamente
-      
+      await this.sb.cargarPedidos();
       const toast = await this.toastController.create({
         message: `Pedido de Mesa ${pedido.mesa} rechazado`,
         duration: 3000,
@@ -340,6 +342,7 @@ segmentoActivo = 'activos';
         color: 'danger',
         position: 'top'
       });
+      await this.sb.cargarPedidos();
       await toast.present();
     }
   }
@@ -360,6 +363,7 @@ segmentoActivo = 'activos';
 
   async confirmarPagoPedido(pedido : any){
     try{
+      this.customLoader.show('Confirmando el pago')
       const esClienteAnonimo = false
 
       console.log('DEBUG: El objeto PEDIDO que se envía es:', pedido);
@@ -382,6 +386,7 @@ segmentoActivo = 'activos';
         try {
           await this.notificarConfirmacionPago(pedido);
         } catch (notifError) {
+          this.customLoader.hide()
           console.error('Error al notificar confirmación de pago:', notifError);
           // No bloquear el flujo si falla la notificación
         }
@@ -390,12 +395,15 @@ segmentoActivo = 'activos';
         await this.sb.cargarPedidos();
 
         this.toastService.showToast('exito', 'Pago confirmado y mesa liberada');
+        this.customLoader.hide()
       } else {
         // El backend manejó el error
+        this.customLoader.hide()
         throw new Error(resultado.error || 'Error desconocido en el backend');
       }
 
     } catch (error) {
+      this.customLoader.hide()
       console.error('Error al confirmar el pago:', error);
       this.toastService.showToast('error', 'Error al confirmar el pago')
     }

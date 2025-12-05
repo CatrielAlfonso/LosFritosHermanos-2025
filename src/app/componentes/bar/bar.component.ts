@@ -68,7 +68,7 @@ export class BarComponent  implements OnInit {
       if (pedido.mesa === 'DELIVERY') {
         await this.sincronizarConPedidoDelivery(pedido, { estado_bebida: 'en preparacion' });
       }
-      
+      this.supabaseService.cargarPedidos()
       const toast = await this.toastController.create({
         message: `✅ Pedido de Mesa ${pedido.mesa} recibido - En preparación`,
         duration: 3000,
@@ -79,7 +79,6 @@ export class BarComponent  implements OnInit {
       
     } catch (error) {
       console.error('Error marcando pedido como recibido:', error);
-      
       // Vibrar en error
       try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
       
@@ -130,7 +129,7 @@ export class BarComponent  implements OnInit {
         productos,
         pedido.id
       );
-      
+      this.supabaseService.cargarPedidos()
       // 5. Mostrar confirmación
       const toast = await this.toastController.create({
         message: pedidoCompleto 
