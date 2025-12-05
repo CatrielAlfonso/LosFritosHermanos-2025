@@ -192,6 +192,12 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
     this.obstaculos.push(nuevoObstaculo);
   }
 
+  // ✅ NUEVO: Método para determinar si debe mostrar el descuento en pantalla final
+  deberMostrarDescuento(): boolean {
+    // Solo mostrar si es el primer intento Y realmente ganó descuento
+    return this.puedeJugarPorDescuento && this.resultadoFinal.porcentaje > 0;
+  }
+
   generarObstaculos() {
     // Solo generar si no hay suficientes obstáculos en pantalla
     const ultimoObstaculo = this.obstaculos[this.obstaculos.length - 1];
@@ -270,35 +276,62 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
   }
 
   async terminarJuego(gano: boolean) {
-    this.detenerJuego();
-    this.gameState = 'terminado';
+  this.detenerJuego();
+  this.gameState = 'terminado';
 
-    const descuentoObtenido = this.calcularDescuento();
+  const descuentoObtenido = this.calcularDescuento();
 
-    this.resultadoFinal = {
-      exito: gano,
-      porcentaje: descuentoObtenido,
-      distancia: this.paredesPasadas
-    };
+  this.resultadoFinal = {
+    exito: gano,
+    porcentaje: descuentoObtenido,
+    distancia: this.paredesPasadas
+  };
 
-    // Si es delivery, guardar el descuento en el pedido
-    if (this.esDelivery && this.pedidoDeliveryId) {
-      await this.guardarDescuentoDelivery(descuentoObtenido);
-    } else {
-      // Para pedidos en restaurante, usar el servicio de juegos
-      const resultado = await this.juegosService.registrarResultadoJuego(
-        'atrapa-el-pollo', 
-        descuentoObtenido > 0
-      );
-      this.mensajeResultado = resultado.mensaje;
-      
-      // Actualizar estado después de jugar
-      await this.verificarElegibilidad();
-    }
-
-    this.juegoTerminado.emit(this.resultadoFinal);
+  // Si es delivery, guardar el descuento en el pedido
+  if (this.esDelivery && this.pedidoDeliveryId) {
+    await this.guardarDescuentoDelivery(descuentoObtenido);
+  } else {
+    // Para pedidos en restaurante, usar el servicio de juegos
+    const resultado = await this.juegosService.registrarResultadoJuego(
+      'atrapa-el-pollo', 
+      descuentoObtenido > 0
+    );
+    
+    // ✅ CORRECCIÓN: Generar mensaje basado en el estado real
+    this.mensajeResultado = this.generarMensajeResultado(descuentoObtenido > 0, resultado);
+    
+    // Actualizar estado después de jugar
+    await this.verificarElegibilidad();
   }
 
+  this.juegoTerminado.emit(this.resultadoFinal);
+}
+
+// ✅ NUEVO MÉTODO: Genera el mensaje correcto según el contexto
+generarMensajeResultado(ganoEnEsteIntento: boolean, resultado: any): string {
+  // Caso 1: Es el primer intento y ganó descuento
+  if (resultado.descuentoAplicado && ganoEnEsteIntento) {
+    return `🎉 ¡Ganaste ${resultado.porcentajeDescuento}% de descuento en tu primer intento!`;
+  }
+  
+  // Caso 2: Es el primer intento pero no alcanzó el descuento
+  if (!this.yaUsoIntento && !ganoEnEsteIntento) {
+    return '😔 No alcanzaste el descuento en tu primer intento. ¡Puedes seguir jugando por diversión!';
+  }
+  
+  // Caso 3: Ya usó su intento antes (segundo juego o más)
+  if (this.yaUsoIntento) {
+    // Si ya tiene un descuento de un juego anterior
+    if (resultado.descuentoExistente > 0) {
+      return `🎮 ¡Bien jugado! Ya tienes ${resultado.descuentoExistente}% de descuento de un juego anterior.`;
+    }
+    // Si no ganó descuento en el primer intento y sigue jugando
+    return '🎮 ¡Bien jugado! Este intento es solo por diversión.';
+  }
+  
+  // Caso por defecto
+  return resultado.mensaje || '¡Gracias por jugar!';
+}
   async guardarDescuentoDelivery(porcentaje: number) {
     try {
       await this.deliveryService.actualizarDescuentoDelivery(this.pedidoDeliveryId!, porcentaje);
@@ -323,15 +356,19 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
   }
 
   getMensajeInicio(): string {
-    if (this.esAnonimo) {
-      return '🎮 ¡Jugá por diversión! Los descuentos son para clientes registrados.';
-    }
-    if (this.yaUsoIntento) {
-      return '🎮 ¡Jugá libremente! Ya usaste tu intento de descuento.';
-    }
-    return `🎯 ¡Pasá paredes y ganá descuentos! 3 paredes = 10%, 5 = 15%, 8 = 20%`;
+  if (this.esAnonimo) {
+    return '🎮 ¡Jugá por diversión! Los descuentos son para clientes registrados.';
   }
-
+  if (this.yaUsoIntento) {
+    // Verificar si tiene descuento
+    const descuentoActual = localStorage.getItem('descuentoObtenido') || '0';
+    if (parseInt(descuentoActual) > 0) {
+      return `🎉 Ya tenés ${descuentoActual}% de descuento. ¡Seguí jugando por diversión!`;
+    }
+    return '🎮 Ya usaste tu intento de descuento. ¡Seguí jugando por diversión!';
+  }
+  return `🎯 ¡Pasá paredes y ganá descuentos! 3 paredes = 10%, 5 = 15%, 8 = 20%`;
+}
   volverAlHome() {
     localStorage.removeItem('pedidoDeliveryActual');
     localStorage.removeItem('juegoSeleccionado');

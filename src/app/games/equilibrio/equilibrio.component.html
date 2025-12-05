@@ -1,78 +1,109 @@
 <ion-content fullscreen>
   <div class="game-wrapper">
-    <!-- <div class="hud">
-      <button ion-button (click)="startGame()" *ngIf="state !== 'playing'">
-        Iniciar
-      </button>
-      <span *ngIf="state === 'playing'">Lleva la bandeja a la mesa</span>
-    </div> -->
-
-    <!-- Pantalla de inicio -->
-    <!-- <div class="inicio-screen" *ngIf="state!=='playing'">
-      <h1>Juego del Mozo</h1>
-      <p>Ayuda al mozo a llevar el pedido hasta la mesa</p>
-      <p>Inclina tu dispositivo para moverlo</p>
-      <ion-button  expand="block" (click)="startGame()">
-        Iniciar Juego
-      </ion-button>
-    </div> -->
-
+    
+    <!-- ✅ PANTALLA DE INICIO MEJORADA -->
     <div class="inicio-screen" *ngIf="state === 'idle'">
-      <h1>Juego del Mozo</h1>
-      <p>Ayuda al mozo a llevar la bandeja a la mesa</p>
-      <ion-button expand="block" (click)="startGame()">Iniciar</ion-button>
+      <h1>🍽️ Juego del Mozo</h1>
+      
+      <!-- Mensaje según elegibilidad -->
+      <p class="estado-mensaje" 
+         [class.puede-ganar]="puedeJugarPorDescuento"
+         [class.sin-descuento]="!puedeJugarPorDescuento">
+        {{ getMensajeInicio() }}
+      </p>
+      
+      <p class="instrucciones">
+        Inclina tu dispositivo (o usa las flechas del teclado) para llevar la bandeja a la mesa sin chocar los obstáculos
+      </p>
+      
+      <ion-button 
+        expand="block" 
+        [color]="puedeJugarPorDescuento ? 'success' : 'primary'"
+        (click)="startGame()">
+        <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+        {{ puedeJugarPorDescuento ? 'Jugar por ' + descuentoObtenido + '%' : 'Jugar' }}
+      </ion-button>
+      
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        color="light"
+        (click)="volverAjuegos()">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Volver
+      </ion-button>
     </div>
 
-       <!-- Mensaje de resultado -->
-      <div *ngIf="state === 'lost' || state === 'won'"class="mensaje-overlay">
-        <div class="mensaje-contenido">
-          <!-- <h2 *ngIf="state === 'lost'">Perdiste</h2>
-          <h2 *ngIf="state === 'won'">Ganaste</h2> -->
-          <h2>{{ mensaje }}</h2>
-          <ion-button expand="block" (click)="startGame()">
-            Jugar de nuevo
-          </ion-button>
-          <ion-button expand="block" (click)="volverAjuegos()">
-            Volver a Juegos
-          </ion-button>
+    <!-- ✅ MENSAJE DE RESULTADO MEJORADO -->
+    <div *ngIf="state === 'lost' || state === 'won'" class="mensaje-overlay">
+      <div class="mensaje-contenido">
+        <h2 [class.ganaste]="state === 'won'" [class.perdiste]="state === 'lost'">
+          {{ mensaje }}
+        </h2>
+        
+        <!-- Mostrar descuento solo si realmente se aplicó -->
+        <div class="resultado-info" *ngIf="state === 'won'">
+          <div *ngIf="deberMostrarDescuento()" class="descuento-ganado">
+            <h3>🎉 Descuento Obtenido:</h3>
+            <p class="porcentaje">{{ descuentoObtenido }}%</p>
+          </div>
+          
+          <div *ngIf="!deberMostrarDescuento() && yaUsoIntento" class="sin-descuento">
+            <p>🎮 ¡Gran partida! Este intento fue por diversión.</p>
+          </div>
         </div>
+        
+        <div class="resultado-info" *ngIf="state === 'lost'">
+          <div *ngIf="puedeJugarPorDescuento" class="intento-perdido">
+            <p>😔 No alcanzaste el descuento en este intento</p>
+          </div>
+        </div>
+        
+        <!-- Mensaje contextual -->
+        <div class="mensaje-desc" *ngIf="mensajeResultado">
+          <p>{{ mensajeResultado }}</p>
+        </div>
+        
+        <!-- Botones de acción -->
+        <ion-button 
+          expand="block" 
+          color="secondary"
+          (click)="startGame()">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          Jugar de nuevo
+        </ion-button>
+        
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          color="medium"
+          (click)="volverAjuegos()">
+          <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+          Volver al Menú de Juegos
+        </ion-button>
       </div>
-
+    </div>
 
     <div class="game-area" #gameArea>
       <!-- Mozo -->
       <div
         class="mozo"
-        [style.transform]="'translate(' + mozo.x + 'px,' + mozo.y + 'px)'"
-      ></div>
+        [style.transform]="'translate(' + mozo.x + 'px,' + mozo.y + 'px)'">
+      </div>
 
       <!-- Mesa -->
       <div
         class="mesa"
-        [style.transform]="'translate(' + mesa.x + 'px,' + mesa.y + 'px)'"
-      ></div>
+        [style.transform]="'translate(' + mesa.x + 'px,' + mesa.y + 'px)'">
+      </div>
 
       <!-- Obstáculos -->
-      <!-- <div
-        class="obstaculo patines"
-        *ngFor="let o of obstacles"
-        [style.transform]="'translate(' + o.x + 'px,' + o.y + 'px)'"
-      ></div> -->
       <div
         class="obstaculo"
-  *ngFor="let o of obstacles"
-  [ngClass]="o.type"   [style.transform]="'translate(' + o.x + 'px,' + o.y + 'px)'"
-      ></div>
-      <!-- Overlay resultado -->
-      <!-- <div class="overlay" *ngIf="state === 'lost' || state === 'won'">
-        <div class="overlay-content">
-          <h2 *ngIf="state === 'lost'">Perdiste</h2>
-          <h2 *ngIf="state === 'won'">Ganaste</h2>
-          <button ion-button (click)="startGame()">Reintentar</button>
-        </div>
-      </div> -->
-
-   
+        *ngFor="let o of obstacles"
+        [ngClass]="o.type"
+        [style.transform]="'translate(' + o.x + 'px,' + o.y + 'px)'">
+      </div>
     </div>
   </div>
 </ion-content>

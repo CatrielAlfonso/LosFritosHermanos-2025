@@ -204,3 +204,37 @@
   z-index: 15;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
+
+// Agregar estos estilos al archivo atrapa-el-pollo.component.scss
+
+.mensaje-info {
+  font-size: 1.1em;
+  color: #2196f3; // Azul información
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.mensaje-sin-descuento {
+  font-size: 1.1em;
+  color: #ff9800;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 8px;
+}
+
+.mensaje-desc {
+  margin: 20px 0;
+  
+  p {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #fff;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+  }
+}

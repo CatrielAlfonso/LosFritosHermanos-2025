@@ -537,3 +537,22 @@ ion-popover {
     min-height: 55px;
   }
 }
+
+.cliente-scroll {
+  max-height: calc(100vh - 180px); /* Ajustá según tu header */
+  overflow-y: auto;
+  padding-bottom: 30px; /* Para que no se corte el último botón */
+
+  /* Scroll bonito */
+  scrollbar-width: thin;
+  scrollbar-color: var(--fritos-yellow) transparent;
+}
+
+.cliente-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cliente-scroll::-webkit-scrollbar-thumb {
+  background: var(--fritos-yellow);
+  border-radius: 10px;
+}

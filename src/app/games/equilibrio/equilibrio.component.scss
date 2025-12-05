@@ -1,3 +1,5 @@
+// equilibrio.component.scss - VERSIÓN COMPLETA CON NUEVOS ESTILOS
+
 .game-wrapper {
   display: flex;
   flex-direction: column;
@@ -16,7 +18,7 @@
   position: relative;
   flex: 1;
   overflow: hidden;
- background: 
+  background: 
     repeating-linear-gradient(
       0deg,
       rgba(255,255,255,0.1) 0px,
@@ -37,7 +39,7 @@
   box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* Tamaños del “mundo” */
+/* Tamaños del "mundo" */
 .mozo,
 .mesa,
 .obstaculo {
@@ -46,27 +48,23 @@
   height: 60px;
 }
 
-/* Placeholder visual */
-.mozo{
+.mozo {
   background-image: url("../../../assets/imgs/mozo.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 50%;
 }
+
 .mesa {
-  //background: #795548;
   background-image: url("../../../assets/imgs/mesa.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-
-  //background-image:  url("../../../assets/imgs/mesa.png");
   border-radius: 8px;
 }
 
 .obstaculo {
-  //background: #f44336;
   background-image: url("../../../assets/imgs/patines.png");
   background-size: cover;
   background-repeat: no-repeat;
@@ -74,47 +72,29 @@
   border-radius: 50%;
 }
 
-/* Opcional: clases específicas por tipo */
+/* Clases específicas por tipo */
 .patines {
   background-image: url("../../../assets/imgs/patines.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
 }
+
 .banana {
   background-image: url("../../../assets/imgs/banana.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  //background-image: url("../../../assets/imgs/banana.png");
 }
+
 .aceite {
   background-image: url("../../../assets/imgs/aceite.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  //background-image: url("../../../assets/imgs/aceite.png");
 }
 
-/* Overlay resultado */
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 3;
-}
-
-.overlay-content {
-  background: #222;
-  padding: 16px 24px;
-  border-radius: 8px;
-  text-align: center;
-  color: #fff;
-}
-
+/* ✅ PANTALLA DE INICIO MEJORADA */
 .inicio-screen {
   position: absolute;
   inset: 0;
@@ -122,60 +102,200 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.85);
   text-align: center;
   z-index: 5;
+  padding: 20px;
   animation: fadeIn 0.4s ease-out;
+
+  h1 {
+    font-size: 2.4rem;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  }
+
+  .estado-mensaje {
+    font-size: 1.2rem;
+    color: #f1f1f1;
+    margin-bottom: 15px;
+    padding: 15px 25px;
+    border-radius: 12px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.1);
+
+    &.puede-ganar {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+      border: 2px solid #4caf50;
+    }
+
+    &.sin-descuento {
+      background: rgba(33, 150, 243, 0.2);
+      color: #2196f3;
+      border: 2px solid #2196f3;
+    }
+  }
+
+  .instrucciones {
+    font-size: 1rem;
+    color: #ddd;
+    margin-bottom: 25px;
+    max-width: 400px;
+    line-height: 1.5;
+  }
+
+  ion-button {
+    width: 250px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    margin: 8px 0;
+
+    &[color="success"] {
+      --background: #27ae60;
+      --background-hover: #229954;
+    }
+
+    &[color="primary"] {
+      --background: #2196f3;
+      --background-hover: #1976d2;
+    }
+  }
 }
 
-.inicio-screen h1 {
-  font-size: 2.4rem;
-  color: white;
-  font-weight: bold;
-  margin-bottom: 15px;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.6);
-}
-
-.inicio-screen p {
-  font-size: 1.1rem;
-  color: #f1f1f1;
-  margin-bottom: 25px;
-}
-
-.inicio-screen ion-button {
-  --background: #2ecc71;
-  --background-hover: #27ae60;
-  width: 180px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+/* ✅ OVERLAY DE MENSAJE MEJORADO */
+.mensaje-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 10;
+  animation: fadeIn 0.3s ease-out;
 }
 
 .mensaje-contenido {
   background: white;
-  padding: 40px;
+  padding: 40px 30px;
   border-radius: 20px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  animation: slideUp 0.4s ease-out;
+  max-width: 90%;
+  width: 450px;
 
   h2 {
     font-size: 2.5rem;
-    color: #e74c3c;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     font-weight: bold;
+
+    &.ganaste {
+      color: #27ae60;
+    }
+
+    &.perdiste {
+      color: #e74c3c;
+    }
+  }
+
+  .resultado-info {
+    margin: 20px 0;
+
+    .descuento-ganado {
+      background: rgba(76, 175, 80, 0.1);
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #4caf50;
+
+      h3 {
+        font-size: 1.5rem;
+        color: #27ae60;
+        margin-bottom: 10px;
+      }
+
+      .porcentaje {
+        font-size: 3rem;
+        font-weight: 900;
+        color: #27ae60;
+        margin: 0;
+      }
+    }
+
+    .sin-descuento {
+      background: rgba(33, 150, 243, 0.1);
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid #2196f3;
+
+      p {
+        font-size: 1.1rem;
+        color: #2196f3;
+        margin: 0;
+        font-weight: 600;
+      }
+    }
+
+    .intento-perdido {
+      background: rgba(255, 152, 0, 0.1);
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid #ff9800;
+
+      p {
+        font-size: 1.1rem;
+        color: #ff9800;
+        margin: 0;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .mensaje-desc {
+    margin: 20px 0;
+
+    p {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #666;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+    }
   }
 
   ion-button {
-    --background: #27ae60;
-    --background-hover: #229954;
-    font-size: 1.2rem;
+    margin-top: 10px;
+    font-size: 1.1rem;
     font-weight: bold;
+
+    &[color="secondary"] {
+      --background: #27ae60;
+      --background-hover: #229954;
+    }
   }
 }
 
+/* Animaciones */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { 
+    opacity: 0; 
+  }
+  to { 
+    opacity: 1; 
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
