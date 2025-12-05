@@ -1550,6 +1550,7 @@ export class HomePage implements OnInit, ViewWillEnter {
         await this.swal.showTemporaryAlert('Info', 'Ya te encuentras en la lista de espera.', 'info');
         this.yaEnListaEspera = true;
         this.mostrarMensajeListaEspera = true; // Mostrar el mensaje
+        this.feedback.showToast('error', 'Ya te encuentras en la lista de espera.')
         // Ocultar el mensaje automáticamente después de 5 segundos
         setTimeout(() => {
           this.mostrarMensajeListaEspera = false;
@@ -1597,10 +1598,12 @@ export class HomePage implements OnInit, ViewWillEnter {
       if (errorInsert) {
         console.log('❌ [agregarAListaEspera] Error al insertar:', errorInsert.message);
         await this.swal.showTemporaryAlert('Error', 'No se pudo agregar a la lista de espera: ' + errorInsert.message, 'error');
+        this.feedback.showToast('error', 'No se pudo agregar a la lista de espera.')
         return;
       }
 
       console.log('✅ [agregarAListaEspera] Cliente agregado exitosamente a la lista de espera');
+      this.feedback.showToast('exito', 'Agregado exitosamente a la lista de espera.')
       this.yaEnListaEspera = true;
       this.mostrarMensajeListaEspera = true; // Mostrar el mensaje cuando se agrega a la lista
 
@@ -1698,6 +1701,7 @@ export class HomePage implements OnInit, ViewWillEnter {
     if (this.mesaAsignada && numeroMesa === this.mesaAsignada) {
       qrValido = true;
       console.log('✅ [validarMesaEscaneada] QR válido por mesaAsignada');
+      this.feedback.showToast('exito', '✅ Tenes una mesa asignada. Podes ver la carta para realizar un pedido');
     } else {
       console.log('🔍 [validarMesaEscaneada] mesaAsignada no coincide o es null, verificando en BD...');
       // Verificar si el cliente tiene una reserva confirmada activa para esta mesa

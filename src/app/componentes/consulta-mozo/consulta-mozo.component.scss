@@ -1,17 +1,38 @@
-.header-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+/* =========================================
+   VARIABLES DE MARCA
+   ========================================= */
+:host {
+  --fritos-orange: var(--ion-color-fritos-orange, #ff9800);
+  --fritos-yellow: var(--ion-color-fritos-yellow, #ffeb3b);
+  --fritos-blue: var(--ion-color-fritos-blue, #4666de);
+  --fritos-red: var(--ion-color-primary, #d32f2f);
+  --fritos-text-dark: #333333;
+  --fritos-text-light: #ffffff;
+}
+
+/* 1. HEADER (Rojo Fuerte) */
+ion-header ion-toolbar {
+  --background: var(--fritos-red);
+  --color: var(--fritos-text-light);
   
+  ion-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
   small {
-    font-size: 0.75rem;
-    opacity: 0.8;
-    font-weight: normal;
+    color: var(--fritos-yellow); /* Subtítulo en amarillo para destacar */
+    opacity: 1; 
+  }
+  
+  ion-icon {
+    color: var(--fritos-text-light);
   }
 }
 
+/* 2. FONDO DEL CHAT (Gradiente Naranja) */
 .chat-content {
-  --background: #e5ddd5;
+  --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
   --padding-top: 0;
   --padding-bottom: 0;
 }
@@ -20,65 +41,83 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px; /* Un poco más de aire entre mensajes */
   min-height: 100%;
 }
 
+/* Mensaje del Sistema (Inicio) */
 .mensaje-sistema {
   text-align: center;
   padding: 20px;
-  color: #667781;
-  font-size: 0.9rem;
+  opacity: 0.9;
   
   p {
-    background: #fff;
-    border-radius: 8px;
-    padding: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    padding: 10px 20px;
     display: inline-block;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: var(--fritos-blue); /* Texto azul */
+    font-weight: 600;
+    border: 1px solid var(--fritos-blue);
   }
 }
 
+/* 3. BURBUJAS DE MENSAJES */
 .mensaje-contenedor {
   display: flex;
   margin-bottom: 4px;
   
+  /* MENSAJE PROPIO (Yo) -> Azul con texto Blanco */
   &.mensaje-propio {
     justify-content: flex-end;
     
     .mensaje-burbuja {
-      background: #dcf8c6;
-      border-radius: 8px 8px 0 8px;
+      background: var(--fritos-blue);
+      color: var(--fritos-text-light);
+      border-radius: 15px 15px 0 15px; /* Punta abajo derecha */
+      border: 1px solid rgba(255,255,255,0.2);
+      
+      /* Ajuste de colores internos para el mensaje propio */
+      .mensaje-hora { color: rgba(255, 255, 255, 0.8); }
+      ion-icon { color: var(--fritos-yellow); } /* Checks amarillos */
     }
   }
   
+  /* MENSAJE DEL OTRO -> Blanco con texto Oscuro */
   &.mensaje-otro {
     justify-content: flex-start;
     
     .mensaje-burbuja {
-      background: #fff;
-      border-radius: 8px 8px 8px 0;
+      background: #ffffff;
+      color: var(--fritos-text-dark);
+      border-radius: 15px 15px 15px 0; /* Punta abajo izquierda */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      
+      /* Nombre del remitente */
+      .mensaje-header strong {
+        color: var(--fritos-red); /* Nombre en rojo */
+      }
+      .mensaje-tipo {
+        color: #666;
+      }
+      .mensaje-hora { color: #999; }
     }
   }
 }
 
 .mensaje-burbuja {
-  max-width: 75%;
-  padding: 8px 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+  padding: 10px 14px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   position: relative;
-  animation: fadeIn 0.3s ease-in;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Animación de entrada */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .mensaje-header {
@@ -88,24 +127,23 @@
   gap: 6px;
   
   strong {
-    color: #075e54;
     font-size: 0.85rem;
+    font-weight: 700;
   }
   
   .mensaje-tipo {
-    font-size: 0.75rem;
-    color: #667781;
+    font-size: 0.7rem;
     font-weight: normal;
+    opacity: 0.8;
   }
 }
 
 .mensaje-contenido {
-  color: #303030;
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.4;
   word-wrap: break-word;
   white-space: pre-wrap;
-  padding-right: 50px; // Espacio para la hora
+  /* Quitamos el padding-right exagerado, mejor que la hora fluya */
 }
 
 .mensaje-footer {
@@ -114,86 +152,100 @@
   align-items: center;
   gap: 4px;
   margin-top: 4px;
-  float: right;
-}
-
-.mensaje-hora {
   font-size: 0.7rem;
-  color: #667781;
+  opacity: 0.9;
 }
 
-ion-icon {
-  font-size: 16px;
-  
-  &.enviado {
-    color: #999;
-  }
-  
-  &.leido {
-    color: #34b7f1;
-  }
-}
-
-// Footer con input
+/* 4. FOOTER E INPUT (Zona de escritura) */
 ion-footer {
+  background: transparent; /* Dejamos ver el fondo si es necesario */
+  
   ion-toolbar {
-    --background: #f0f0f0;
+    --background: #ffffff;
     --border-width: 0;
-    --padding-start: 0;
-    --padding-end: 0;
+    padding: 5px;
+    /* Sombra para separarlo visualmente del chat */
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
   }
 }
 
 .input-container {
   display: flex;
   align-items: flex-end;
-  padding: 8px;
-  gap: 8px;
-  background: #fff;
+  padding: 5px 10px;
+  gap: 10px;
+  background: #ffffff;
 }
 
 .mensaje-input-wrapper {
   flex: 1;
-  background: #fff;
-  border-radius: 20px;
-  padding: 8px 16px;
-  border: 1px solid #ddd;
-  min-height: 40px;
+  background: #d8818169;
+  border-radius: 25px; /* Más redondo */
+  padding: 10px 20px;
+  border: 1px solid transparent;
+  min-height: 45px;
   max-height: 120px;
+  transition: border-color 0.2s;
+  color: white;
   
+  /* Al hacer foco, borde azul */
+  &:focus-within {
+    border-color: var(--fritos-blue);
+    background: #fff;
+  }
+
   ion-textarea {
+    margin: 0;
+    padding: 0;
     --padding-start: 0;
     --padding-end: 0;
     --padding-top: 0;
     --padding-bottom: 0;
-    --color: #303030 !important;
+    
+    font-size: 1rem;
+    
+    /* Forzamos colores de texto */
+    color: #333 !important;
+    --color: #333 !important;
     --placeholder-color: #999;
     --placeholder-opacity: 1;
-    font-size: 16px;
-    color: #303030;
-    
-    textarea {
-      color: #303030 !important;
-    }
   }
 }
 
+/* Botón Enviar (Redondo y Azul) */
 .btn-enviar {
   --border-radius: 50%;
   width: 48px;
   height: 48px;
   margin: 0;
+  --box-shadow: 0 4px 8px rgba(70, 102, 222, 0.3);
   
+  /* Color AZUL de la marca */
+  --background: var(--fritos-blue);
+  --background-hover: #3451b5;
+  --background-activated: #3451b5;
+  --color: white;
+
   ion-icon {
     font-size: 24px;
-    color: #fff;
+    /* Pequeño ajuste visual para centrar el ícono de 'send' */
+    margin-left: 3px; 
+  }
+  
+  /* Estado deshabilitado */
+  &[disabled] {
+    opacity: 0.6;
+    --background: #ccc;
   }
 }
 
-// Responsive
+/* Responsive */
 @media (min-width: 768px) {
   .mensaje-burbuja {
     max-width: 60%;
   }
+  .mensajes-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
 }
-
