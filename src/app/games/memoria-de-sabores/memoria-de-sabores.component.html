@@ -72,10 +72,6 @@
       <div class="score-card">
         <p class="stat-final">Pares encontrados: {{ paresEncontrados }}/{{ totalPares }}</p>
         <p class="stat-final">Intentos usados: {{ intentos }}</p>
-        
-        @if (gano && puedeJugarPorDescuento === false && !yaUsoIntento) {
-          <p class="descuento-ganado">🎉 +{{ descuentoJuego }}% de descuento</p>
-        }
       </div>
       
       <div class="mensaje-resultado">

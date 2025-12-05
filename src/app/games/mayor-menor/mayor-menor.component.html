@@ -61,10 +61,6 @@
       
       <div class="score-card">
         <p class="puntos-finales">Aciertos: {{ puntos }}</p>
-        
-        @if (gano && puedeJugarPorDescuento === false && !yaUsoIntento) {
-          <p class="descuento-ganado">🎉 +{{ descuentoJuego }}% de descuento</p>
-        }
       </div>
       
       <div class="mensaje-resultado">

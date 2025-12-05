@@ -29,11 +29,11 @@ misPedidos = computed(() => {
   // Obtenemos el rol del usuario
   const perfil = this.authService.getPerfilUsuario(); // 'cliente', 'cocinero', 'dueño', etc.
 
-  // Si es cliente anónimo, filtrar por su ID o correo
+  // Si es cliente anónimo, filtrar por su UID ficticio
   if (this.esClienteAnonimo && this.clienteAnonimo) {
-    const clienteId = this.clienteAnonimo.id?.toString() || this.clienteAnonimo.correo;
-    console.log(`👤 Cliente anónimo: ${this.clienteAnonimo.nombre} | ID: ${clienteId}`);
-    return todosPedidos?.filter(p => p.cliente_id === clienteId) || [];
+    const clienteUid = this.clienteAnonimo.uid;
+    console.log(`👤 Cliente anónimo: ${this.clienteAnonimo.nombre} | UID: ${clienteUid}`);
+    return todosPedidos?.filter(p => p.cliente_id === clienteUid) || [];
   }
 
   if (!user || !todosPedidos) return [];

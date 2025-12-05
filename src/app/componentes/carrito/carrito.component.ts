@@ -254,12 +254,12 @@ export class CarritoComponent {
         throw new Error('El carrito está vacío');
       }
       
-      // Determinar el ID del cliente
+      // Determinar el ID del cliente (UUID)
       let clienteId: string;
       if (this.esClienteAnonimo && this.clienteAnonimo) {
-        // Para cliente anónimo, usar su ID o correo como identificador
-        clienteId = this.clienteAnonimo.id?.toString() || this.clienteAnonimo.correo || `anonimo-${Date.now()}`;
-        console.log('🛒 [realizarPedido] Usando ID de cliente anónimo:', clienteId);
+        // Para cliente anónimo, usar su UID ficticio
+        clienteId = this.clienteAnonimo.uid;
+        console.log('🛒 [realizarPedido] Usando UID de cliente anónimo:', clienteId);
       } else {
         clienteId = this.user().id;
         console.log('🛒 [realizarPedido] Usando ID de usuario autenticado:', clienteId);
@@ -271,24 +271,34 @@ export class CarritoComponent {
         this.observaciones,
       );
       
-      console.log('🛒 [realizarPedido] Pedido generado:', pedido);
+      console.log('🛒 [realizarPedido] Pedido generado:', JSON.stringify(pedido));
       console.log('🛒 [realizarPedido] Mesa en pedido:', pedido.mesa);
+      console.log('🛒 [realizarPedido] cliente_id en pedido:', pedido.cliente_id);
+      
+      console.log('🛒 [realizarPedido] Insertando en Supabase...');
       const { data, error } = await this.supabase.supabase
       .from('pedidos')
       .insert([pedido])
       .select();
 
       if (error) {
+        console.error('🛒 [realizarPedido] ERROR SUPABASE:', JSON.stringify(error));
+        console.error('🛒 [realizarPedido] Error code:', error.code);
+        console.error('🛒 [realizarPedido] Error message:', error.message);
+        console.error('🛒 [realizarPedido] Error details:', error.details);
         this.customLoader.hide()
         throw error;
       }
 
-      console.log('Pedido realizado con éxito:', data);
+      console.log('🛒 [realizarPedido] Pedido insertado con éxito:', data);
+      
       // Notificar a todos los mozos sobre el nuevo pedido
       try {
+        console.log('🛒 [realizarPedido] Notificando mozos...');
         await this.notificarMozosNuevoPedido(data[0]);
+        console.log('🛒 [realizarPedido] Mozos notificados');
       } catch (notifError) {
-        console.error('Error al notificar mozos:', notifError);
+        console.error('🛒 [realizarPedido] Error al notificar mozos:', notifError);
         // No bloquear el flujo si falla la notificación
       }
       
@@ -303,9 +313,13 @@ export class CarritoComponent {
       this.carritoService.limpiarCarrito();
       this.router.navigate(['/home']);
       
-    } catch (error) {
+    } catch (error: any) {
       this.customLoader.hide()
-      console.error('Error realizando pedido:', error);
+      console.error('🛒 [realizarPedido] CATCH ERROR:', error);
+      console.error('🛒 [realizarPedido] Error type:', typeof error);
+      console.error('🛒 [realizarPedido] Error JSON:', JSON.stringify(error));
+      if (error?.message) console.error('🛒 [realizarPedido] Error message:', error.message);
+      if (error?.code) console.error('🛒 [realizarPedido] Error code:', error.code);
     }
   }
 

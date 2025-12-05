@@ -184,6 +184,7 @@ export class HomePage implements OnInit, ViewWillEnter {
     // Recargar info para clientes anónimos
     if (this.esClienteAnonimo && this.clienteAnonimo) {
       console.log('🔄 [ionViewWillEnter] Verificando estado cliente anónimo...');
+      await this.cargarClienteInfo(); // Recargar info del cliente (incluye campo encuesta)
       await this.verificarEstadoClienteAnonimo();
       await this.verificarPedidoDeliveryConfirmado();
     }
@@ -330,19 +331,32 @@ export class HomePage implements OnInit, ViewWillEnter {
 }
 
    async cargarClienteInfo() {
-    if (!this.usuario || this.perfilUsuario !== 'cliente') return;
-    
     try {
+      let correoCliente: string | null = null;
+      
+      // Determinar el correo del cliente (anónimo o registrado)
+      if (this.esClienteAnonimo && this.clienteAnonimo) {
+        correoCliente = this.clienteAnonimo.correo || `anonimo-${this.clienteAnonimo.id}@fritos.com`;
+        console.log('🔍 [cargarClienteInfo] Cargando info de cliente anónimo:', correoCliente);
+      } else if (this.usuario && this.perfilUsuario === 'cliente') {
+        correoCliente = this.usuario.email;
+        console.log('🔍 [cargarClienteInfo] Cargando info de cliente registrado:', correoCliente);
+      }
+      
+      if (!correoCliente) return;
+      
       const { data, error } = await this.supabase.supabase
         .from('clientes')
         .select('*')
-        .eq('correo', this.usuario.email)
+        .eq('correo', correoCliente)
         .single();
       
       if (!error && data) {
         this.clienteInfo = data;
+        console.log('✅ [cargarClienteInfo] Cliente info cargada, encuesta:', data.encuesta);
       }
     } catch (error) {
+      console.error('❌ [cargarClienteInfo] Error:', error);
     }
   }
 

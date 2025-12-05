@@ -111,6 +111,9 @@ export class AnonimoComponent  {
           .getPublicUrl(data.path).data.publicUrl;
       }
 
+      // Generar UUID ficticio para el cliente anónimo
+      const uidFicticio = crypto.randomUUID();
+      
       // Insertar cliente en tabla clientes
       // Primero insertamos sin correo para obtener el ID
       const { data: clienteTemp, error: errorTemp } = await this.sb.supabase
@@ -119,6 +122,7 @@ export class AnonimoComponent  {
           {
             nombre,
             imagenPerfil: fotoUrl,
+            uid: uidFicticio,
             anonimo: true,
             validado: true,
             aceptado: true,
@@ -142,6 +146,7 @@ export class AnonimoComponent  {
       if (errorCliente) throw errorCliente;
       
       console.log('✅ Cliente anónimo creado con correo:', correoAnonimo);
+      console.log('✅ Cliente anónimo creado con UID ficticio:', uidFicticio);
 
       // Registrar FCM token para push notifications (espera a que se complete)
       const fcmRegistrado = await this.registrarFcmToken(cliente.id);
@@ -154,7 +159,9 @@ export class AnonimoComponent  {
       // Guardar cliente anónimo en localStorage para mantener sesión
       localStorage.setItem('clienteAnonimo', JSON.stringify({
         id: cliente.id,
-          nombre: cliente.nombre,
+        uid: uidFicticio,
+        correo: correoAnonimo,
+        nombre: cliente.nombre,
         imagenPerfil: cliente.imagenPerfil,
         anonimo: true
       }));
