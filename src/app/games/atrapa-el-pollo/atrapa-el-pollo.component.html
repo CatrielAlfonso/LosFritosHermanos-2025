@@ -60,6 +60,7 @@
 
     <!-- PANTALLA DE RESULTADO (gameState === 'terminado') -->
     <!-- PANTALLA DE RESULTADO (gameState === 'terminado') -->
+<!-- PANTALLA DE RESULTADO (gameState === 'terminado') - CORREGIDA -->
 <div class="game-overlay resultado-final" *ngIf="gameState === 'terminado'">
     <h1 class="fritos-logo">
         {{ resultadoFinal.exito ? '🎉 ¡GANASTE!' : '🔥 Game Over' }}
@@ -69,7 +70,8 @@
         <h2 class="fritos-subtitle">Paredes Pasadas:</h2>
         <p class="data-score">{{ paredesPasadas }} / {{ totalParedes }}</p>
         
-        @if (resultadoFinal.porcentaje > 0) {
+        <!-- ✅ CORRECCIÓN: Solo mostrar descuento si realmente se aplicó -->
+        @if (this.deberMostrarDescuento()) {
           <h2 class="fritos-subtitle">🎉 Descuento Obtenido:</h2>
           <p class="data-desc ganado">{{ resultadoFinal.porcentaje }}%</p>
           
@@ -82,23 +84,23 @@
               <p>⭐ ¡Nivel Básico! - 10% de descuento</p>
             }
           </div>
-        } @else {
+        } @else if (puedeJugarPorDescuento && resultadoFinal.porcentaje === 0) {
+          <!-- Primer intento pero no alcanzó descuento -->
           <p class="mensaje-sin-descuento">
             💪 ¡Necesitás pasar al menos 3 paredes para ganar descuento!
+          </p>
+        } @else if (yaUsoIntento) {
+          <!-- Ya usó su intento (segundo juego o más) -->
+          <p class="mensaje-info">
+            🎮 ¡Gran partida! Este intento fue por diversión.
           </p>
         }
     </div>
     
+    <!-- ✅ CORRECCIÓN: Mensaje contextual correcto -->
     <div class="mensaje-desc">
         @if (mensajeResultado) {
           <p>{{ mensajeResultado }}</p>
-        } @else {
-          <p *ngIf="resultadoFinal.porcentaje > 0">
-              ¡El descuento ha sido registrado en tu pedido!
-          </p>
-          <p *ngIf="resultadoFinal.porcentaje === 0">
-              Seguí intentando, ¡podés lograrlo!
-          </p>
         }
     </div>
 
