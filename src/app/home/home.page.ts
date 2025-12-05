@@ -400,13 +400,13 @@ export class HomePage implements OnInit, ViewWillEnter {
         console.log('🔍 [verificarEstadoClienteAnonimo] yaEnListaEspera:', this.yaEnListaEspera);
         
         // Si está en lista de espera, mostrar el mensaje inicialmente
-        if (this.yaEnListaEspera) {
-          this.mostrarMensajeListaEspera = true;
-          // Ocultar el mensaje automáticamente después de 5 segundos
-          setTimeout(() => {
-            this.mostrarMensajeListaEspera = false;
-          }, 5000);
-        }
+        // if (this.yaEnListaEspera) {
+        //   this.mostrarMensajeListaEspera = true;
+        //   // Ocultar el mensaje automáticamente después de 5 segundos
+        //   setTimeout(() => {
+        //     this.mostrarMensajeListaEspera = false;
+        //   }, 5000);
+        // }
       }
     } catch (error) {
       console.error('❌ [verificarEstadoClienteAnonimo] Error:', error);

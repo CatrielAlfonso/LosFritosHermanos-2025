@@ -56,46 +56,121 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
     });
   }
 
+  // async inicializar() {
+  //   // Obtener información del usuario
+  //   const { data: user } = await this.authService.getCurrentUser();
+  //   if (!user?.user) {
+  //     this.feedback.showToast('error', 'No estás autenticado');
+  //     this.router.navigate(['/home']);
+  //     return;
+  //   }
+
+  //   this.usuario = user.user;
+  //   const email = user.user.email;
+
+  //   // Determinar si es cliente o mozo
+  //   const { data: empleado } = await this.supabaseService.supabase
+  //     .from('empleados')
+  //     .select('nombre, apellido, perfil')
+  //     .eq('correo', email)
+  //     .single();
+
+  //   if (empleado && empleado.perfil === 'mozo') {
+  //     this.esMozo = true;
+  //     this.usuarioNombre = `${empleado.nombre} ${empleado.apellido}`;
+  //     console.log('👨‍🍳 Usuario es mozo');
+  //   } else {
+  //     // Es cliente
+  //     const { data: cliente } = await this.supabaseService.supabase
+  //       .from('clientes')
+  //       .select('nombre, apellido')
+  //       .eq('correo', email)
+  //       .single();
+
+  //     if (cliente) {
+  //       this.esCliente = true;
+  //       this.usuarioNombre = `${cliente.nombre} ${cliente.apellido}`;
+  //       console.log('👤 Usuario es cliente');
+  //     }
+  //   }
+
+  //   // Obtener o crear consulta
+  //   await this.obtenerOCrearConsulta();
+  // }
+
   async inicializar() {
-    // Obtener información del usuario
+    // 1. Intentar obtener usuario autenticado (Mozo o Cliente registrado)
     const { data: user } = await this.authService.getCurrentUser();
-    if (!user?.user) {
-      this.feedback.showToast('error', 'No estás autenticado');
-      this.router.navigate(['/home']);
-      return;
-    }
 
-    this.usuario = user.user;
-    const email = user.user.email;
+    if (user?.user) {
+      // --- CASO USUARIO REGISTRADO ---
+      this.usuario = user.user;
+      const email = user.user.email;
 
-    // Determinar si es cliente o mozo
-    const { data: empleado } = await this.supabaseService.supabase
-      .from('empleados')
-      .select('nombre, apellido, perfil')
-      .eq('correo', email)
-      .single();
-
-    if (empleado && empleado.perfil === 'mozo') {
-      this.esMozo = true;
-      this.usuarioNombre = `${empleado.nombre} ${empleado.apellido}`;
-      console.log('👨‍🍳 Usuario es mozo');
-    } else {
-      // Es cliente
-      const { data: cliente } = await this.supabaseService.supabase
-        .from('clientes')
-        .select('nombre, apellido')
+      // Determinar si es cliente o mozo (Lógica existente)
+      const { data: empleado } = await this.supabaseService.supabase
+        .from('empleados')
+        .select('nombre, apellido, perfil')
         .eq('correo', email)
         .single();
 
-      if (cliente) {
-        this.esCliente = true;
-        this.usuarioNombre = `${cliente.nombre} ${cliente.apellido}`;
-        console.log('👤 Usuario es cliente');
+      if (empleado && empleado.perfil === 'mozo') {
+        this.esMozo = true;
+        this.usuarioNombre = `${empleado.nombre} ${empleado.apellido}`;
+        console.log('👨‍🍳 Usuario es mozo');
+      } else {
+        // Es cliente registrado
+        const { data: cliente } = await this.supabaseService.supabase
+          .from('clientes')
+          .select('nombre, apellido')
+          .eq('correo', email)
+          .single();
+
+        if (cliente) {
+          this.esCliente = true;
+          this.usuarioNombre = `${cliente.nombre} ${cliente.apellido}`;
+          console.log('👤 Usuario es cliente registrado');
+        }
+      }
+
+    } else {
+      // --- CASO CLIENTE ANÓNIMO (La corrección) ---
+      const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
+      
+      if (clienteAnonimoStr) {
+        try {
+          const anonimo = JSON.parse(clienteAnonimoStr);
+          this.esCliente = true;
+          this.usuarioNombre = anonimo.nombre;
+          
+          // Creamos un objeto usuario "falso" para que el resto del código funcione
+          // Usamos el mismo formato de email sintético que en el Home
+          this.usuario = {
+            email: `anonimo-${anonimo.id}@fritos.com`,
+            id: anonimo.id
+          };
+          
+          console.log('👤 Usuario es cliente anónimo:', this.usuarioNombre);
+        } catch (e) {
+          console.error('Error al leer cliente anónimo');
+          this.salirPorFalloAuth();
+          return;
+        }
+      } else {
+        // Si no es registrado NI anónimo, ahí sí lo sacamos
+        this.salirPorFalloAuth();
+        return;
       }
     }
 
-    // Obtener o crear consulta
+    // Obtener o crear consulta (El resto sigue igual)
     await this.obtenerOCrearConsulta();
+  }
+
+  // Helper para no repetir código de salida
+  salirPorFalloAuth() {
+    this.feedback.showToast('error', 'No estás autenticado');
+    this.router.navigate(['/home']);
   }
 
   async obtenerOCrearConsulta() {
@@ -183,6 +258,7 @@ export class ConsultaMozoComponent implements OnInit, OnDestroy {
       console.log('✅ Mensaje enviado exitosamente');
       
       // Si es un mozo respondiendo, enviar push al cliente
+      console.log(this.consulta.cliente_email, 'el mail del cliente antes de mandar la notificacion, si es null no va a mandar')
       if (this.esMozo && this.consulta.cliente_email) {
         await this.pushService.notificarClienteRespuestaMozo(
           this.consulta.cliente_email,
