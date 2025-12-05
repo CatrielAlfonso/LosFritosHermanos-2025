@@ -51,7 +51,7 @@ export class GameSelectorComponent implements OnInit {
       descripcion: 'Evitá los obstáculos usando el giroscopio.',
       ruta: '/equilibrio',
       imagen: '../../assets/imgs/mozoEquilibrio.png',
-
+      descuento: JUEGOS_CONFIG['mozo-equilibrio'].descuento
     },
     {
       id: 'mayor-menor',
