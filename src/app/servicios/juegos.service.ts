@@ -69,10 +69,43 @@ export class JuegosService {
   }
 
   /**
-   * Obtiene el cliente actual logueado
+   * Obtiene el cliente actual logueado o anónimo del localStorage
    */
   async obtenerClienteActual(): Promise<{ id: number; esAnonimo: boolean } | null> {
     try {
+      // 1. Primero verificar si hay cliente anónimo en localStorage
+      const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
+      if (clienteAnonimoStr) {
+        try {
+          const clienteAnonimo = JSON.parse(clienteAnonimoStr);
+          console.log('🎮 [JuegosService] Cliente anónimo detectado:', clienteAnonimo);
+          
+          // Buscar el cliente anónimo en la base de datos por correo
+          if (clienteAnonimo.correo) {
+            const { data: cliente, error } = await this.sb.supabase
+              .from('clientes')
+              .select('id, nombre')
+              .eq('correo', clienteAnonimo.correo)
+              .single();
+            
+            if (!error && cliente) {
+              return { id: cliente.id, esAnonimo: true };
+            }
+          }
+          
+          // Si tiene ID directo, usarlo
+          if (clienteAnonimo.id) {
+            return { id: clienteAnonimo.id, esAnonimo: true };
+          }
+          
+          // Es anónimo pero no encontramos su ID en la base
+          return null;
+        } catch (e) {
+          console.error('Error parseando cliente anónimo:', e);
+        }
+      }
+      
+      // 2. Si no hay anónimo, verificar usuario autenticado
       const { data: authData } = await this.authService.getCurrentUser();
       
       if (!authData?.user?.email) {
