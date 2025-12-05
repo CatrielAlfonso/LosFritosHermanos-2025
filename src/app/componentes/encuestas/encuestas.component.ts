@@ -353,62 +353,6 @@ export class EncuestasComponent  implements OnInit {
     return urls;
   }
 
-  // async enviarEncuesta() {
-  //   if (this.encuestaForm.valid) {
-  //     this.customLoader.show('Enviando encuesta...');
-  //     //this.loadingService.show();
-  //     try {
-  //       const tablaCorrecta = await this.verificarTablas();
-  //       if (!tablaCorrecta) {
-  //         await this.mostrarAlerta('Error', 'No se encontró la tabla de encuestas. Contacte al administrador.');
-  //         return;
-  //       }
-
-  //       const imagenesUrls = await this.subirImagenesAStorage();
-        
-  //       const encuestaData = {
-  //         ...this.encuestaForm.value,
-  //         nombre: this.clientInfo.nombre,
-  //         apellido: this.clientInfo.apellido,
-  //         correo: this.clientInfo.correo,
-  //         imagenes: imagenesUrls,
-  //       };
-
-  //       const { error } = await this.supabase.supabase
-  //         .from(tablaCorrecta)
-  //         .insert([encuestaData]);
-
-  //       if (error) {
-  //         await this.mostrarAlerta('Error', `No se pudo enviar la encuesta: ${error.message}`);
-  //       } else {
-  //         this.encuestaEnviada = true;
-  //         this.mostrarMensajeExito = true;
-  //         this.mensajeExito = '¡Encuesta enviada exitosamente!';
-
-  //         const { error: errorCliente } = await this.supabase.supabase
-  //           .from('clientes')
-  //           .update({ encuesta: true })
-  //           .eq('correo', this.clientInfo.correo);
-          
-  //         if (errorCliente) {
-  //         }
-          
-  //         await this.cargarEncuestas();
-  //         this.mostrarGraficos = true;
-  //         this.crearGraficos();
-          
-  //         setTimeout(() => {
-  //           this.mostrarMensajeExito = false;
-  //         }, 3000);
-  //       }
-  //     } catch (error) {
-  //       await this.mostrarAlerta('Error', `Error inesperado al enviar la encuesta: ${error}`);
-  //     } finally {
-  //       this.customLoader.hide();
-  //       //this.loadingService.hide();
-  //     }
-  //   }
-  // }
 
   // 🔄 TAMBIÉN ACTUALIZA enviarEncuesta() para manejar usuarios sin Auth:
 

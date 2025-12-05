@@ -127,7 +127,36 @@ segmentoActivo = 'activos';
         await this.notificarClientePedidoConfirmado(pedido);
       } catch (notifError) {
         console.error('Error al notificar cliente sobre confirmación:', notifError);
-        // No bloquear el flujo si falla la notificación
+      }
+      
+      // Notificar a cocineros si hay comidas/postres
+      if (tieneComidas) {
+        try {
+          const comidas = pedido.comidas?.map((c: any) => c.nombre) || [];
+          const postres = pedido.postres?.map((p: any) => p.nombre) || [];
+          console.log('🍳 Notificando a cocineros - Mesa:', pedido.mesa);
+          await this.pushNotificationService.notificarCocineroNuevoPedido(
+            pedido.mesa.toString(),
+            comidas,
+            postres
+          );
+        } catch (notifError) {
+          console.error('Error al notificar cocineros:', notifError);
+        }
+      }
+      
+      // Notificar a bartenders si hay bebidas
+      if (tieneBebidas) {
+        try {
+          const bebidas = pedido.bebidas?.map((b: any) => b.nombre) || [];
+          console.log('🍺 Notificando a bartenders - Mesa:', pedido.mesa);
+          await this.pushNotificationService.notificarBartenderNuevoPedido(
+            pedido.mesa.toString(),
+            bebidas
+          );
+        } catch (notifError) {
+          console.error('Error al notificar bartenders:', notifError);
+        }
       }
       
       await this.sb.cargarPedidos();

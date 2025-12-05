@@ -189,13 +189,16 @@ ion-card {
 
 /* Estilos del Popover */
 ion-popover {
-  --width: 250px;
-  --border-radius: 12px;
-  --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  /* Fondo principal del popover (la "caja") */
+  --background: #4666de; /* Azul fritos */
+  /* Color del texto principal dentro del popover */
+  --color: #ffffff; 
+  /* Asegura que el borde también sea del color de la marca si lo hay */
+  --backdrop-opacity: 0.5;
 }
 
 .perfil-popover-content {
-  background: white;
+  background: #dc2234;
 }
 
 .perfil-popover-header {
@@ -231,7 +234,7 @@ ion-popover {
 .popover-nombre {
   font-weight: 700;
   font-size: 1rem;
-  color: white;
+  color: rgb(255, 241, 224);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -239,7 +242,7 @@ ion-popover {
 
 .popover-perfil {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #4666de;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 2px;
@@ -249,8 +252,8 @@ ion-popover {
   --padding-start: 16px;
   --padding-end: 16px;
   --min-height: 55px;
-  --background: #f0f4ff;
-  border-bottom: 1px solid #e0e0e0;
+  --background: #4666de;
+  border-bottom: 1px solid #4666de;
   
   ion-icon {
     font-size: 24px;
@@ -261,7 +264,7 @@ ion-popover {
   ion-label {
     p.perfil-label-title {
       font-size: 0.75rem;
-      color: #666 !important;
+      color: #ece8e8 !important;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin: 0 0 4px 0;
@@ -270,7 +273,7 @@ ion-popover {
     h3.perfil-label-value {
       font-weight: 700;
       font-size: 1.1rem;
-      color: #4666de !important;
+      color: #f1f1f1 !important;
       margin: 0;
       text-transform: capitalize;
     }
@@ -281,13 +284,16 @@ ion-popover {
   --padding-start: 16px;
   --padding-end: 16px;
   --min-height: 50px;
-  
+  --background:#dc2234	;
+
   ion-icon {
+    //background-color: white;
     font-size: 22px;
     margin-right: 12px;
   }
   
   ion-label {
+    color: white !important;
     font-weight: 600;
     font-size: 0.95rem;
   }

@@ -112,7 +112,8 @@ export class AnonimoComponent  {
       }
 
       // Insertar cliente en tabla clientes
-      const { data: cliente, error: errorCliente } = await this.sb.supabase
+      // Primero insertamos sin correo para obtener el ID
+      const { data: clienteTemp, error: errorTemp } = await this.sb.supabase
         .from('clientes')
         .insert([
           {
@@ -127,10 +128,28 @@ export class AnonimoComponent  {
         .select()
         .single();
 
-      if (errorCliente) throw errorCliente;
+      if (errorTemp) throw errorTemp;
 
-      // Registrar FCM token para push notifications
-      await this.registrarFcmToken(cliente.id);
+      // Ahora actualizamos con el correo ficticio usando el ID generado
+      const correoAnonimo = `anonimo-${clienteTemp.id}@fritos.com`;
+      const { data: cliente, error: errorCliente } = await this.sb.supabase
+        .from('clientes')
+        .update({ correo: correoAnonimo })
+        .eq('id', clienteTemp.id)
+        .select()
+        .single();
+
+      if (errorCliente) throw errorCliente;
+      
+      console.log('✅ Cliente anónimo creado con correo:', correoAnonimo);
+
+      // Registrar FCM token para push notifications (espera a que se complete)
+      const fcmRegistrado = await this.registrarFcmToken(cliente.id);
+      if (fcmRegistrado) {
+        console.log('✅ Push notifications habilitadas para este cliente');
+      } else {
+        console.log('⚠️ Push notifications no disponibles (se continuará sin ellas)');
+      }
 
       // Guardar cliente anónimo en localStorage para mantener sesión
       localStorage.setItem('clienteAnonimo', JSON.stringify({
@@ -332,12 +351,13 @@ export class AnonimoComponent  {
   /**
    * Registra el FCM token para el cliente anónimo
    * Esto permite enviarle push notifications (ej: factura)
+   * Retorna una Promise que se resuelve cuando el token se guarda exitosamente
    */
-  async registrarFcmToken(clienteId: number) {
+  async registrarFcmToken(clienteId: number): Promise<boolean> {
     try {
       if (!isPlatform('capacitor')) {
-        console.log('FCM token solo disponible en dispositivos móviles');
-        return;
+        console.log('📱 FCM token solo disponible en dispositivos móviles');
+        return false;
       }
 
       // Solicitar permisos de notificaciones
@@ -346,37 +366,54 @@ export class AnonimoComponent  {
       if (permStatus.receive !== 'granted') {
         const requestResult = await PushNotifications.requestPermissions();
         if (requestResult.receive !== 'granted') {
-          console.log('Permisos de notificación denegados');
-          return;
+          console.log('❌ Permisos de notificación denegados');
+          return false;
         }
       }
 
-      // Registrar para recibir notificaciones
-      await PushNotifications.register();
+      console.log('📱 Registrando para push notifications...');
 
-      // Escuchar el evento de registro para obtener el token
-      PushNotifications.addListener('registration', async (token) => {
-        console.log('📱 FCM Token obtenido para cliente anónimo:', token.value);
-        
-        // Guardar el token en la base de datos
-        const { error } = await this.sb.supabase
-          .from('clientes')
-          .update({ fcm_token: token.value })
-          .eq('id', clienteId);
+      // Crear una Promise que se resuelve cuando el token se guarda
+      return new Promise((resolve) => {
+        // Timeout de 10 segundos por si algo falla
+        const timeout = setTimeout(() => {
+          console.log('⚠️ Timeout esperando FCM token');
+          resolve(false);
+        }, 10000);
 
-        if (error) {
-          console.error('Error al guardar FCM token:', error);
-        } else {
-          console.log('✅ FCM token guardado para cliente anónimo ID:', clienteId);
-        }
-      });
+        // Escuchar el evento de registro para obtener el token
+        PushNotifications.addListener('registration', async (token) => {
+          clearTimeout(timeout);
+          console.log('📱 FCM Token obtenido:', token.value);
+          
+          // Guardar el token en la base de datos
+          const { error } = await this.sb.supabase
+            .from('clientes')
+            .update({ fcm_token: token.value })
+            .eq('id', clienteId);
 
-      PushNotifications.addListener('registrationError', (error) => {
-        console.error('Error en registro de push notifications:', error);
+          if (error) {
+            console.error('❌ Error al guardar FCM token:', error);
+            resolve(false);
+          } else {
+            console.log('✅ FCM token guardado para cliente anónimo ID:', clienteId);
+            resolve(true);
+          }
+        });
+
+        PushNotifications.addListener('registrationError', (error) => {
+          clearTimeout(timeout);
+          console.error('❌ Error en registro de push notifications:', error);
+          resolve(false);
+        });
+
+        // Iniciar el registro
+        PushNotifications.register();
       });
 
     } catch (error) {
-      console.error('Error al registrar FCM token:', error);
+      console.error('❌ Error al registrar FCM token:', error);
+      return false;
     }
   }
 

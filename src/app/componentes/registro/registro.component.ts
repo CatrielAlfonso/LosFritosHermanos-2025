@@ -474,12 +474,16 @@ export class RegistroComponent implements OnInit {
       }
       const { error } = await this.sb.supabase.from('clientes').insert([{ nombre, apellido, correo, dni, imagenPerfil, validado: null, aceptado: null, uid: usuario.id }]);
       if (error) throw new Error(error.message);
-      // Notificación de nuevo cliente registrado desactivada
-      // try {
-      //   await this.pushNotificationService.notificarSupervisoresNuevoCliente(nombre, apellido);
-      // } catch (error) {
-      //   console.error('Error al enviar notificación:', error);
-      // }
+      
+      // Notificar a supervisores/dueños sobre nuevo cliente pendiente de aprobación
+      try {
+        await this.pushNotificationService.notificarSupervisoresNuevoCliente(nombre, apellido);
+        console.log('✅ Notificación enviada a supervisores sobre nuevo cliente');
+      } catch (notifError) {
+        console.error('Error al enviar notificación a supervisores:', notifError);
+        // No bloqueamos el registro si falla la notificación
+      }
+      
       this.mensajeExito = 'Tu cuenta está pendiente de aprobación. Serás redirigido al inicio de sesión y podrás acceder una vez que aprueben tu solicitud.';
       this.feedback.showToast('exito', '✅ Registro exitoso!');
       this.clienteForm.reset();

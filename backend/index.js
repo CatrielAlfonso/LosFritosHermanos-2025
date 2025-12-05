@@ -176,10 +176,35 @@ app.use('/api/facturacion', facturacionRoutes);
 
 async function sendNotificationToRole(role, title, body) {
   try {
-    const { data: users, error } = await supabase
-      .from(role === 'cliente' ? 'clientes' : role === 'supervisor' ? 'supervisores' : 'empleados')
-      .select("fcm_token")
-      .not("fcm_token", "is", null);
+    let users, error;
+    
+    if (role === 'cliente') {
+      // Buscar en tabla clientes
+      const result = await supabase
+        .from('clientes')
+        .select("fcm_token")
+        .not("fcm_token", "is", null);
+      users = result.data;
+      error = result.error;
+    } else if (role === 'supervisor') {
+      // Supervisores y dueños están en la tabla EMPLEADOS con perfil 'supervisor' o 'dueño'
+      const result = await supabase
+        .from('empleados')
+        .select("fcm_token, perfil")
+        .in("perfil", ["supervisor", "dueño"])
+        .not("fcm_token", "is", null);
+      users = result.data;
+      error = result.error;
+      console.log(`🔍 Buscando supervisores/dueños en tabla empleados:`, users?.length || 0, 'encontrados');
+    } else {
+      // Otros empleados (mozo, maitre, bartender, cocinero, etc.)
+      const result = await supabase
+        .from('empleados')
+        .select("fcm_token")
+        .not("fcm_token", "is", null);
+      users = result.data;
+      error = result.error;
+    }
 
     if (error) {
       throw new Error(`Error fetching ${role}: ${error.message}`);
@@ -196,6 +221,8 @@ async function sendNotificationToRole(role, title, body) {
       console.log(`No valid FCM tokens found for ${role}.`);
       return { success: true, message: "No valid FCM tokens found." };
     }
+
+    console.log(`📤 Enviando notificación a ${tokens.length} ${role}(s)`);
 
     const message = {
       notification: { title, body },
@@ -283,54 +310,94 @@ app.post("/notify-client-table-assigned", async (req, res) => {
   const { clienteEmail, mesaNumero, clienteNombre, clienteApellido } = req.body;
   
   try {
+    console.log(`📤 [notify-client-table-assigned] Notificando mesa ${mesaNumero} a ${clienteNombre} (${clienteEmail})`);
+    
     const { data: cliente, error } = await supabase
       .from("clientes")
-      .select("fcm_token")
+      .select("fcm_token, correo")
       .eq("correo", clienteEmail)
       .single();
 
-    if (cliente?.fcm_token) {
-      const message = {
-        notification: {
-          title: "Mesa asignada",
-          body: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`
-        },
-        token: cliente.fcm_token,
-      };
-
-      await admin.messaging().send(message);
+    if (error) {
+      console.error('❌ Error buscando cliente:', error);
     }
 
-    const { sendEmail } = require('./services/email.service');
-    const emailResult = await sendEmail({
-      to: clienteEmail,
-      subject: "Mesa Asignada - Los Fritos Hermanos",
-      text: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>¡Tu mesa está lista!</h2>
-          <p>Hola ${clienteNombre},</p>
-          <p>Te confirmamos que te hemos asignado la <strong>mesa ${mesaNumero}</strong>.</p>
-          <p>Detalles de tu asignación:</p>
-          <ul>
-            <li>Mesa: ${mesaNumero}</li>
-            <li>Nombre: ${clienteNombre} ${clienteApellido}</li>
-          </ul>
-          <p>¡Esperamos que disfrutes tu experiencia en Los Fritos Hermanos!</p>
-          <p>Si necesitas algo, no dudes en consultarnos.</p>
-          <br>
-          <p>Saludos,</p>
-          <p>El equipo de Los Fritos Hermanos</p>
-        </div>
-      `
-    });
+    // Detectar si es cliente anónimo
+    const esAnonimo = clienteEmail && clienteEmail.includes('anonimo');
+    console.log(`   - Es anónimo: ${esAnonimo}`);
+    console.log(`   - Tiene FCM token: ${cliente?.fcm_token ? 'Sí' : 'No'}`);
+
+    let pushEnviada = false;
+    let emailEnviado = false;
+
+    // 1. Enviar push notification (tanto para anónimos como registrados)
+    if (cliente?.fcm_token) {
+      try {
+        const message = {
+          notification: {
+            title: "🪑 Mesa asignada",
+            body: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Escaneá el QR de tu mesa!`
+          },
+          data: {
+            tipo: 'mesa_asignada',
+            mesa: mesaNumero.toString()
+          },
+          token: cliente.fcm_token,
+        };
+
+        await admin.messaging().send(message);
+        pushEnviada = true;
+        console.log(`   ✅ Push notification enviada a ${clienteNombre}`);
+      } catch (pushError) {
+        console.error('   ❌ Error enviando push:', pushError.message);
+      }
+    } else {
+      console.log(`   ⚠️ Cliente sin FCM token, no se puede enviar push`);
+    }
+
+    // 2. Enviar email SOLO si NO es anónimo (los anónimos no tienen email real)
+    if (!esAnonimo) {
+      try {
+        const { sendEmail } = require('./services/email.service');
+        const emailResult = await sendEmail({
+          to: clienteEmail,
+          subject: "🪑 Mesa Asignada - Los Fritos Hermanos",
+          text: `Hola ${clienteNombre}, te hemos asignado la mesa ${mesaNumero}. ¡Disfruta tu experiencia!`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2>¡Tu mesa está lista!</h2>
+              <p>Hola ${clienteNombre},</p>
+              <p>Te confirmamos que te hemos asignado la <strong>mesa ${mesaNumero}</strong>.</p>
+              <p>Detalles de tu asignación:</p>
+              <ul>
+                <li>Mesa: ${mesaNumero}</li>
+                <li>Nombre: ${clienteNombre} ${clienteApellido || ''}</li>
+              </ul>
+              <p>¡Esperamos que disfrutes tu experiencia en Los Fritos Hermanos!</p>
+              <p>Si necesitas algo, no dudes en consultarnos.</p>
+              <br>
+              <p>Saludos,</p>
+              <p>El equipo de Los Fritos Hermanos</p>
+            </div>
+          `
+        });
+        emailEnviado = true;
+        console.log(`   ✅ Email enviado a ${clienteEmail}`);
+      } catch (emailError) {
+        console.error('   ❌ Error enviando email:', emailError.message);
+      }
+    } else {
+      console.log(`   ℹ️ Cliente anónimo, no se envía email`);
+    }
 
     res.status(200).send({ 
-      message: "Notification and email sent successfully.",
-      emailResult
+      message: "Notificación procesada",
+      esAnonimo,
+      pushEnviada,
+      emailEnviado
     });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ Error general:', error);
     res.status(500).send({ error: `Failed to send notifications: ${error.message}` });
   }
 });
@@ -396,6 +463,46 @@ app.post("/notify-client-mozo-response", async (req, res) => {
     const response = await admin.messaging().send(message);
     res.status(200).send({ message: "Notification sent successfully.", response });
   } catch (error) {
+    res.status(500).send({ error: `Failed to send notification: ${error.message}` });
+  }
+});
+
+// Notificar a un mozo específico cuando hay una nueva consulta de cliente
+app.post("/notify-mozo-new-query", async (req, res) => {
+  const { mozoEmail, clienteNombre, mesa } = req.body;
+  
+  try {
+    console.log(`📤 [notify-mozo-new-query] Notificando a mozo ${mozoEmail} sobre consulta de ${clienteNombre} (Mesa ${mesa})`);
+    
+    const { data: mozo, error } = await supabase
+      .from("empleados")
+      .select("fcm_token, nombre")
+      .eq("correo", mozoEmail)
+      .single();
+
+    if (error || !mozo?.fcm_token) {
+      console.log(`⚠️ Mozo ${mozoEmail} no tiene FCM token`);
+      return res.status(200).send({ message: "Mozo not found or no FCM token" });
+    }
+
+    const title = "💬 Nueva consulta de cliente";
+    const body = `${clienteNombre} de la Mesa ${mesa} tiene una consulta`;
+
+    const message = {
+      notification: { title, body },
+      token: mozo.fcm_token,
+      data: {
+        tipo: 'nueva_consulta',
+        mesa: mesa.toString(),
+        clienteNombre
+      }
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log(`✅ Notificación enviada a mozo ${mozo.nombre}`);
+    res.status(200).send({ message: "Notification sent successfully.", response });
+  } catch (error) {
+    console.error(`❌ Error al notificar mozo:`, error);
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
 });
@@ -548,12 +655,15 @@ app.post("/notify-supervisors-new-client", async (req, res) => {
   const { clienteNombre, clienteApellido } = req.body;
   
   try {
-    const title = "Nuevo cliente registrado";
-    const body = `${clienteNombre} ${clienteApellido || ''} se ha registrado`;
+    const title = "👤 Nuevo cliente pendiente";
+    const body = `${clienteNombre} ${clienteApellido || ''} se registró y espera aprobación`;
     
+    // Notificar a todos los supervisores (dueños y supervisores) - están en la misma tabla
     const result = await sendNotificationToRole('supervisor', title, body);
+    console.log(`✅ Notificación enviada a supervisores/dueños sobre nuevo cliente: ${clienteNombre} ${clienteApellido}`);
     res.status(200).send(result);
   } catch (error) {
+    console.error('❌ Error al notificar supervisores:', error);
     res.status(500).send({ error: `Failed to send notification: ${error.message}` });
   }
 });
@@ -562,8 +672,8 @@ app.post("/clear-fcm-token", async (req, res) => {
   const { email } = req.body;
   
   try {
-    // Intentar borrar el token de todas las tablas posibles
-    const tables = ['clientes', 'empleados', 'supervisores'];
+    // Intentar borrar el token de las tablas de usuarios
+    const tables = ['clientes', 'empleados'];
     
     for (const table of tables) {
       await supabase
@@ -571,6 +681,8 @@ app.post("/clear-fcm-token", async (req, res) => {
         .update({ fcm_token: null })
         .eq('correo', email);
     }
+    
+    console.log(`🔑 FCM token limpiado para ${email}`);
     
     res.status(200).send({ message: "FCM token cleared successfully" });
   } catch (error) {
@@ -992,9 +1104,9 @@ app.post("/notify-payment-success", async (req, res) => {
     const title = '💵 Pago Recibido';
     const body = `Se registró un pago de $${montoTotal} para la Mesa #${mesaNumero}.`;
 
-    // 1. Obtener tokens de Supervisores y Dueños
+    // 1. Obtener tokens de Supervisores y Dueños (están en tabla empleados)
     const { data: staffSuperior, error: staffError } = await supabase
-      .from("supervisores")
+      .from("empleados")
       .select("fcm_token")
       .in("perfil", ["dueño", "supervisor"])
       .not("fcm_token", "is", null);
@@ -1055,19 +1167,29 @@ app.get("/test-fcm-tokens", async (req, res) => {
     
     let tableName = 'clientes';
     let selectFields = "correo, nombre, apellido, fcm_token";
+    let whereClause = null;
     
     if (role === 'empleado') {
       tableName = 'empleados';
       selectFields = "correo, nombre, apellido, fcm_token, perfil";
     } else if (role === 'supervisor') {
-      tableName = 'supervisores';
-      selectFields = "correo, nombre, apellido, fcm_token";
+      // Supervisores y dueños están en tabla empleados
+      tableName = 'empleados';
+      selectFields = "correo, nombre, apellido, fcm_token, perfil";
+      whereClause = { field: 'perfil', values: ['supervisor', 'dueño'] };
     }
     
-    const { data, error } = await supabase
+    let query = supabase
       .from(tableName)
       .select(selectFields)
       .not("fcm_token", "is", null);
+    
+    // Aplicar filtro si es supervisor
+    if (whereClause) {
+      query = query.in(whereClause.field, whereClause.values);
+    }
+    
+    const { data, error } = await query;
     
     if (error) {
       throw error;
@@ -2325,17 +2447,19 @@ app.post("/notify-payment-confirmed", async (req, res) => {
     const title = "Pago confirmado";
     const body = `${mozoNombre} confirmó el pago de Mesa ${mesa} por $${montoTotal}. Mesa liberada.`;
     
-    // Obtener tokens de dueños y supervisores
+    // Obtener tokens de dueños y supervisores (están en tabla empleados)
     const { data: supervisores, error } = await supabase
-      .from("supervisores")
+      .from("empleados")
       .select("fcm_token")
       .in("perfil", ["dueño", "supervisor"])
       .not("fcm_token", "is", null);
 
     if (error || !supervisores?.length) {
+      console.log("No se encontraron supervisores/dueños para notificar");
       return res.status(200).send({ message: "No supervisors found" });
     }
 
+    console.log(`📤 Notificando a ${supervisores.length} supervisores/dueños`);
     const tokens = supervisores.map(s => s.fcm_token).filter(t => t);
     
     if (tokens.length === 0) {

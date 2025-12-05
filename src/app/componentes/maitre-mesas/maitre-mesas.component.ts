@@ -8,6 +8,7 @@ import { AuthService } from '../../servicios/auth.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import Swal from 'sweetalert2';
 import { CustomLoader } from 'src/app/servicios/custom-loader.service';
+import { PushNotificationService } from '../../servicios/push-notification.service';
 
 
 interface ClienteEspera {
@@ -57,7 +58,8 @@ export class MaitreMesasComponent  implements OnInit {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private authService: AuthService,
-    private reservasService: ReservasService
+    private reservasService: ReservasService,
+    private pushNotificationService: PushNotificationService
   ) { }
 
   async ngOnInit() {
@@ -186,29 +188,59 @@ export class MaitreMesasComponent  implements OnInit {
       if (errorEspera) throw new Error('Error al actualizar lista de espera: ' + errorEspera.message);
       console.log('✅ Lista de espera actualizada.');
 
+      // ---------------------------------------------------------
+      // PASO 1.5: Obtener el ID real del cliente en la tabla 'clientes'
+      // ---------------------------------------------------------
+      // cliente.id es el ID de lista_espera, necesitamos el ID de la tabla clientes
+      let clienteIdReal: number | null = null;
+      
+      const { data: clienteData, error: errorCliente } = await this.sb.supabase
+        .from('clientes')
+        .select('id')
+        .eq('correo', cliente.correo)
+        .single();
+      
+      if (!errorCliente && clienteData) {
+        clienteIdReal = clienteData.id;
+        console.log(`✅ ID real del cliente en tabla clientes: ${clienteIdReal}`);
+      } else {
+        console.log(`⚠️ No se encontró cliente en tabla clientes con correo ${cliente.correo}, usando null`);
+      }
 
       // ---------------------------------------------------------
-      // PASO 2: Ocupar la Mesa y Asignar Dueño (EL CAMBIO CLAVE)
+      // PASO 2: Ocupar la Mesa y Asignar Dueño
       // ---------------------------------------------------------
-      // Ya no "contamos" gente. Si asignamos, la mesa es DEL cliente.
       const { error: errorMesa } = await this.sb.supabase
         .from('mesas')
         .update({
-          ocupada: true,                 // La marcamos como ocupada
-          clienteAsignadoId: cliente.id  // Guardamos el ID del cliente (Foreign Key)
+          ocupada: true,
+          clienteAsignadoId: clienteIdReal  // Usamos el ID real de la tabla clientes (o null si no existe)
         })
         .eq('numero', mesa.numero);
 
       if (errorMesa) throw new Error('Error al actualizar estado de la mesa: ' + errorMesa.message);
-      console.log(`✅ Mesa ${mesa.numero} marcada como ocupada y asignada a ID: ${cliente.id}`);
+      console.log(`✅ Mesa ${mesa.numero} marcada como ocupada y asignada a clienteId: ${clienteIdReal}`);
 
 
       // ---------------------------------------------------------
-      // PASO 3: Feedback y Finalización
+      // PASO 3: Notificar al cliente (push notification + email si no es anónimo)
       // ---------------------------------------------------------
-      
-      // TODO: Aquí llamarías a tu servicio de notificaciones para avisar al cliente
-      // await this.notificacionService.enviarPush(...)
+      try {
+        console.log('📤 [MAITRE] Enviando notificación al cliente:');
+        console.log('   - Correo:', cliente.correo);
+        console.log('   - Mesa:', mesa.numero);
+        console.log('   - Nombre:', cliente.nombre);
+        
+        const result = await this.pushNotificationService.notificarClienteAsignadaMesa(
+          cliente.correo,
+          mesa.numero.toString(),
+          cliente.nombre,
+          '' // apellido (no lo tenemos en lista_espera)
+        );
+        console.log('✅ [MAITRE] Respuesta del servidor:', result);
+      } catch (notifError: any) {
+        console.error('⚠️ [MAITRE] Error al enviar notificación:', notifError?.message || notifError);
+      }
 
       this.feedback.showToast('exito', `✅ Mesa ${mesa.numero} asignada a ${cliente.nombre}.`);
 

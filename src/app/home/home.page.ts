@@ -1910,6 +1910,7 @@ export class HomePage implements OnInit, ViewWillEnter {
   }
 
   irAVerEstadoPedido() {
+    this.qrMesaEscaneado = false; // Resetear para que deba escanear de nuevo
     this.router.navigate(['/pedidos']);
   }
 
@@ -1920,17 +1921,27 @@ export class HomePage implements OnInit, ViewWillEnter {
   
   irAJuegos()
   {
+    this.qrMesaEscaneado = false; // Resetear para que deba escanear de nuevo
+    this.qrDeliveryEscaneado = false; // También para delivery
     this.router.navigate(['/game-selector']);
   }
 
   irAEncuestas()
   {
+    this.qrMesaEscaneado = false; // Resetear para que deba escanear de nuevo
     this.router.navigate(['/encuestas']);
   }
 
   verResultadosEncuestas()
   {
+    this.qrMesaEscaneado = false; // Resetear para que deba escanear de nuevo
     this.router.navigate(['/encuestas'], { queryParams: { modo: 'ver' } });
+  }
+
+  irAVerCarta()
+  {
+    this.qrMesaEscaneado = false; // Resetear para que deba escanear de nuevo
+    this.router.navigate(['/menu']);
   }
 
   // ========== FLUJO DE CUENTA Y PAGO ==========

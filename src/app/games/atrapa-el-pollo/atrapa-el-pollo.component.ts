@@ -23,6 +23,7 @@ interface Obstaculo {
   huecoY: number;
   ancho: number;
   huecoAltura: number;
+  pasado: boolean; // Para saber si ya fue contado
 }
 
 @Component({
@@ -50,7 +51,6 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
   puedeJugarPorDescuento: boolean = false;
   yaUsoIntento: boolean = false;
   esAnonimo: boolean = false;
-  descuentoJuego: number = JUEGOS_CONFIG['atrapa-el-pollo'].descuento; // 10%
 
   // Variables de Estado
   gameState: GameState = 'inicio';
@@ -62,19 +62,24 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
 
   // Variables del Juego
   obstaculos: Obstaculo[] = [];
-  velocidadJuego = 3;
-  distanciaEntreObstaculos = 300;
-  ultimoObstaculoX = 0;
+  velocidadJuego = 2.5; // Reducida para que sea más manejable
+  distanciaEntreObstaculos = 250; // Ajustado para mejor spacing
 
   juegoActivo = false;
   juegoInterval: any;
-  gravedad = 0.4;
-  saltoFuerza = -8;
-  distanciaGanar = 750;
-  distanciaRecorrida = 0;
+  gravedad = 0.35; // Reducida ligeramente para mejor control
+  saltoFuerza = -7.5; // Ajustado para mejor equilibrio
 
-  metaDistancia = 800;
-  metaAncho = 50;
+  // NUEVO: Sistema de paredes pasadas
+  paredesPasadas = 0;
+  totalParedes = 8; // Total de paredes para ganar
+  
+  // Niveles de descuento basados en paredes
+  nivelesDescuento = {
+    3: 10,  // 3 paredes = 10%
+    5: 15,  // 5 paredes = 15%
+    8: 20   // 8 paredes (ganar) = 20%
+  };
 
   resultadoFinal: ResultadoJuego = { exito: false, porcentaje: 0, distancia: 0 };
   mensajeResultado: string = '';
@@ -123,9 +128,11 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
     this.gameState = 'jugando';
     this.polloY = 50;
     this.velocidadVertical = 0;
-    this.distanciaRecorrida = 0;
+    this.paredesPasadas = 0;
     this.obstaculos = [];
-    this.ultimoObstaculoX = 0;
+
+    // Generar el primer obstáculo inmediatamente a la derecha
+    this.generarObstaculoInicial();
 
     this.juegoInterval = setInterval(() => {
       this.actualizarJuego();
@@ -144,17 +151,22 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
   }
 
   actualizarJuego() {
+    // Aplicar física al pollo
     this.velocidadVertical += this.gravedad;
     this.polloY += this.velocidadVertical * 0.1;
 
+    // Verificar límites de pantalla
     if (this.polloY < 0 || this.polloY > 100 - this.polloAltura) {
       this.terminarJuego(false);
       return;
     }
 
+    // Generar y mover obstáculos
     this.generarObstaculos();
     this.moverObstaculos();
+    this.verificarParedPasada();
 
+    // Verificar colisiones
     for (let obstaculo of this.obstaculos) {
       if (this.checkCollision(obstaculo)) {
         this.terminarJuego(false);
@@ -162,30 +174,122 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.distanciaRecorrida += this.velocidadJuego;
-
-    // Verificar si ganó (llegó a la distancia objetivo)
-    if (this.distanciaRecorrida >= this.distanciaGanar) {
+    // Verificar si ganó (pasó todas las paredes)
+    if (this.paredesPasadas >= this.totalParedes) {
       this.terminarJuego(true);
     }
+  }
+
+  generarObstaculoInicial() {
+    const nuevoObstaculo: Obstaculo = {
+      id: Date.now(),
+      x: 600, // Aparece a mitad de pantalla
+      huecoY: 40 + Math.random() * 20, // Entre 40% y 60%
+      ancho: 80,
+      huecoAltura: 35, // Hueco más generoso
+      pasado: false
+    };
+    this.obstaculos.push(nuevoObstaculo);
+  }
+
+  generarObstaculos() {
+    // Solo generar si no hay suficientes obstáculos en pantalla
+    const ultimoObstaculo = this.obstaculos[this.obstaculos.length - 1];
+    
+    if (!ultimoObstaculo || ultimoObstaculo.x < 1000 - this.distanciaEntreObstaculos) {
+      const nuevoObstaculo: Obstaculo = {
+        id: Date.now(),
+        x: 1000,
+        huecoY: 30 + Math.random() * 40, // Entre 30% y 70% de altura
+        ancho: 80,
+        huecoAltura: 35,
+        pasado: false
+      };
+
+      this.obstaculos.push(nuevoObstaculo);
+    }
+  }
+
+  moverObstaculos() {
+    this.obstaculos = this.obstaculos.map(obs => ({
+      ...obs,
+      x: obs.x - this.velocidadJuego
+    }));
+
+    // Eliminar obstáculos que salieron de la pantalla
+    this.obstaculos = this.obstaculos.filter(obs => obs.x > -100);
+  }
+
+  verificarParedPasada() {
+    const crispyX = 100; // Posición fija de Crispy (10% = 100px aprox)
+
+    for (let obstaculo of this.obstaculos) {
+      // Si el obstáculo no fue contado y ya pasó a Crispy
+      if (!obstaculo.pasado && obstaculo.x + obstaculo.ancho < crispyX) {
+        obstaculo.pasado = true;
+        this.paredesPasadas++;
+        console.log(`🎯 ¡Pared pasada! Total: ${this.paredesPasadas}/${this.totalParedes}`);
+      }
+    }
+  }
+
+  checkCollision(obstaculo: Obstaculo): boolean {
+    const crispyX = 100; // 10% de la pantalla
+    const crispyYPixeles = this.polloY * 10; // Convertir vh a px aproximado
+    const crispyWidth = 50;
+    const crispyHeight = 50;
+
+    const obstaculoX = obstaculo.x;
+    const obstaculoWidth = obstaculo.ancho;
+
+    // Calcular posiciones de los huecos
+    const topYEnd = (obstaculo.huecoY - obstaculo.huecoAltura / 2) * 10;
+    const bottomYStart = (obstaculo.huecoY + obstaculo.huecoAltura / 2) * 10;
+
+    // Verificar colisión en X
+    const collisionX = crispyX + crispyWidth > obstaculoX &&
+      crispyX < obstaculoX + obstaculoWidth;
+
+    if (collisionX) {
+      // Verificar si está en el hueco (NO colisión)
+      const enHueco = crispyYPixeles >= topYEnd && 
+                      crispyYPixeles + crispyHeight <= bottomYStart;
+      
+      return !enHueco; // Hay colisión si NO está en el hueco
+    }
+
+    return false;
+  }
+
+  calcularDescuento(): number {
+    // Calcular descuento basado en paredes pasadas
+    if (this.paredesPasadas >= 8) return 20;
+    if (this.paredesPasadas >= 5) return 15;
+    if (this.paredesPasadas >= 3) return 10;
+    return 0;
   }
 
   async terminarJuego(gano: boolean) {
     this.detenerJuego();
     this.gameState = 'terminado';
 
+    const descuentoObtenido = this.calcularDescuento();
+
     this.resultadoFinal = {
       exito: gano,
-      porcentaje: gano ? this.descuentoJuego : 0,
-      distancia: this.distanciaRecorrida
+      porcentaje: descuentoObtenido,
+      distancia: this.paredesPasadas
     };
 
     // Si es delivery, guardar el descuento en el pedido
     if (this.esDelivery && this.pedidoDeliveryId) {
-      await this.guardarDescuentoDelivery(gano ? this.descuentoJuego : 0);
+      await this.guardarDescuentoDelivery(descuentoObtenido);
     } else {
       // Para pedidos en restaurante, usar el servicio de juegos
-      const resultado = await this.juegosService.registrarResultadoJuego('atrapa-el-pollo', gano);
+      const resultado = await this.juegosService.registrarResultadoJuego(
+        'atrapa-el-pollo', 
+        descuentoObtenido > 0
+      );
       this.mensajeResultado = resultado.mensaje;
       
       // Actualizar estado después de jugar
@@ -218,58 +322,6 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
     return `translateY(${this.polloY}vh)`;
   }
 
-  generarObstaculos() {
-    if (this.obstaculos.length === 0 || this.ultimoObstaculoX < 1000 - this.distanciaEntreObstaculos) {
-      const nuevoObstaculo: Obstaculo = {
-        id: Date.now(),
-        x: 1000,
-        huecoY: 30 + Math.random() * 40,
-        ancho: 80,
-        huecoAltura: 30
-      };
-
-      this.obstaculos.push(nuevoObstaculo);
-      this.ultimoObstaculoX = nuevoObstaculo.x;
-    }
-  }
-
-  moverObstaculos() {
-    this.obstaculos = this.obstaculos.map(obs => ({
-      ...obs,
-      x: obs.x - this.velocidadJuego
-    }));
-
-    this.obstaculos = this.obstaculos.filter(obs => obs.x > -100);
-
-    if (this.obstaculos.length > 0) {
-      this.ultimoObstaculoX = this.obstaculos[this.obstaculos.length - 1].x;
-    }
-  }
-
-  checkCollision(obstaculo: Obstaculo): boolean {
-    const crispyX = 100;
-    const crispyYPixeles = this.polloY * 10;
-    const crispyWidth = 50;
-    const crispyHeight = 50;
-
-    const obstaculoX = obstaculo.x;
-    const obstaculoWidth = obstaculo.ancho;
-
-    const topYEnd = (obstaculo.huecoY - obstaculo.huecoAltura / 2) * 10;
-    const bottomYStart = (obstaculo.huecoY + obstaculo.huecoAltura / 2) * 10;
-
-    const collisionX = crispyX + crispyWidth > obstaculoX &&
-      crispyX < obstaculoX + obstaculoWidth;
-
-    if (collisionX) {
-      const collisionYTop = crispyYPixeles < topYEnd;
-      const collisionYBottom = crispyYPixeles + crispyHeight > bottomYStart;
-      return collisionYTop || collisionYBottom;
-    }
-
-    return false;
-  }
-
   getMensajeInicio(): string {
     if (this.esAnonimo) {
       return '🎮 ¡Jugá por diversión! Los descuentos son para clientes registrados.';
@@ -277,7 +329,7 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
     if (this.yaUsoIntento) {
       return '🎮 ¡Jugá libremente! Ya usaste tu intento de descuento.';
     }
-    return `🎯 ¡Ganá y obtené ${this.descuentoJuego}% de descuento!`;
+    return `🎯 ¡Pasá paredes y ganá descuentos! 3 paredes = 10%, 5 = 15%, 8 = 20%`;
   }
 
   volverAlHome() {
@@ -296,9 +348,8 @@ export class AtrapaElPolloComponent implements OnInit, OnDestroy {
     this.gameState = 'inicio';
     this.polloY = 50;
     this.velocidadVertical = 0;
-    this.distanciaRecorrida = 0;
+    this.paredesPasadas = 0;
     this.obstaculos = [];
-    this.ultimoObstaculoX = 0;
     this.mensajeResultado = '';
   }
 }
