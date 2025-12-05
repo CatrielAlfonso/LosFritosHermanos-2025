@@ -1,4 +1,6 @@
-/* ion-content host: fondo app */
+/* =========================================
+   VARIABLES DE MARCA
+   ========================================= */
 :host {
   --fritos-orange: var(--ion-color-fritos-orange, #ff9800);
   --fritos-yellow: var(--ion-color-fritos-yellow, #ffeb3b);
@@ -9,167 +11,175 @@
 }
 
 .anonimo-page {
-  // Color principal de fondo
   --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
+  /* Bloqueamos el scroll en la página general */
+  --overflow: hidden; 
 }
 
 /* ----------------------------------- */
-/* DISEÑO DE PANTALLA COMPLETA (Grid)  */
+/* ESTRUCTURA PRINCIPAL (Columna)      */
 /* ----------------------------------- */
 .full-screen-grid {
-  height: 100%; // Asegura que ocupe todo el ion-content
-  display: flex; // Usaremos flexbox para dividir la pantalla verticalmente
+  height: 100%; 
+  display: flex; 
   flex-direction: column;
-  box-sizing: border-box;
+  overflow: hidden; /* Sin barras de desplazamiento */
 }
 
-/* PANEL SUPERIOR: Formulario (Ocupa la mayor parte, 70% o más) */
+/* 1. PANEL SUPERIOR (Contenido Centrado) */
 .anonimo-panel {
-  flex-grow: 1; // Crece para ocupar el espacio
-  padding: 0 20px;
+  flex: 1; /* Ocupa todo el espacio disponible menos el footer */
+  
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; // Los elementos van al inicio
-  text-align: center;
-  background: rgba(255, 255, 255, 0.1); // Transparencia sutil
-  max-height: calc(100vh - 120px); /* deja espacio para el panel de volver */
-  overflow-y: auto;
-}
-
-/* PANEL INFERIOR: QR y Volver (Ocupa la parte inferior, 30% o menos) */
-.qr-panel {
-  flex-shrink: 0; // No se encoge
-  padding: 20px;
-  background: #2b49b3; // Color sólido más oscuro que el fondo principal
-  box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
-  text-align: center;
-}
-
-/* ----------------------------------- */
-/* ESTILOS DE ELEMENTOS                */
-/* ----------------------------------- */
-
-// Logo y títulos
-.anonimo-logo {
-  width: 130px;
-  height: 130px;
-  padding: 10px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin: 0 auto 8px auto;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
-.anonimo-title { 
-  color: var(--fritos-blue); 
-  font-size: 1.8rem; 
-  margin-bottom: 4px;
-}
-.anonimo-subtitle { 
-  color: var(--fritos-blue); 
-  margin-bottom: 20px; 
-}
-.qr-subtitle {
-  color: var(--fritos-blue); 
-  opacity: 0.8;
-  margin-bottom: 15px;
-  font-weight: 300;
-}
-
-// Items e Inputs (Usamos tu estilo de "glassmorphism" sutil)
-.fritos-input {
-  --background: rgba(202, 210, 211, 0.811);
-  border-radius: 10px;
-  margin-bottom: 12px;
-  --color: #fff;
-  ion-label { color: var(--fritos-blue) !important; font-weight: 600; }
-  ion-input { color: #000000; }
-}
-
-// Preview Foto
-.preview-wrapper { 
-  margin: 10px 0 16px 0; 
-  display: flex;
-  justify-content: center;
-}
-.preview-wrapper img { 
-  width: 80px; 
-  height: 80px; 
-  object-fit: cover; 
-  border-radius: 50%; // Circular para perfil
-  border: 3px solid var(--fritos-blue); 
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-// Botones
-ion-button { 
-  --border-radius: 8px; 
-  margin: 8px 0; 
-}
-
-.scan-button {
-  font-weight: bold;
-  --box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-}
-
-// Resultado del Escaneo
-.scan-result-card {
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
-  padding: 10px;
-  border-radius: 10px;
-  margin-top: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  text-align: left;
-  h3 {
-    margin: 0;
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-  small {
-    color: #555;
-    display: block;
-    font-size: 0.7rem;
-    margin-bottom: 2px;
-  }
-}
-
-.action-buttons-group {
-  display: flex;
-  ion-button {
-    --color: #4666de;
-    margin: 0 2px;
-  }
-}
-
-
-.boton-grande-entrar {
-  min-height: 350px; // Botón más grande
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 15px;
-  flex-shrink: 0; // Evita que se comprima
+  justify-content: center; /* Centrado Vertical */
+  align-items: center;     /* Centrado Horizontal */
   
-  ion-icon {
-    font-size: 2rem;
-  }
+  padding: 20px;
+  width: 100%;
+  
+  /* Fondo sutil para destacar los inputs */
+  background: rgba(255, 255, 255, 0.15); 
 }
 
-// Ajusta el espaciado del formulario para que el botón ocupe más espacio
+/* ----------------------------------- */
+/* ELEMENTOS DEL FORMULARIO            */
+/* ----------------------------------- */
+
+/* Contenedor del Header + Formulario */
+/* Esto asegura que el ancho no se descontrole */
+header, form {
+  width: 100%;
+  max-width: 350px; /* Ancho máximo para que se vea bien en tablets */
+}
+
+header {
+  text-align: center;
+  margin-bottom: 10px;
+  /* Si el contenido es mucho, el header se encoge un poco pero no desaparece */
+  flex-shrink: 0; 
+}
+
 form.ion-padding {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  gap: 10px;
+  padding: 0 !important; /* Quitamos padding extra de Ionic */
   
-  ion-button[type="submit"] {
-    margin-top: auto;
+  /* Esta es la clave para que el formulario use el espacio disponible */
+  /* pero sin forzar scroll */
+  flex-shrink: 1; 
+}
+
+/* Inputs */
+.fritos-input {
+  --background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  margin-bottom: 0; /* El gap del form maneja el espacio */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+  ion-label { color: var(--fritos-blue) !important; font-weight: 800; }
+  ion-input { color: #333; font-weight: 600; }
+}
+
+/* Foto Preview */
+.preview-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 5px 0;
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--fritos-blue);
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   }
 }
 
-// Opcional: ajusta el panel para que use flexbox
-.anonimo-panel {
+/* 2. BOTÓN ENTRAR (Responsive) */
+.boton-grande-entrar {
+  /* Altura base grande y cómoda */
+  min-height: 250px;
+  
+  /* Truco: Si sobra espacio en la pantalla, el botón crece un poco */
+  /* Pero si aparece la foto, vuelve a su tamaño normal (min-height) */
+  flex-grow: 1; 
+  max-height: 120px; /* Límite para que no sea gigante en pantallas largas */
+  
+  margin-top: 10px;
+  --border-radius: 20px;
+  font-weight: 900;
+  font-size: 1.2rem;
+  --background: var(--fritos-blue);
+  --box-shadow: 0 4px 0 #2a3f8f; /* Efecto 3D */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+
+  ion-icon {
+    font-size: 1.8rem;
+    margin-right: 10px;
+  }
+}
+
+/* 3. PANEL INFERIOR (Volver - Pegado Abajo) */
+.volver-panel {
+  flex-shrink: 0; /* No se achica nunca */
+  height: 80px;   /* Altura fija */
+  width: 100%;
+  
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  align-items: center;
+  justify-content: center;
+  
+  /* Fondo Rojo Fuerte */
+  background-color: var(--fritos-red);
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  z-index: 10;
+
+  ion-button {
+    width: 90%;
+    max-width: 350px;
+    --color: white !important;
+    font-weight: 700;
+    font-size: 1.1rem;
+    
+    ion-icon { color: white; margin-right: 8px; }
+  }
+}
+
+/* Logo y Textos */
+.anonimo-logo {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  margin: 0 auto 5px auto;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+}
+
+.anonimo-title {
+  color: var(--fritos-blue);
+  font-size: 1.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
+}
+
+.anonimo-subtitle {
+  color: var(--fritos-text);
+  font-size: 0.95rem;
+  margin: 5px 0 15px 0;
+  opacity: 0.8;
+}
+
+@keyframes popIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
 }
