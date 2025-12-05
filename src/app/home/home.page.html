@@ -179,7 +179,7 @@
       </ion-button>
     </div>
 
-    <div *ngIf="tipoUsuario === 'cliente' || esClienteAnonimo" class="cliente-options">
+    <div *ngIf="tipoUsuario === 'cliente' || esClienteAnonimo" class="cliente-options cliente-scroll">
       
       <!-- Mensaje de lista de espera -->
       @if (esClienteAnonimo && yaEnListaEspera && !mesaAsignada && mostrarMensajeListaEspera)

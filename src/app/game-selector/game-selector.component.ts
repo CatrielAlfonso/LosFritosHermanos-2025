@@ -49,7 +49,7 @@ export class GameSelectorComponent implements OnInit {
       id: 'mozo-equilibrio',
       nombre: 'Mozo Equilibrio',
       descripcion: 'Evitá los obstáculos usando el giroscopio.',
-      ruta: '/mozo-quilibrio',
+      ruta: '/equilibrio',
       imagen: '../../assets/imgs/mozoEquilibrio.png',
 
     },
