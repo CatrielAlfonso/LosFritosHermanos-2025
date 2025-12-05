@@ -721,15 +721,15 @@ export class ReservasService {
 
       // Buscar una reserva que esté dentro del lapso válido
       for (const reserva of data) {
-        const fechaHoraReserva = new Date(`${reserva.fecha_reserva}T${reserva.hora_reserva}`);
+      const fechaHoraReserva = new Date(`${reserva.fecha_reserva}T${reserva.hora_reserva}`);
         const tiempoDiferencia = ahora.getTime() - fechaHoraReserva.getTime();
-        const minutosDiferencia = tiempoDiferencia / (1000 * 60);
+      const minutosDiferencia = tiempoDiferencia / (1000 * 60);
 
         // Reserva válida: desde la hora de reserva hasta 45 minutos después
         // (minutosDiferencia >= 0 significa que ya llegó la hora)
         // (minutosDiferencia <= 45 significa que no han pasado más de 45 min)
         if (minutosDiferencia >= 0 && minutosDiferencia <= 45) {
-          return reserva;
+        return reserva;
         }
       }
 

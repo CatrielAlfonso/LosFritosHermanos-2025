@@ -1730,29 +1730,31 @@ app.post("/notify-new-reservation", async (req, res) => {
     const title = "📅 Nueva Reserva Solicitada";
     const body = `${clienteNombre} ${clienteApellido || ''} - ${fechaReserva} a las ${horaReserva} (${cantidadComensales} comensales)`;
 
-    // Obtener tokens de supervisores y dueños
-    const { data: staffSuperior, error: staffError } = await supabase
-      .from("supervisores")
+    // Obtener tokens SOLO de supervisores (tabla empleados con perfil 'supervisor')
+    const { data: supervisores, error: supervisorError } = await supabase
+      .from("empleados")
       .select("fcm_token")
-      .in("perfil", ["dueño", "supervisor"])
+      .eq("perfil", "supervisor")
       .not("fcm_token", "is", null);
 
-    if (staffError) {
-      console.error("Error al buscar tokens de supervisores y dueños:", staffError);
+    if (supervisorError) {
+      console.error("Error al buscar tokens de supervisores:", supervisorError);
       throw new Error("Error en la base de datos al buscar destinatarios.");
     }
     
-    const tokensSuperiores = staffSuperior?.map(s => s.fcm_token) || [];
+    const tokensSupervisores = supervisores?.map(s => s.fcm_token).filter(t => t) || [];
 
-    if (tokensSuperiores.length === 0) {
-      console.log("No se encontraron tokens válidos para notificar la reserva.");
-      return res.status(200).send({ message: "No se encontraron usuarios para notificar." });
+    if (tokensSupervisores.length === 0) {
+      console.log("No se encontraron supervisores con tokens válidos para notificar la reserva.");
+      return res.status(200).send({ message: "No se encontraron supervisores para notificar." });
     }
 
-    // Preparar y enviar la notificación
+    console.log(`📅 [notify-new-reservation] Notificando a ${tokensSupervisores.length} supervisor(es)`);
+
+    // Preparar y enviar la notificación SOLO a supervisores
     const message = {
       notification: { title, body },
-      tokens: tokensSuperiores,
+      tokens: tokensSupervisores,
       data: {
         link: '/gestionar-reservas',
         reservaId: reservaId.toString()
@@ -2608,17 +2610,6 @@ app.post("/enviar-correo-reserva-rechazada", async (req, res) => {
                       <p class="motivo-text">"${motivo}"</p>
                   </div>
                   
-                  <p class="message">
-                      Si deseas realizar una nueva reserva o tienes alguna consulta, no dudes en contactarnos. 
-                      Estaremos encantados de ayudarte a encontrar una fecha y hora alternativa.
-                  </p>
-                  
-                  <div class="button-container">
-                      <a href="mailto:reservas@fritoshermanos.com" class="contact-button">
-                          📧 Contactar para Nueva Reserva
-                      </a>
-                  </div>
-                  
                   <p class="message" style="text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 14px;">
                       Esperamos poder atenderte en otra ocasión.
                   </p>
@@ -2637,7 +2628,7 @@ app.post("/enviar-correo-reserva-rechazada", async (req, res) => {
     const result = await sendEmail({
       to: correo,
       subject: '❌ Reserva Rechazada - Los Fritos Hermanos',
-      text: `Estimado/a ${nombre}, lamentamos informarte que tu reserva para el ${fechaFormateada} a las ${horaReserva} ha sido rechazada. Motivo: ${motivo}. Si deseas realizar una nueva reserva, contáctanos.`,
+      text: `Estimado/a ${nombre}, lamentamos informarte que tu reserva para el ${fechaFormateada} a las ${horaReserva} ha sido rechazada. Motivo: ${motivo}. Esperamos poder atenderte en otra ocasión.`,
       html: htmlContent
     });
     
