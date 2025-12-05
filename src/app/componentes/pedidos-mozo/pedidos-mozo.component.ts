@@ -376,7 +376,7 @@ segmentoActivo = 'activos';
         });
 
         // 2. Liberar la mesa
-        await this.liberarMesa(pedido.mesa);
+        //await this.liberarMesa(pedido.mesa);
 
         // 3. Notificar a dueños y supervisores
         try {
