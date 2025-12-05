@@ -99,7 +99,8 @@ function obtenerFechaHoraArgentina() {
 }
 
 /**
- * Asigna mesas a reservas confirmadas cuando llega su hora
+ * Asigna mesas a reservas confirmadas 30 MINUTOS ANTES de la hora de reserva
+ * Ejemplo: reserva a las 16:00 → mesa asignada a las 15:30
  */
 async function procesarReservasParaAsignarMesa() {
   try {
@@ -107,16 +108,24 @@ async function procesarReservasParaAsignarMesa() {
     const hoy = argentina.fecha;
     const horaActual = argentina.hora;
     
-    console.log(`🕐 [CRON] Hora Argentina: ${hoy} ${horaActual}`);
+    // Calcular la hora límite para asignar (hora actual + 30 min)
+    // Si son las 15:30, buscar reservas hasta las 16:00
+    const [horaActualH, horaActualM] = horaActual.split(':').map(Number);
+    const minutosActuales = horaActualH * 60 + horaActualM;
+    const minutosLimite = minutosActuales + 30; // 30 minutos en el futuro
+    const horaLimiteAsignacion = `${String(Math.floor(minutosLimite / 60)).padStart(2, '0')}:${String(minutosLimite % 60).padStart(2, '0')}`;
     
-    // Buscar reservas confirmadas de hoy sin mesa asignada cuya hora ya llegó
+    console.log(`🕐 [CRON] Hora Argentina: ${hoy} ${horaActual} | Asignando mesas para reservas hasta las ${horaLimiteAsignacion}`);
+    
+    // Buscar reservas confirmadas de hoy sin mesa asignada cuya hora es dentro de los próximos 30 min
+    // Es decir: hora_reserva <= horaActual + 30min
     const { data: reservas, error } = await supabase
       .from('reservas')
       .select('*')
       .eq('estado', 'confirmada')
       .eq('fecha_reserva', hoy)
       .is('mesa_numero', null)
-      .lte('hora_reserva', horaActual);
+      .lte('hora_reserva', horaLimiteAsignacion);
     
     if (error) {
       console.error('❌ Error al buscar reservas para asignar mesa:', error);
@@ -127,21 +136,21 @@ async function procesarReservasParaAsignarMesa() {
       return; // No hay reservas para procesar
     }
     
-    console.log(`📋 [CRON] Encontradas ${reservas.length} reservas para asignar mesa`);
+    console.log(`📋 [CRON] Encontradas ${reservas.length} reservas para asignar mesa (30 min antes)`);
     
     for (const reserva of reservas) {
       // Verificar que no hayan pasado más de 45 minutos desde la hora de reserva
-      // Crear fecha de reserva en hora local
+      // Crear fecha de reserva usando componentes para evitar problemas de timezone
       const [year, month, day] = reserva.fecha_reserva.split('-').map(Number);
       const [hour, minute] = reserva.hora_reserva.split(':').map(Number);
-      const fechaHoraReserva = new Date(year, month - 1, day, hour, minute);
       
-      const ahora = new Date();
-      const minutosDiferencia = (ahora.getTime() - fechaHoraReserva.getTime()) / (1000 * 60);
+      // Calcular minutos desde medianoche para comparar
+      const minutosReserva = hour * 60 + minute;
+      const minutosDiferenciaDesdeReserva = minutosActuales - minutosReserva;
       
-      if (minutosDiferencia > 45) {
-        // La reserva expiró sin que el cliente llegara, marcarla como expirada
-        console.log(`⏰ [CRON] Reserva ${reserva.id} expiró sin asignar mesa (${minutosDiferencia.toFixed(0)} min)`);
+      if (minutosDiferenciaDesdeReserva > 45) {
+        // La reserva expiró sin que el cliente llegara (más de 45 min después de la hora de reserva)
+        console.log(`⏰ [CRON] Reserva ${reserva.id} expiró sin asignar mesa (${minutosDiferenciaDesdeReserva} min después de ${reserva.hora_reserva})`);
         await supabase
           .from('reservas')
           .update({ estado: 'expirada' })
@@ -164,7 +173,14 @@ async function procesarReservasParaAsignarMesa() {
       }
       
       const mesa = mesasDisponibles[0];
-      const horaLimite = new Date(ahora.getTime() + 45 * 60 * 1000);
+      const ahora = new Date();
+      
+      // Calcular hora límite: 45 minutos DESPUÉS de la hora de la reserva
+      // Ejemplo: reserva 16:00 → límite 16:45
+      const fechaHoraReserva = new Date(year, month - 1, day, hour, minute);
+      const horaLimite = new Date(fechaHoraReserva.getTime() + 45 * 60 * 1000);
+      
+      console.log(`📋 [CRON] Reserva ${reserva.id}: hora reserva ${reserva.hora_reserva}, límite para escanear QR: ${horaLimite.toLocaleTimeString('es-AR')}`);
       
       // Asignar mesa a la reserva
       const { error: errorAsignar } = await supabase
@@ -199,13 +215,7 @@ async function procesarReservasParaAsignarMesa() {
       }
       
       console.log(`✅ [CRON] Mesa ${mesa.numero} asignada a reserva ${reserva.id} (${reserva.cliente_nombre})`);
-      
-      // Enviar notificación push al cliente
-      try {
-        await notificarMesaAsignadaReserva(reserva, mesa.numero);
-      } catch (notifError) {
-        console.error(`⚠️ [CRON] Error al notificar mesa asignada:`, notifError);
-      }
+      // No se envía push notification al asignar mesa
     }
   } catch (error) {
     console.error('❌ Error en procesarReservasParaAsignarMesa:', error);
