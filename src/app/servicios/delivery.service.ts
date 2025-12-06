@@ -59,6 +59,13 @@ export interface PedidoDelivery {
   metodo_pago?: string;
   pagado?: boolean;
   
+  // Flujo cliente (igual que pedidos normales)
+  recepcion?: boolean; // Cliente confirmó recepción del pedido
+  encuesta_respondida?: boolean; // Cliente ya respondió la encuesta
+  solicita_cuenta?: boolean; // Cliente solicitó la cuenta
+  cuenta_habilitada?: boolean; // Mozo habilitó la cuenta
+  descuento_juego?: number; // Descuento obtenido en juegos
+  
   // Timestamps (compatibilidad con ambas tablas)
   created_at?: string;
   updated_at?: string;
@@ -661,23 +668,11 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
   async marcarPedidoEntregado(pedidoId: number): Promise<void> {
     console.log('🚴 [marcarPedidoEntregado] Marcando pedido como entregado:', pedidoId);
     
-    // Actualizar en tabla PEDIDOS
-    const { error: errorPedidos } = await this.supabase.supabase
-      .from('pedidos')
-      .update({ 
-        estado: 'entregado'
-      })
-      .eq('id', pedidoId);
-
-    if (errorPedidos) {
-      console.error('❌ Error al marcar entregado en pedidos:', errorPedidos);
-      throw new Error(`Error al marcar entregado: ${errorPedidos.message}`);
-    }
-
-    console.log('✅ Pedido marcado como entregado en tabla pedidos');
-
-    // También actualizar en pedidos_delivery si existe
-    const { data: pedido, error: updateError } = await this.supabase.supabase
+    let pedidoData: any = null;
+    let repartidorId: number | null = null;
+    
+    // Primero intentar actualizar en pedidos_delivery (sin .single() para evitar error si no existe)
+    const { data: pedidoDelivery, error: updateDeliveryError } = await this.supabase.supabase
       .from('pedidos_delivery')
       .update({ 
         estado: 'entregado',
@@ -685,34 +680,63 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
         updated_at: new Date().toISOString()
       })
       .eq('id', pedidoId)
-      .select()
-      .single();
+      .select();
 
-    if (updateError) {
-      console.error('Error al marcar como entregado:', updateError);
-      throw new Error(`Error al actualizar: ${updateError.message}`);
+    if (!updateDeliveryError && pedidoDelivery && pedidoDelivery.length > 0) {
+      pedidoData = pedidoDelivery[0];
+      repartidorId = pedidoData.repartidor_id;
+      console.log('✅ Pedido marcado como entregado en pedidos_delivery');
+    } else {
+      console.log('ℹ️ Pedido no encontrado en pedidos_delivery, buscando en pedidos...');
+    }
+
+    // Actualizar en tabla PEDIDOS (siempre intentar)
+    const { data: pedidoNormal, error: errorPedidos } = await this.supabase.supabase
+      .from('pedidos')
+      .update({ 
+        estado: 'entregado'
+      })
+      .eq('id', pedidoId)
+      .select();
+
+    if (errorPedidos) {
+      console.error('❌ Error al marcar entregado en pedidos:', errorPedidos);
+      // Solo lanzar error si tampoco se actualizó en pedidos_delivery
+      if (!pedidoData) {
+        throw new Error(`Error al marcar entregado: ${errorPedidos.message}`);
+      }
+    } else if (pedidoNormal && pedidoNormal.length > 0) {
+      console.log('✅ Pedido marcado como entregado en tabla pedidos');
+      // Si no teníamos datos del delivery, usar los de pedidos
+      if (!pedidoData) {
+        pedidoData = pedidoNormal[0];
+        repartidorId = pedidoData.repartidor_id;
+      }
     }
 
     // Liberar repartidor (marcarlo como disponible nuevamente)
-    if (pedido.repartidor_id) {
+    if (repartidorId) {
       const { error: repartidorError } = await this.supabase.supabase
         .from('repartidores')
         .update({ 
           disponible: true,
-          // Incrementar pedidos completados se manejará con un trigger en BD o manualmente
         })
-        .eq('id', pedido.repartidor_id);
+        .eq('id', repartidorId);
 
       if (repartidorError) {
         console.error('Error al actualizar repartidor:', repartidorError);
+      } else {
+        console.log('✅ Repartidor marcado como disponible');
       }
     }
 
     // Notificar al cliente
-    try {
-      await this.notificarClienteEstadoPedido(pedido, 'entregado');
-    } catch (notifError) {
-      console.error('Error al notificar cliente:', notifError);
+    if (pedidoData) {
+      try {
+        await this.notificarClienteEstadoPedido(pedidoData, 'entregado');
+      } catch (notifError) {
+        console.error('Error al notificar cliente:', notifError);
+      }
     }
   }
 
@@ -814,10 +838,13 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
 
   /**
    * Actualiza la propina de un pedido delivery
+   * Usa directamente la tabla 'pedidos' donde mesa = 'DELIVERY'
    */
   async actualizarPropinaDelivery(pedidoId: number, propina: number): Promise<void> {
+    console.log('💰 [actualizarPropinaDelivery] Actualizando propina:', propina, '% para pedido:', pedidoId);
+    
     const { error } = await this.supabase.supabase
-      .from('pedidos_delivery')
+      .from('pedidos')
       .update({ propina })
       .eq('id', pedidoId);
 
@@ -825,17 +852,21 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
       console.error('Error al actualizar propina:', error);
       throw new Error(`Error al actualizar la propina: ${error.message}`);
     }
+    
+    console.log('✅ Propina actualizada en tabla pedidos');
   }
 
   /**
    * Actualiza el descuento ganado en un pedido delivery (por juego)
+   * Usa directamente la tabla 'pedidos' donde mesa = 'DELIVERY'
    */
   async actualizarDescuentoDelivery(pedidoId: number, porcentajeDescuento: number): Promise<void> {
+    console.log('🎮 [actualizarDescuentoDelivery] Actualizando descuento:', porcentajeDescuento, '% para pedido:', pedidoId);
+    
     const { error } = await this.supabase.supabase
-      .from('pedidos_delivery')
+      .from('pedidos')
       .update({ 
-        descuento_juego: porcentajeDescuento,
-        descuento_aplicado: porcentajeDescuento > 0
+        descuento: porcentajeDescuento
       })
       .eq('id', pedidoId);
 
@@ -843,6 +874,8 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
       console.error('Error al actualizar descuento:', error);
       throw new Error(`Error al actualizar el descuento: ${error.message}`);
     }
+    
+    console.log('✅ Descuento actualizado en tabla pedidos');
   }
 
   /**
@@ -922,39 +955,113 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
 
   /**
    * Obtiene pedidos de delivery del cliente actual
+   * Busca directamente en la tabla 'pedidos' donde mesa = 'DELIVERY'
+   * Esto permite usar la misma lógica que clientes normales (recepcion, encuesta, cuenta, etc.)
    */
   async obtenerPedidosClienteActual(): Promise<PedidoDelivery[]> {
     const { data: { user } } = await this.supabase.supabase.auth.getUser();
-    if (!user || !user.email) {
+    if (!user) {
       throw new Error('No hay usuario autenticado');
     }
 
+    console.log('📦 [obtenerPedidosClienteActual] Buscando pedidos DELIVERY para usuario:', user.id);
+
+    // Buscar directamente en tabla PEDIDOS donde mesa = 'DELIVERY' y cliente_id = user.id
     const { data, error } = await this.supabase.supabase
-      .from('pedidos_delivery')
+      .from('pedidos')
       .select('*')
-      .eq('cliente_email', user.email)
-      .order('created_at', { ascending: false });
+      .eq('mesa', 'DELIVERY')
+      .eq('cliente_id', user.id)
+      .order('fecha_pedido', { ascending: false });
 
     if (error) {
       console.error('Error al obtener pedidos del cliente:', error);
       throw new Error(`Error al obtener los pedidos: ${error.message}`);
     }
 
-    // Para cada pedido, obtener los estados actualizados desde la tabla 'pedidos'
-    const pedidosConEstados = await Promise.all((data || []).map(async (pedido) => {
-      // Solo buscar estados si el pedido está confirmado o preparando
-      if (pedido.estado === 'confirmado' || pedido.estado === 'preparando') {
-        const estadosSectores = await this.obtenerEstadosSectoresDesdePedidos(pedido.cliente_id);
-        if (estadosSectores) {
-          pedido.estado_comida = estadosSectores.estado_comida;
-          pedido.estado_bebida = estadosSectores.estado_bebida;
-          pedido.estado_postre = estadosSectores.estado_postre;
-        }
-      }
-      return pedido;
-    }));
+    console.log('📦 [obtenerPedidosClienteActual] Pedidos encontrados:', data?.length || 0);
 
-    return pedidosConEstados;
+    // Mapear los campos de la tabla pedidos al formato PedidoDelivery
+    const pedidosMapeados: PedidoDelivery[] = (data || []).map((pedido: any) => {
+      // Parsear productos del campo comida/bebida/postre si están en formato JSON
+      let comidas: any[] = [];
+      let bebidas: any[] = [];
+      let postres: any[] = [];
+
+      try {
+        if (pedido.comida) {
+          comidas = typeof pedido.comida === 'string' ? JSON.parse(pedido.comida) : pedido.comida;
+        }
+        if (pedido.bebida) {
+          bebidas = typeof pedido.bebida === 'string' ? JSON.parse(pedido.bebida) : pedido.bebida;
+        }
+        if (pedido.postre) {
+          postres = typeof pedido.postre === 'string' ? JSON.parse(pedido.postre) : pedido.postre;
+        }
+      } catch (e) {
+        console.warn('Error parseando productos:', e);
+      }
+
+      return {
+        id: pedido.id,
+        cliente_id: pedido.cliente_id,
+        cliente_nombre: pedido.cliente_nombre || 'Cliente',
+        cliente_email: user.email,
+        
+        // Dirección (extraer de observaciones si es necesario)
+        direccion_completa: pedido.direccion_completa || this.extraerDireccionDeObservaciones(pedido.observaciones_generales),
+        
+        // Productos
+        comidas: Array.isArray(comidas) ? comidas : [],
+        bebidas: Array.isArray(bebidas) ? bebidas : [],
+        postres: Array.isArray(postres) ? postres : [],
+        
+        // Precios
+        precio_total: pedido.cuenta || pedido.precio || 0,
+        precio_productos: pedido.precio || 0,
+        
+        // Estados
+        estado: pedido.estado,
+        estado_comida: pedido.estado_comida,
+        estado_bebida: pedido.estado_bebida,
+        estado_postre: pedido.estado_postre,
+        
+        // Tiempo estimado
+        tiempo_estimado: pedido.tiempo_estimado,
+        
+        // Repartidor
+        repartidor_id: pedido.repartidor_id,
+        
+        // Flujo cliente (campos importantes para puntos 19, 20, 21)
+        recepcion: pedido.recepcion,
+        encuesta_respondida: pedido.encuesta_respondida,
+        solicita_cuenta: pedido.solicita_cuenta,
+        cuenta_habilitada: pedido.cuenta_habilitada,
+        propina: pedido.propina,
+        descuento_juego: pedido.descuento,
+        
+        // Timestamps
+        created_at: pedido.fecha_pedido,
+        updated_at: pedido.fecha_pedido
+      } as PedidoDelivery;
+    });
+
+    return pedidosMapeados;
+  }
+
+  /**
+   * Extrae la dirección de las observaciones generales del pedido
+   */
+  private extraerDireccionDeObservaciones(observaciones: string | null): string {
+    if (!observaciones) return 'Dirección no especificada';
+    
+    // Buscar patrón "DIRECCIÓN: ..." en las observaciones
+    const match = observaciones.match(/DIRECCIÓN:\s*([^|]+)/i);
+    if (match) {
+      return match[1].trim();
+    }
+    
+    return 'Dirección no especificada';
   }
 
   /**
@@ -995,6 +1102,49 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
       console.error('Error en obtenerEstadosSectoresDesdePedidos:', error);
       return null;
     }
+  }
+
+  /**
+   * Actualiza campos de un pedido delivery
+   * Usa directamente la tabla 'pedidos' donde mesa = 'DELIVERY'
+   * Esto permite usar la misma lógica que clientes normales
+   */
+  async actualizarPedidoDelivery(pedidoId: number, datos: Partial<PedidoDelivery>): Promise<void> {
+    try {
+      console.log('📝 [actualizarPedidoDelivery] Actualizando pedido:', pedidoId, 'con datos:', datos);
+      
+      // Mapear campos de PedidoDelivery a campos de tabla pedidos si es necesario
+      const datosParaPedidos: any = { ...datos };
+      
+      // Mapear descuento_juego a descuento (nombre del campo en tabla pedidos)
+      if (datos.descuento_juego !== undefined) {
+        datosParaPedidos.descuento = datos.descuento_juego;
+        delete datosParaPedidos.descuento_juego;
+      }
+      
+      // Actualizar directamente en tabla PEDIDOS
+      const { error: errorPedidos } = await this.supabase.supabase
+        .from('pedidos')
+        .update(datosParaPedidos)
+        .eq('id', pedidoId);
+
+      if (errorPedidos) {
+        console.error('Error al actualizar pedido delivery:', errorPedidos);
+        throw new Error('No se pudo actualizar el pedido');
+      }
+
+      console.log('✅ Pedido delivery actualizado en tabla pedidos:', pedidoId);
+    } catch (error) {
+      console.error('Error en actualizarPedidoDelivery:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Marca la encuesta como respondida para un pedido delivery
+   */
+  async marcarEncuestaRespondida(pedidoId: number): Promise<void> {
+    await this.actualizarPedidoDelivery(pedidoId, { encuesta_respondida: true });
   }
 }
 

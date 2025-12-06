@@ -425,9 +425,35 @@ export class EncuestasComponent  implements OnInit {
 
   /**
    * Marca encuesta_respondida = true en el pedido actual del cliente
+   * Usa directamente la tabla 'pedidos' (tanto para normales como DELIVERY)
    */
   async marcarEncuestaRespondidaEnPedido() {
     try {
+      // Verificar si es un pedido de delivery (guardado en localStorage)
+      const pedidoDeliveryId = localStorage.getItem('pedidoDeliveryActual');
+      const mesaActual = localStorage.getItem('mesaActual');
+      
+      if (pedidoDeliveryId && mesaActual === 'DELIVERY') {
+        console.log('📦 Marcando encuesta en pedido DELIVERY:', pedidoDeliveryId);
+        
+        // Actualizar directamente en tabla PEDIDOS (mesa = 'DELIVERY')
+        const { error: errorPedidos } = await this.supabase.supabase
+          .from('pedidos')
+          .update({ encuesta_respondida: true })
+          .eq('id', parseInt(pedidoDeliveryId));
+        
+        if (!errorPedidos) {
+          console.log('✅ encuesta_respondida marcada en pedidos (DELIVERY)');
+          localStorage.removeItem('pedidoDeliveryActual');
+          localStorage.removeItem('mesaActual');
+          return;
+        }
+        
+        console.warn('⚠️ No se pudo marcar encuesta en pedido delivery');
+        return;
+      }
+      
+      // Flujo normal para pedidos en restaurante
       let clienteId: string | null = null;
       
       // Obtener el cliente_id según el tipo de cliente

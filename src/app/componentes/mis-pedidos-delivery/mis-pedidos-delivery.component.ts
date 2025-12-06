@@ -17,9 +17,11 @@ import {
   IonChip,
   IonRefresher,
   IonRefresherContent,
-  ToastController
+  ToastController,
+  AlertController
 } from '@ionic/angular/standalone';
 import { DeliveryService, PedidoDelivery } from '../../servicios/delivery.service';
+import { PushNotificationService } from '../../servicios/push-notification.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { FritosSpinnerComponent } from '../fritos-spinner/fritos-spinner.component';
 import { addIcons } from 'ionicons';
@@ -34,7 +36,9 @@ import {
   clipboardOutline,
   cashOutline,
   qrCodeOutline,
-  timeOutline
+  timeOutline,
+  statsChartOutline,
+  cardOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -80,7 +84,9 @@ export class MisPedidosDeliveryComponent implements OnInit {
   constructor(
     private router: Router,
     private deliveryService: DeliveryService,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private alertController: AlertController,
+    private pushNotificationService: PushNotificationService
   ) {
     addIcons({ 
       arrowBackOutline,
@@ -93,7 +99,9 @@ export class MisPedidosDeliveryComponent implements OnInit {
       clipboardOutline,
       cashOutline,
       qrCodeOutline,
-      timeOutline
+      timeOutline,
+      statsChartOutline,
+      cardOutline
     });
   }
 
@@ -203,17 +211,219 @@ export class MisPedidosDeliveryComponent implements OnInit {
   }
 
   irAJuegos(pedido: PedidoDelivery) {
-    // Guardar el pedido ID para asociar el descuento
+    // Guardar el pedido ID para asociar el descuento (mesa = DELIVERY)
     localStorage.setItem('pedidoDeliveryActual', pedido.id?.toString() || '');
-    this.router.navigate(['/atrapa-el-pollo']);
+    localStorage.setItem('mesaActual', 'DELIVERY');
+    this.router.navigate(['/game-selector']);
   }
 
+  // Ir a completar encuesta (solo si no la completó aún)
   irAEncuesta(pedido: PedidoDelivery) {
-    this.router.navigate(['/confirmar-entrega', pedido.id]);
+    localStorage.setItem('pedidoDeliveryActual', pedido.id?.toString() || '');
+    localStorage.setItem('mesaActual', 'DELIVERY');
+    this.router.navigate(['/encuestas']);
   }
 
+  // Ver resultados de encuestas (gráficos)
+  verResultadosEncuestas(pedido: PedidoDelivery) {
+    this.router.navigate(['/encuestas'], { queryParams: { modo: 'ver' } });
+  }
+
+  // Confirmar recepción del pedido (primer paso después de entregado)
+  async confirmarRecepcionPedido(pedido: PedidoDelivery) {
+    const alert = await this.alertController.create({
+      header: '¿Confirmar Recepción?',
+      message: '¿Has recibido tu pedido completo (comidas, bebidas y postres) y en buen estado?',
+      buttons: [
+        {
+          text: 'No, hay un problema',
+          role: 'cancel',
+          handler: () => {
+            this.reportarProblema(pedido);
+          }
+        },
+        {
+          text: 'Sí, confirmar',
+          handler: async () => {
+            await this.marcarRecepcionConfirmada(pedido);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  // Reportar problema con el pedido
+  async reportarProblema(pedido: PedidoDelivery) {
+    const alert = await this.alertController.create({
+      header: 'Reportar Problema',
+      message: 'Por favor, describe el problema con tu pedido:',
+      inputs: [
+        {
+          name: 'problema',
+          type: 'textarea',
+          placeholder: 'Describe el problema...'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Enviar Reporte',
+          handler: async (data) => {
+            if (data.problema) {
+              // TODO: Guardar el reporte en la base de datos
+              await this.mostrarToast('Reporte enviado. Nos pondremos en contacto contigo.', 'success');
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  // Marcar recepción confirmada en el pedido
+  async marcarRecepcionConfirmada(pedido: PedidoDelivery) {
+    try {
+      await this.deliveryService.actualizarPedidoDelivery(pedido.id!, {
+        recepcion: true
+      });
+      
+      // Actualizar pedido local
+      pedido.recepcion = true;
+      
+      await this.mostrarToast('✅ ¡Recepción confirmada! Ahora podés acceder a juegos, encuesta y pedir la cuenta.', 'success');
+      
+      // Recargar pedidos para reflejar cambios
+      await this.cargarPedidos();
+    } catch (error) {
+      console.error('Error al confirmar recepción:', error);
+      await this.mostrarToast('Error al confirmar recepción. Intentá nuevamente.', 'danger');
+    }
+  }
+
+  // Pedir la cuenta (notifica al mozo/dueño)
   async pedirCuenta(pedido: PedidoDelivery) {
-    // Navegar a la pantalla de confirmar entrega que tiene propina y cuenta
+    try {
+      // Notificar al restaurante
+      await this.pushNotificationService.solicitarCuentaMozo(
+        'DELIVERY',
+        pedido.cliente_nombre,
+        ''
+      );
+      
+      // Actualizar el pedido
+      await this.deliveryService.actualizarPedidoDelivery(pedido.id!, {
+        solicita_cuenta: true
+      });
+      
+      // Actualizar pedido local
+      pedido.solicita_cuenta = true;
+      
+      await this.mostrarToast('✅ Se ha notificado tu solicitud de cuenta. Escaneá el QR para ingresar propina.', 'success');
+      
+      // Recargar pedidos
+      await this.cargarPedidos();
+    } catch (error) {
+      console.error('Error al pedir cuenta:', error);
+      await this.mostrarToast('Error al solicitar la cuenta. Intentá nuevamente.', 'danger');
+    }
+  }
+
+  // Escanear QR para propina (después de pedir cuenta)
+  async escanearQRPropina(pedido: PedidoDelivery) {
+    try {
+      // Verificar permisos
+      const { camera } = await BarcodeScanner.checkPermissions();
+      if (camera !== 'granted') {
+        const { camera: newCamera } = await BarcodeScanner.requestPermissions();
+        if (newCamera !== 'granted') {
+          await this.mostrarToast('Se necesitan permisos de cámara para escanear', 'warning');
+          return;
+        }
+      }
+
+      document.body.classList.add('barcode-scanner-active');
+      const result = await BarcodeScanner.scan();
+      await BarcodeScanner.stopScan();
+      document.body.classList.remove('barcode-scanner-active');
+
+      if (result.barcodes.length > 0) {
+        const qrContent = result.barcodes[0].rawValue.trim().toUpperCase();
+        
+        // Aceptar QR de propina o QR DELIVERY
+        if (qrContent === 'PROPINA_FRITOS_HERMANOS' || 
+            qrContent.includes('PROPINA') ||
+            qrContent === 'DELIVERY' || 
+            qrContent === 'QR DELIVERY') {
+          await this.mostrarSelectorPropina(pedido);
+        } else {
+          await this.mostrarToast('QR inválido. Escaneá el QR de propina o DELIVERY', 'warning');
+        }
+      }
+    } catch (error: any) {
+      document.body.classList.remove('barcode-scanner-active');
+      await BarcodeScanner.stopScan();
+      
+      if (error.message && !error.message.includes('cancelled') && !error.message.includes('cancelado')) {
+        console.error('Error al escanear QR:', error);
+        await this.mostrarToast('Error al escanear el QR', 'danger');
+      }
+    }
+  }
+
+  // Mostrar selector de propina
+  async mostrarSelectorPropina(pedido: PedidoDelivery) {
+    const alert = await this.alertController.create({
+      header: '💰 Ingresá la Propina',
+      message: '¿Qué porcentaje de propina querés dejar?',
+      inputs: [
+        { name: 'propina', type: 'radio', label: '0% - Sin propina', value: '0' },
+        { name: 'propina', type: 'radio', label: '5%', value: '5' },
+        { name: 'propina', type: 'radio', label: '10%', value: '10', checked: true },
+        { name: 'propina', type: 'radio', label: '15%', value: '15' },
+        { name: 'propina', type: 'radio', label: '20%', value: '20' },
+        { name: 'propina', type: 'radio', label: '25%', value: '25' }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Confirmar',
+          handler: async (data) => {
+            const propina = parseInt(data);
+            await this.guardarPropina(pedido, propina);
+          }
+        }
+      ]
+    });
+    
+    await alert.present();
+  }
+
+  // Guardar propina
+  async guardarPropina(pedido: PedidoDelivery, propina: number) {
+    try {
+      await this.deliveryService.actualizarPropinaDelivery(pedido.id!, propina);
+      
+      // Actualizar pedido local
+      pedido.propina = propina;
+      
+      await this.mostrarToast(`✅ Propina del ${propina}% registrada.`, 'success');
+      
+      // Recargar pedidos
+      await this.cargarPedidos();
+    } catch (error) {
+      console.error('Error al guardar propina:', error);
+      await this.mostrarToast('Error al guardar la propina. Intentá nuevamente.', 'danger');
+    }
+  }
+
+  // Ver detalle de la cuenta
+  verDetalleCuenta(pedido: PedidoDelivery) {
     this.router.navigate(['/confirmar-entrega', pedido.id]);
   }
 
@@ -221,6 +431,32 @@ export class MisPedidosDeliveryComponent implements OnInit {
   pedidoYaConfirmado(pedido: PedidoDelivery): boolean {
     return (pedido.propina !== undefined && pedido.propina !== null) || 
            (pedido as any).calificacion !== undefined;
+  }
+
+  // Verificar si el cliente confirmó la recepción
+  recepcionConfirmada(pedido: PedidoDelivery): boolean {
+    return pedido.recepcion === true;
+  }
+
+  // Verificar si ya respondió la encuesta
+  encuestaRespondida(pedido: PedidoDelivery): boolean {
+    return pedido.encuesta_respondida === true;
+  }
+
+  // Verificar si ya solicitó la cuenta
+  cuentaSolicitada(pedido: PedidoDelivery): boolean {
+    return pedido.solicita_cuenta === true;
+  }
+
+  // Verificar si ya tiene propina cargada
+  tienePropina(pedido: PedidoDelivery): boolean {
+    return pedido.propina !== undefined && pedido.propina !== null;
+  }
+
+  // Calcular el monto de propina basado en el porcentaje
+  calcularMontoPropina(pedido: PedidoDelivery): number {
+    if (!pedido.propina || !pedido.precio_total) return 0;
+    return (pedido.precio_total * pedido.propina) / 100;
   }
 
   async mostrarToast(mensaje: string, color: 'success' | 'danger' | 'warning' = 'success') {

@@ -84,23 +84,53 @@ export class ChatDeliveryComponent implements OnInit {
 
   async cargarConversacion() {
     try {
-      const { data, error } = await this.supabase.supabase
+      console.log('📱 [Chat] Buscando conversación para pedido_id:', this.pedidoId);
+      
+      // Primero buscar por pedido_id exacto
+      let { data, error } = await this.supabase.supabase
         .from('conversaciones_delivery')
         .select('*')
         .eq('pedido_id', this.pedidoId)
         .single();
       
+      // Si no encuentra, buscar por repartidor_id (para cuando el ID del pedido es diferente)
+      if (error && error.code === 'PGRST116') {
+        console.log('📱 [Chat] No encontrada por pedido_id, buscando por repartidor...');
+        
+        // Obtener info del pedido para saber el repartidor
+        const pedido = await this.deliveryService.obtenerPedidoPorId(this.pedidoId);
+        
+        if (pedido?.repartidor_id) {
+          // Buscar conversaciones activas de este repartidor
+          const { data: convs, error: convError } = await this.supabase.supabase
+            .from('conversaciones_delivery')
+            .select('*')
+            .eq('repartidor_id', pedido.repartidor_id)
+            .eq('activa', true)
+            .order('id', { ascending: false })
+            .limit(1);
+          
+          if (!convError && convs && convs.length > 0) {
+            data = convs[0];
+            error = null;
+            console.log('📱 [Chat] Conversación encontrada por repartidor_id:', data.id);
+          }
+        }
+      }
+      
       if (error) {
-        console.error('Error al cargar conversación:', error);
+        console.log('📱 [Chat] Error al buscar conversación:', error.code, error.message);
         
         // Si no existe la conversación, intentar crearla
         if (error.code === 'PGRST116') {
+          console.log('📱 [Chat] Conversación no existe, creando...');
           await this.crearConversacion();
         }
         return;
       }
       
       this.conversacionId = data.id;
+      console.log('📱 [Chat] Conversación encontrada, ID:', this.conversacionId);
       
       // Obtener nombre de la otra parte
       if (this.esRepartidor) {
@@ -121,28 +151,83 @@ export class ChatDeliveryComponent implements OnInit {
     try {
       const pedido = await this.deliveryService.obtenerPedidoPorId(this.pedidoId);
       
-      if (!pedido || !pedido.repartidor_id) {
+      console.log('📱 [Chat] Pedido obtenido:', pedido);
+      
+      if (!pedido) {
+        await this.mostrarToast('No se encontró el pedido', 'warning');
+        this.volver();
+        return;
+      }
+      
+      if (!pedido.repartidor_id) {
         await this.mostrarToast('Este pedido aún no tiene repartidor asignado', 'warning');
         this.volver();
         return;
       }
 
+      // Obtener el ID numérico del cliente
+      let clienteIdNumerico: number;
+      
+      // Si cliente_id es un UUID (string), buscar el ID numérico en la tabla clientes
+      const clienteIdStr = String(pedido.cliente_id);
+      if (clienteIdStr.includes('-')) {
+        console.log('📱 [Chat] cliente_id es UUID, buscando ID numérico...');
+        const { data: clienteData, error: clienteError } = await this.supabase.supabase
+          .from('clientes')
+          .select('id')
+          .eq('uid', pedido.cliente_id)
+          .single();
+        
+        if (clienteError || !clienteData) {
+          console.error('📱 [Chat] Error al buscar cliente por UUID:', clienteError);
+          // Intentar buscar en pedidos_delivery
+          const { data: pedidoDelivery } = await this.supabase.supabase
+            .from('pedidos_delivery')
+            .select('cliente_id')
+            .eq('id', this.pedidoId)
+            .single();
+          
+          if (pedidoDelivery) {
+            clienteIdNumerico = pedidoDelivery.cliente_id;
+          } else {
+            await this.mostrarToast('No se pudo obtener información del cliente', 'danger');
+            return;
+          }
+        } else {
+          clienteIdNumerico = clienteData.id;
+        }
+      } else {
+        // Ya es un número
+        clienteIdNumerico = Number(pedido.cliente_id);
+      }
+      
+      console.log('📱 [Chat] cliente_id numérico:', clienteIdNumerico);
+
+      const conversacionData = {
+        pedido_id: this.pedidoId,
+        cliente_id: clienteIdNumerico,
+        repartidor_id: Number(pedido.repartidor_id),
+        activa: true
+      };
+      
+      console.log('📱 [Chat] Creando conversación con:', conversacionData);
+
       const { data, error } = await this.supabase.supabase
         .from('conversaciones_delivery')
-        .insert([{
-          pedido_id: this.pedidoId,
-          cliente_id: pedido.cliente_id,
-          repartidor_id: pedido.repartidor_id,
-          activa: true
-        }])
+        .insert([conversacionData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('📱 [Chat] Error al insertar conversación:', error);
+        throw error;
+      }
       
+      console.log('📱 [Chat] Conversación creada:', data);
       this.conversacionId = data.id;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al crear conversación:', error);
+      await this.mostrarToast(`Error al crear conversación: ${error?.message || 'Error desconocido'}`, 'danger');
     }
   }
 

@@ -168,6 +168,7 @@
     border-radius: 8px;
     padding-left: 12px;
     padding-right: 12px;
+    margin-top: 8px;
     
     .label {
       font-weight: 600;
@@ -177,6 +178,28 @@
     .propina {
       font-weight: 700;
       color: #28a745;
+      font-size: 16px;
+    }
+  }
+  
+  &.descuento-row {
+    border-bottom: none;
+    padding: 8px 0;
+    background: rgba(239, 191, 45, 0.15);
+    border-radius: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+    margin-top: 8px;
+    border: 1px solid rgba(239, 191, 45, 0.4);
+    
+    .label {
+      font-weight: 600;
+      color: #efbf2d;
+    }
+    
+    .descuento {
+      font-weight: 700;
+      color: #efbf2d;
       font-size: 16px;
     }
   }
@@ -263,6 +286,28 @@
     --background: #dc2234;
     --background-hover: #b81d2b;
     --background-activated: #a01927;
+  }
+  
+  .info-qr-card {
+    margin: 10px 0;
+    --background: rgba(70, 102, 222, 0.15);
+    border-radius: 10px;
+    border: 1px solid rgba(70, 102, 222, 0.4);
+    
+    ion-card-content {
+      padding: 12px 16px;
+      
+      p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 13px;
+        margin: 0;
+        line-height: 1.5;
+        
+        strong {
+          color: #efbf2d;
+        }
+      }
+    }
   }
   
   .confirmado-msg {

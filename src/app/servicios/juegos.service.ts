@@ -281,49 +281,71 @@ export class JuegosService {
       // 2. Si ganó, aplicar el descuento al pedido actual
       if (gano) {
         console.log('🎮 [registrarResultadoJuego] Paso 2: Aplicando descuento al pedido...');
-        const { data: authData } = await this.authService.getCurrentUser();
-        console.log('🎮 [registrarResultadoJuego] Auth data:', authData);
-        console.log('🎮 [registrarResultadoJuego] User ID (uid):', authData?.user?.id);
         
-        if (authData?.user?.id) {
-          const clienteUid = authData.user.id;
-          console.log('🎮 [registrarResultadoJuego] Buscando pedido para cliente_id (uid):', clienteUid);
+        // Verificar si es un pedido de delivery
+        const pedidoDeliveryId = localStorage.getItem('pedidoDeliveryActual');
+        const mesaActual = localStorage.getItem('mesaActual');
+        
+        if (pedidoDeliveryId && mesaActual === 'DELIVERY') {
+          console.log('🎮 [registrarResultadoJuego] Es pedido DELIVERY, ID:', pedidoDeliveryId);
           
-          // Buscar pedido activo del cliente
-          const { data: pedidoData, error: errorBusqueda } = await this.sb.supabase
+          // Actualizar directamente en tabla PEDIDOS (mesa = 'DELIVERY')
+          const { error: errorPedidos } = await this.sb.supabase
             .from('pedidos')
-            .select('id, mesa, estado, descuento')
-            .eq('cliente_id', clienteUid)
-            .in('estado', ['pendiente', 'en preparacion', 'listo'])
-            .order('fecha_pedido', { ascending: false })
-            .limit(1);
+            .update({ descuento: porcentajeFinal })
+            .eq('id', parseInt(pedidoDeliveryId));
           
-          console.log('🎮 [registrarResultadoJuego] Resultado búsqueda pedido:', pedidoData);
-          console.log('🎮 [registrarResultadoJuego] Error búsqueda:', errorBusqueda);
-          
-          if (pedidoData && pedidoData.length > 0) {
-            const pedidoId = pedidoData[0].id;
-            console.log('🎮 [registrarResultadoJuego] Pedido encontrado ID:', pedidoId);
-            console.log('🎮 [registrarResultadoJuego] Pedido actual:', pedidoData[0]);
-            
-            const { data: updateData, error: errorPedido } = await this.sb.supabase
-              .from('pedidos')
-              .update({ descuento: porcentajeFinal })
-              .eq('id', pedidoId)
-              .select();
-
-            console.log('🎮 [registrarResultadoJuego] Resultado update:', updateData);
-            
-            if (errorPedido) {
-              console.error('❌ [registrarResultadoJuego] Error al aplicar descuento al pedido:', errorPedido);
-            } else {
-              console.log(`✅ [registrarResultadoJuego] Descuento de ${porcentajeFinal}% aplicado al pedido ${pedidoId}`);
-            }
+          if (!errorPedidos) {
+            console.log(`✅ [registrarResultadoJuego] Descuento de ${porcentajeFinal}% aplicado a pedido DELIVERY ${pedidoDeliveryId}`);
           } else {
-            console.log('⚠️ [registrarResultadoJuego] No se encontró pedido activo para el cliente');
+            console.error('❌ [registrarResultadoJuego] Error al aplicar descuento a delivery:', errorPedidos);
           }
         } else {
-          console.log('⚠️ [registrarResultadoJuego] No hay authData.user.id disponible');
+          // Flujo normal para pedidos en restaurante
+          const { data: authData } = await this.authService.getCurrentUser();
+          console.log('🎮 [registrarResultadoJuego] Auth data:', authData);
+          console.log('🎮 [registrarResultadoJuego] User ID (uid):', authData?.user?.id);
+          
+          if (authData?.user?.id) {
+            const clienteUid = authData.user.id;
+            console.log('🎮 [registrarResultadoJuego] Buscando pedido para cliente_id (uid):', clienteUid);
+            
+            // Buscar pedido activo del cliente
+            const { data: pedidoData, error: errorBusqueda } = await this.sb.supabase
+              .from('pedidos')
+              .select('id, mesa, estado, descuento')
+              .eq('cliente_id', clienteUid)
+              .in('estado', ['pendiente', 'en preparacion', 'listo'])
+              .order('fecha_pedido', { ascending: false })
+              .limit(1);
+            
+            console.log('🎮 [registrarResultadoJuego] Resultado búsqueda pedido:', pedidoData);
+            console.log('🎮 [registrarResultadoJuego] Error búsqueda:', errorBusqueda);
+            
+            if (pedidoData && pedidoData.length > 0) {
+              const pedidoId = pedidoData[0].id;
+              console.log('🎮 [registrarResultadoJuego] Pedido encontrado ID:', pedidoId);
+              console.log('🎮 [registrarResultadoJuego] Pedido actual:', pedidoData[0]);
+              
+              const { data: updateData, error: errorPedido } = await this.sb.supabase
+                .from('pedidos')
+                .update({ descuento: porcentajeFinal })
+                .eq('id', pedidoId)
+                .select();
+
+              console.log('🎮 [registrarResultadoJuego] Resultado update:', updateData);
+              
+              if (errorPedido) {
+                console.error('❌ [registrarResultadoJuego] Error al aplicar descuento al pedido:', errorPedido);
+              } else {
+                console.log(`✅ [registrarResultadoJuego] Descuento de ${porcentajeFinal}% aplicado al pedido ${pedidoId}`);
+              }
+            } else {
+              console.log('⚠️ [registrarResultadoJuego] No se encontró pedido activo para el cliente');
+            }
+          } else {
+            console.log('⚠️ [registrarResultadoJuego] No hay authData.user.id disponible');
+          }
         }
 
         this.feedback.showToast('exito', `🎉 ¡Ganaste ${porcentajeFinal}% de descuento!`);
