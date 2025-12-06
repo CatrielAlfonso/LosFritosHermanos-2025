@@ -171,21 +171,58 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
   }
 
   /**
-   * Obtiene un pedido por ID
+   * Obtiene un pedido por ID (busca en pedidos_delivery y luego en pedidos)
    */
   async obtenerPedidoPorId(id: number): Promise<PedidoDelivery | null> {
-    const { data, error } = await this.supabase.supabase
+    // Primero buscar en pedidos_delivery
+    const { data: dataDelivery, error: errorDelivery } = await this.supabase.supabase
       .from('pedidos_delivery')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (error) {
-      console.error('Error al obtener pedido:', error);
-      return null;
+    if (!errorDelivery && dataDelivery) {
+      console.log('📦 Pedido encontrado en pedidos_delivery:', id);
+      return dataDelivery;
     }
 
-    return data;
+    // Si no está en pedidos_delivery, buscar en pedidos (mesa = 'DELIVERY')
+    console.log('📦 Buscando pedido en tabla pedidos:', id);
+    const { data: dataPedidos, error: errorPedidos } = await this.supabase.supabase
+      .from('pedidos')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (!errorPedidos && dataPedidos) {
+      console.log('📦 Pedido encontrado en tabla pedidos:', dataPedidos);
+      // Mapear campos de tabla pedidos a formato PedidoDelivery
+      return {
+        id: dataPedidos.id,
+        cliente_id: dataPedidos.cliente_id,
+        cliente_nombre: dataPedidos.cliente_nombre || 'Cliente',
+        cliente_telefono: dataPedidos.cliente_telefono,
+        direccion_completa: dataPedidos.direccion_completa,
+        direccion_referencia: dataPedidos.direccion_referencia,
+        latitud: dataPedidos.latitud,
+        longitud: dataPedidos.longitud,
+        comidas: dataPedidos.comidas || [],
+        bebidas: dataPedidos.bebidas || [],
+        postres: dataPedidos.postres || [],
+        precio_total: dataPedidos.precio || dataPedidos.cuenta || 0,
+        precio_productos: dataPedidos.precio || dataPedidos.cuenta || 0,
+        precio_envio: 0,
+        estado: dataPedidos.estado,
+        estado_comida: dataPedidos.estado_comida,
+        estado_bebida: dataPedidos.estado_bebida,
+        repartidor_id: dataPedidos.repartidor_id,
+        fecha_pedido: dataPedidos.fecha_pedido,
+        observaciones_generales: dataPedidos.observaciones_generales
+      } as PedidoDelivery;
+    }
+
+    console.error('❌ Pedido no encontrado en ninguna tabla:', id);
+    return null;
   }
 
   /**
