@@ -49,6 +49,7 @@ import {
   addOutline,
   removeOutline
 } from 'ionicons/icons';
+import Swal from 'sweetalert2';
 
 declare var google: any;
 
@@ -328,29 +329,32 @@ export class DeliveryComponent implements OnInit {
     }
   }
 
-  async eliminarItem(item: CartItem) {
-    const alert = await this.alertController.create({
-      header: 'Eliminar producto',
-      message: `¿Estás seguro de eliminar ${item.nombre}?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Eliminar',
-          handler: () => {
-            this.carritoService.eliminarProducto(item.id);
-            this.cargarCarrito();
-            
-            // Si no quedan productos, volver al menú
-            if (this.cartItems.length === 0) {
-              this.router.navigate(['/menu']);
-            }
-          }
-        }
-      ]
-    });
+async eliminarItem(item: any) {
+  const result = await Swal.fire({
+    title: 'Eliminar producto',
+    text: `¿Estás seguro de eliminar ${item.nombre}?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Eliminar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#d32f2f', 
+    cancelButtonColor: '#333333',  
+    heightAuto: false, // ⚠️ Vital para Ionic
+    backdrop: true,
+    allowOutsideClick: false
+  });
 
-    await alert.present();
+  if (result.isConfirmed) {
+    this.carritoService.eliminarProducto(item.id);
+    this.cargarCarrito();
+    
+    // Verificamos si el carrito quedó vacío
+    // (Asegúrate de que cargarCarrito actualice this.cartItems inmediatamente)
+    if (this.cartItems.length === 0) {
+      this.router.navigate(['/menu']);
+    }
   }
+}
 
   async confirmarPedido() {
     if (this.direccionForm.invalid) {
@@ -363,21 +367,40 @@ export class DeliveryComponent implements OnInit {
       return;
     }
 
-    const alert = await this.alertController.create({
-      header: 'Confirmar Pedido Delivery',
-      message: `¿Confirmar pedido por $${this.precioTotal.toFixed(2)}?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Confirmar',
-          handler: async () => {
-            await this.realizarPedido();
-          }
-        }
-      ]
+    const result = await Swal.fire({
+      title: 'Confirmar Pedido Delivery',
+      text: `¿Confirmar pedido por ${this.precioTotal.toFixed(2)}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d32f2f', // Rojo Fritos
+      cancelButtonColor: '#999999',  // Gris para cancelar (o usa #ff9800 si prefieres naranja)
+      heightAuto: false, // ⚠️ IMPORTANTE: Para que no rompa el scroll en Ionic
+      backdrop: true,
+      allowOutsideClick: false
     });
 
-    await alert.present();
+    // 3. Si confirma, ejecutamos la lógica
+    if (result.isConfirmed) {
+      await this.realizarPedido();
+    }
+
+    // const alert = await this.alertController.create({
+    //   header: 'Confirmar Pedido Delivery',
+    //   message: `¿Confirmar pedido por $${this.precioTotal.toFixed(2)}?`,
+    //   buttons: [
+    //     { text: 'Cancelar', role: 'cancel' },
+    //     {
+    //       text: 'Confirmar',
+    //       handler: async () => {
+    //         await this.realizarPedido();
+    //       }
+    //     }
+    //   ]
+    // });
+
+    //await alert.present();
   }
 
   async realizarPedido() {
