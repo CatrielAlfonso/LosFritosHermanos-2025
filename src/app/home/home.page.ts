@@ -330,6 +330,35 @@ export class HomePage implements OnInit, ViewWillEnter {
   }
 }
 
+  /**
+   * Limpia el estado del cliente cuando el pedido es finalizado (pago confirmado por mozo)
+   * Esto permite que el cliente pueda empezar un nuevo flujo de pedido
+   */
+  async limpiarEstadoPedidoFinalizado() {
+    console.log('🧹 [limpiarEstadoPedidoFinalizado] Limpiando estado del cliente...');
+    
+    // Limpiar localStorage relacionado con el pedido/mesa (NO el clienteAnonimo)
+    localStorage.removeItem('descuentoObtenido');
+    localStorage.removeItem('pedidoDeliveryActual');
+    
+    // Reiniciar variables de estado del componente
+    this.mesaAsignada = null;
+    this.qrMesaEscaneado = false;
+    this.clienteSentado = false;
+    this.mostrarBotonEscanearMesa = false;
+    this.mostrarBotonHacerPedido = false;
+    this.mostrarBotonVerEstadoPedido = false;
+    this.pedidoActualCliente = null;
+    this.clienteEsperandoPedido = false;
+    this.yaEnListaEspera = false;
+    this.mostrarMensajeListaEspera = true;
+    
+    // Mostrar mensaje de éxito al cliente
+    this.feedback.showToast('exito', '✅ ¡Gracias por tu visita! Tu pago ha sido confirmado.');
+    
+    console.log('✅ [limpiarEstadoPedidoFinalizado] Estado limpiado correctamente');
+  }
+
    async cargarClienteInfo() {
     try {
       let correoCliente: string | null = null;
@@ -811,16 +840,23 @@ export class HomePage implements OnInit, ViewWillEnter {
         async (payload) => {
           console.log('📦 [REALTIME] Cambio en pedido detectado:', payload);
           
+          const pedidoActualizado = payload.new as any;
+          
           // Si tenemos un pedido activo y es el mismo que cambió, actualizarlo
           if (this.pedidoActualCliente && payload.new && 
-              (payload.new as any).id === this.pedidoActualCliente.id) {
+              pedidoActualizado.id === this.pedidoActualCliente.id) {
             console.log('📦 [REALTIME] Actualizando pedidoActualCliente con nuevos datos');
             this.pedidoActualCliente = payload.new;
+            
+            // Si el pedido fue finalizado, limpiar estado del cliente
+            if (pedidoActualizado.estado === 'finalizado') {
+              console.log('🧹 [REALTIME] Pedido finalizado - Limpiando estado del cliente');
+              await this.limpiarEstadoPedidoFinalizado();
+            }
           }
           
           // Si tenemos mesa asignada, verificar si hay cambios relevantes
           if (this.mesaAsignada) {
-            const pedidoActualizado = payload.new as any;
             if (pedidoActualizado.mesa === String(this.mesaAsignada)) {
               console.log('📦 [REALTIME] Pedido de nuestra mesa actualizado');
               await this.verificarPedidoExistente();

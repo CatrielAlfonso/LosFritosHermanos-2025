@@ -388,7 +388,10 @@ export class EncuestasComponent  implements OnInit {
             this.mostrarMensajeExito = true;
             this.mensajeExito = '¡Encuesta enviada exitosamente!';
 
-            // 🔄 Solo actualizar BD si NO es anónimo Y tiene Auth
+            // Marcar encuesta_respondida en el pedido actual del cliente
+            await this.marcarEncuestaRespondidaEnPedido();
+
+            // También actualizar en clientes para compatibilidad
             if (!this.clientInfo.esAnonimo && !this.clientInfo.sinAuth) {
               const { error: errorCliente } = await this.supabase.supabase
                 .from('clientes')
@@ -396,17 +399,12 @@ export class EncuestasComponent  implements OnInit {
                 .eq('correo', this.clientInfo.correo);
               
               if (errorCliente) {
-                console.warn('No se pudo actualizar estado de encuesta:', errorCliente);
+                console.warn('No se pudo actualizar estado de encuesta en clientes:', errorCliente);
               }
-            } else {
-              // Para anónimos, solo actualizar flag local
-              this.clientInfo.encuesta = true;
-              console.log('✅ Encuesta marcada localmente para cliente anónimo');
             }
             
-            // await this.cargarEncuestas();  ACA COMENTO ESTO PARA QUE NO SE MUESTREN LOS RESULTADOS AL ENVIAR LA ENCUESTA Y PASO A REDIRIGIR AL HOME
-            // this.mostrarGraficos = true;   
-            // this.crearGraficos();
+            this.clientInfo.encuesta = true;
+            console.log('✅ Encuesta marcada como respondida');
 
             this.router.navigateByUrl('/home')
             
@@ -424,6 +422,67 @@ export class EncuestasComponent  implements OnInit {
 
 
 
+
+  /**
+   * Marca encuesta_respondida = true en el pedido actual del cliente
+   */
+  async marcarEncuestaRespondidaEnPedido() {
+    try {
+      let clienteId: string | null = null;
+      
+      // Obtener el cliente_id según el tipo de cliente
+      if (this.clientInfo.esAnonimo) {
+        // Para anónimos, usar el uid del localStorage
+        const clienteAnonimoStr = localStorage.getItem('clienteAnonimo');
+        if (clienteAnonimoStr) {
+          const clienteAnonimo = JSON.parse(clienteAnonimoStr);
+          clienteId = clienteAnonimo.uid;
+        }
+      } else {
+        // Para clientes autenticados, usar el uid de auth
+        const { data } = await this.supabase.supabase.auth.getUser();
+        clienteId = data?.user?.id || null;
+      }
+      
+      if (!clienteId) {
+        console.warn('⚠️ No se pudo obtener cliente_id para marcar encuesta');
+        return;
+      }
+      
+      console.log('🔍 Buscando pedido para cliente_id:', clienteId);
+      
+      // Buscar el pedido activo del cliente (estado entregado)
+      const { data: pedido, error: errorBusqueda } = await this.supabase.supabase
+        .from('pedidos')
+        .select('id')
+        .eq('cliente_id', clienteId)
+        .eq('estado', 'entregado')
+        .order('fecha_pedido', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (errorBusqueda || !pedido) {
+        console.warn('⚠️ No se encontró pedido entregado para marcar encuesta:', errorBusqueda);
+        return;
+      }
+      
+      console.log('📝 Marcando encuesta_respondida en pedido:', pedido.id);
+      
+      // Actualizar encuesta_respondida en el pedido
+      const { error: errorUpdate } = await this.supabase.supabase
+        .from('pedidos')
+        .update({ encuesta_respondida: true })
+        .eq('id', pedido.id);
+      
+      if (errorUpdate) {
+        console.error('❌ Error al marcar encuesta_respondida:', errorUpdate);
+      } else {
+        console.log('✅ encuesta_respondida marcada en pedido', pedido.id);
+      }
+    } catch (error) {
+      console.error('❌ Error en marcarEncuestaRespondidaEnPedido:', error);
+    }
+  }
 
   async mostrarAlerta(titulo: string, mensaje: string) {
     const alert = await this.alertController.create({
