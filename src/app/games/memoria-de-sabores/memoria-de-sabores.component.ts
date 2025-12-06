@@ -190,13 +190,15 @@ export class MemoriaDeSaboresComponent implements OnInit {
     return `🎯 ¡Encontrá todos los pares en ${this.maxIntentos} intentos o menos y obtené ${this.descuentoJuego}% de descuento!`;
   }
 
-  reiniciarJuego() {
+  async reiniciarJuego() {
     this.gameState = 'inicio';
     this.cartas = [];
     this.intentos = 0;
     this.paresEncontrados = 0;
     this.gano = false;
     this.mensajeResultado = '';
+    // Actualizar elegibilidad después de cada juego
+    await this.verificarElegibilidad();
   }
 
   volverAlMenu() {

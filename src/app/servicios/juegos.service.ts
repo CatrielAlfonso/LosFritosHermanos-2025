@@ -230,7 +230,7 @@ export class JuegosService {
       return {
         exito: gano,
         porcentaje: 0,
-        mensaje: gano ? '¡Ganaste! Los clientes registrados pueden obtener descuentos.' : '¡Buen intento!',
+        mensaje: gano ? '¡Ganaste! Pero los clientes anonimos no pueden obtener descuentos.' : '¡Buen intento!',
         descuentoAplicado: false
       };
     }
@@ -240,7 +240,7 @@ export class JuegosService {
       return {
         exito: gano,
         porcentaje: 0,
-        mensaje: gano ? '¡Ganaste! Ya tienes un descuento aplicado.' : '¡Buen intento!',
+        mensaje: gano ? '¡Ganaste! Ya tenías un descuento aplicado anteriormente.' : '¡Buen intento!',
         descuentoAplicado: false
       };
     }

@@ -126,13 +126,15 @@ export class MayorMenorComponent implements OnInit {
     return `🎯 ¡Acertá ${this.puntosParaGanar} veces seguidas y obtené ${this.descuentoJuego}% de descuento!`;
   }
 
-  reiniciarJuego() {
+  async reiniciarJuego() {
     this.gameState = 'inicio';
     this.puntos = 0;
     this.carta = 0;
     this.cartaAnterior = 0;
     this.gano = false;
     this.mensajeResultado = '';
+    // Actualizar elegibilidad después de cada juego
+    await this.verificarElegibilidad();
   }
 
   volverAlMenu() {

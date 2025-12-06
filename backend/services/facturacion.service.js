@@ -52,7 +52,7 @@ async function generarYEnviarFactura(pedidoId) {
     const { error: mesaError } = await supabase
       .from('mesas')
       .update({ ocupada: false, clienteAsignadoId: null, pedido_id: null })
-      .eq('id', parseInt(pedido.mesa)); 
+      .eq('numero', parseInt(pedido.mesa)); 
 
     if (mesaError) console.error("Error al liberar la mesa:", mesaError.message);
 

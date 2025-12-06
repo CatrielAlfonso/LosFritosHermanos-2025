@@ -9,6 +9,7 @@ import { NotificationsService } from 'src/app/servicios/notifications.service';
 import { INotification } from 'src/app/models/notification.model';
 import * as moment from 'moment-timezone';
 import { Haptics } from '@capacitor/haptics';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 
 
 @Component({
@@ -71,6 +72,7 @@ export class CocinaComponent  implements OnInit {
   private toastController = inject(ToastController);
   //private pushService = inject(PushNotificationService);
   private feedback = inject(FeedbackService);
+  private customLoader = inject(CustomLoader)
   
   //NOTIFICACIONES
   private notificationsService = inject(NotificationsService);
@@ -147,7 +149,7 @@ export class CocinaComponent  implements OnInit {
       
       // Vibrar en error
       try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
-      
+      this.supabaseService.cargarPedidos()
       const toast = await this.toastController.create({
         message: '❌ Error al marcar como recibido',
         duration: 3000,
@@ -198,6 +200,7 @@ export class CocinaComponent  implements OnInit {
         pedido.id
       );
       
+      this.supabaseService.cargarPedidos()
       // 5. Mostrar confirmación
       const toast = await this.toastController.create({
         message: pedidoCompleto 

@@ -8,7 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { Haptics } from '@capacitor/haptics';
-import { CustomLoader } from 'src/app/servicios/custom-loader.service'; // ✨ Importar CustomLoader
+import { CustomLoader } from 'src/app/servicios/custom-loader.service';
 
 @Component({
   selector: 'app-pedidos-mozo',
@@ -60,8 +60,10 @@ export class PedidosMozoComponent  implements OnInit {
     private http: HttpClient,
     private pushNotificationService: PushNotificationService,
     private toastService : FeedbackService,
-    private customLoader: CustomLoader // ✨ Inyectar CustomLoader
-  ) { }
+    private customLoader : CustomLoader
+  ) { 
+    
+  }
 
   async ngOnInit() {
     console.log('🎯 Componente mozo iniciado');
@@ -241,7 +243,9 @@ export class PedidosMozoComponent  implements OnInit {
       } catch (notifError) {
         console.error('Error al notificar cliente sobre rechazo:', notifError);
       }
-      
+
+      // No necesitas recargar manualmente, realtime lo hará automáticamente
+      await this.sb.cargarPedidos();
       const toast = await this.toastController.create({
         message: `Pedido de Mesa ${pedido.mesa} rechazado`,
         duration: 3000,
@@ -309,6 +313,7 @@ export class PedidosMozoComponent  implements OnInit {
         color: 'danger',
         position: 'top'
       });
+      await this.sb.cargarPedidos();
       await toast.present();
     }
   }
@@ -326,13 +331,11 @@ export class PedidosMozoComponent  implements OnInit {
     return estados[estado] || estado;
   }
 
-  // ✨ MÉTODO ACTUALIZADO CON CUSTOM LOADER
-  async confirmarPagoPedido(pedido: any) {
-    try {
-      // ✨ Mostrar loader custom
-      this.customLoader.show('Confirmando pago y generando factura...');
-      
-      const esClienteAnonimo = false;
+  async confirmarPagoPedido(pedido : any){
+    try{
+      this.customLoader.show('Confirmando el pago')
+      const esClienteAnonimo = false
+
       console.log('DEBUG: El objeto PEDIDO que se envía es:', pedido);
 
       const resultado = await this.pushNotificationService.generarFacturaYConfirmarPago(pedido);
@@ -344,11 +347,13 @@ export class PedidosMozoComponent  implements OnInit {
           estado: 'finalizado'
         });
 
-        await this.liberarMesa(pedido.mesa);
+        // 2. Liberar la mesa
+        //await this.liberarMesa(pedido.mesa);
 
         try {
           await this.notificarConfirmacionPago(pedido);
         } catch (notifError) {
+          this.customLoader.hide()
           console.error('Error al notificar confirmación de pago:', notifError);
         }
 
@@ -358,11 +363,15 @@ export class PedidosMozoComponent  implements OnInit {
         this.customLoader.hide();
         
         this.toastService.showToast('exito', 'Pago confirmado y mesa liberada');
+        this.customLoader.hide()
       } else {
+        // El backend manejó el error
+        this.customLoader.hide()
         throw new Error(resultado.error || 'Error desconocido en el backend');
       }
 
     } catch (error) {
+      this.customLoader.hide()
       console.error('Error al confirmar el pago:', error);
       
       // ✨ Ocultar loader en caso de error
