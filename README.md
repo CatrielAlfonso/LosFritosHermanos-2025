@@ -126,11 +126,11 @@ ENTRADA AL LOCAL:
 
 MESA DELIVERY:
 
-<img width="512" height="512" alt="qr-delivery" src="https://github.com/user-attachments/assets/ac829a52-14d9-4153-b975-e2681650f11a" />
+<img width="300" height="300" alt="qr-delivery" src="https://github.com/user-attachments/assets/ac829a52-14d9-4153-b975-e2681650f11a" />
 
 Mesa 2:
 
-<img width="512" height="512" alt="mesa-2-qr (2)" src="https://github.com/user-attachments/assets/b2037e73-d1da-497b-bd4d-46db5300816a" />
+<img width="300" height="300" alt="mesa-2-qr (2)" src="https://github.com/user-attachments/assets/b2037e73-d1da-497b-bd4d-46db5300816a" />
 
 Mesa 3:
 
@@ -138,24 +138,24 @@ Mesa 3:
 
 Mesa 5:
 
-<img width="512" height="512" alt="mesa-5-qr" src="https://github.com/user-attachments/assets/8adb6fc6-24cd-417e-ba17-3ec344b714b0" />
+<img width="300" height="300" alt="mesa-5-qr" src="https://github.com/user-attachments/assets/8adb6fc6-24cd-417e-ba17-3ec344b714b0" />
 
 Mesa 6:
 
-<img width="512" height="512" alt="mesa-6-qr" src="https://github.com/user-attachments/assets/a14eee8b-e7ec-4b13-b10d-460b5c6db67c" />
+<img width="300" height="300" alt="mesa-6-qr" src="https://github.com/user-attachments/assets/a14eee8b-e7ec-4b13-b10d-460b5c6db67c" />
 
 Mesa 7:
 
-<img width="512" height="512" alt="mesa-7-qr" src="https://github.com/user-attachments/assets/919bc18d-6a7d-41d2-9edd-13c9e2c9b9bb" />
+<img width="300" height="300" alt="mesa-7-qr" src="https://github.com/user-attachments/assets/919bc18d-6a7d-41d2-9edd-13c9e2c9b9bb" />
 
 Mesa 9:
 
-<img width="512" height="512" alt="mesa-9-qr" src="https://github.com/user-attachments/assets/0576abfb-86fd-4938-ad93-920eb58dda00" />
+<img width="300" height="300" alt="mesa-9-qr" src="https://github.com/user-attachments/assets/0576abfb-86fd-4938-ad93-920eb58dda00" />
 
 Mesa 12:
 
-<img width="512" height="512" alt="mesa-12-qr" src="https://github.com/user-attachments/assets/45eff6de-0740-4bd5-9dad-fee8461e6d53" />
+<img width="300" height="300" alt="mesa-12-qr" src="https://github.com/user-attachments/assets/45eff6de-0740-4bd5-9dad-fee8461e6d53" />
 
 Propina:
 
-<img width="512" height="512" alt="propina-qr" src="https://github.com/user-attachments/assets/aafb0590-0a03-41bf-a6e6-0ce8bad58439" />
+<img width="300" height="300" alt="propina-qr" src="https://github.com/user-attachments/assets/aafb0590-0a03-41bf-a6e6-0ce8bad58439" />
