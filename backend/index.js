@@ -2728,6 +2728,8 @@ app.post("/notify-repartidor-pedido", async (req, res) => {
   try {
     const { repartidorEmail, pedidoId, clienteNombre, direccion } = req.body;
     
+    console.log("🚴 [notify-repartidor-pedido] Datos recibidos:", { repartidorEmail, pedidoId, clienteNombre, direccion });
+    
     if (!repartidorEmail || !pedidoId) {
       return res.status(400).send({ 
         error: "repartidorEmail y pedidoId son requeridos" 
@@ -2737,9 +2739,11 @@ app.post("/notify-repartidor-pedido", async (req, res) => {
     // Obtener token FCM del repartidor
     const { data: repartidor, error: repartidorError } = await supabase
       .from("repartidores")
-      .select("fcm_token, nombre, apellido")
+      .select("fcm_token, nombre, apellido, correo")
       .eq("correo", repartidorEmail)
       .single();
+
+    console.log("🚴 [notify-repartidor-pedido] Repartidor encontrado:", repartidor);
 
     if (repartidorError || !repartidor) {
       console.error("Error al buscar repartidor:", repartidorError);
@@ -2747,7 +2751,7 @@ app.post("/notify-repartidor-pedido", async (req, res) => {
     }
 
     if (!repartidor.fcm_token) {
-      console.log("Repartidor no tiene token FCM registrado");
+      console.log("⚠️ Repartidor no tiene token FCM registrado");
       return res.status(200).send({ message: "Repartidor no tiene notificaciones habilitadas" });
     }
 
@@ -2767,7 +2771,7 @@ app.post("/notify-repartidor-pedido", async (req, res) => {
     };
 
     const response = await admin.messaging().send(message);
-    console.log("Notificación enviada al repartidor:", response);
+    console.log("✅ Notificación enviada al repartidor:", response);
 
     res.status(200).send({ 
       message: "Notificación enviada al repartidor exitosamente", 
@@ -2776,6 +2780,85 @@ app.post("/notify-repartidor-pedido", async (req, res) => {
 
   } catch (error) {
     console.error("Error en /notify-repartidor-pedido:", error);
+    res.status(500).send({ 
+      error: `Falló el envío de la notificación: ${error.message}` 
+    });
+  }
+});
+
+// Endpoint para notificar a TODOS los repartidores disponibles
+// Se usa cuando no hay un repartidor asignado específico
+app.post("/notify-all-repartidores", async (req, res) => {
+  try {
+    const { pedidoId, clienteNombre, direccion } = req.body;
+    
+    console.log("🚴 [notify-all-repartidores] Notificando a todos los repartidores:", { pedidoId, clienteNombre, direccion });
+    
+    if (!pedidoId) {
+      return res.status(400).send({ 
+        error: "pedidoId es requerido" 
+      });
+    }
+
+    // Obtener todos los repartidores con FCM token
+    const { data: repartidores, error: repartidoresError } = await supabase
+      .from("repartidores")
+      .select("fcm_token, nombre, correo")
+      .not("fcm_token", "is", null);
+
+    console.log("🚴 [notify-all-repartidores] Repartidores encontrados:", repartidores?.length || 0);
+
+    if (repartidoresError) {
+      console.error("Error al buscar repartidores:", repartidoresError);
+      return res.status(500).send({ error: "Error al buscar repartidores" });
+    }
+
+    if (!repartidores || repartidores.length === 0) {
+      console.log("⚠️ No hay repartidores con FCM token");
+      return res.status(200).send({ message: "No hay repartidores con notificaciones habilitadas" });
+    }
+
+    // Construir mensaje de notificación
+    const title = "🚴 ¡Nuevo Pedido Delivery!";
+    const body = `Hay un nuevo pedido #${pedidoId} para ${clienteNombre || 'cliente'}. Dirección: ${direccion || 'Ver en app'}`;
+
+    // Enviar a todos los repartidores
+    const notificaciones = repartidores.map(async (repartidor) => {
+      if (!repartidor.fcm_token) return null;
+      
+      const message = {
+        notification: { title, body },
+        token: repartidor.fcm_token,
+        data: {
+          link: '/panel-repartidor',
+          pedidoId: pedidoId.toString(),
+          tipo: 'nuevo_pedido'
+        }
+      };
+
+      try {
+        const result = await admin.messaging().send(message);
+        console.log(`✅ Notificación enviada a ${repartidor.nombre}:`, result);
+        return result;
+      } catch (err) {
+        console.error(`❌ Error enviando a ${repartidor.nombre}:`, err.message);
+        return null;
+      }
+    });
+
+    const resultados = await Promise.all(notificaciones);
+    const enviados = resultados.filter(r => r !== null).length;
+    
+    console.log(`✅ Total notificaciones enviadas: ${enviados}/${repartidores.length}`);
+
+    res.status(200).send({ 
+      message: `Notificación enviada a ${enviados} repartidores`,
+      total: repartidores.length,
+      enviados
+    });
+
+  } catch (error) {
+    console.error("Error en /notify-all-repartidores:", error);
     res.status(500).send({ 
       error: `Falló el envío de la notificación: ${error.message}` 
     });

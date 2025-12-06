@@ -113,20 +113,20 @@
       <div class="info-section">
         <h4><ion-icon name="restaurant-outline"></ion-icon> Pedido</h4>
         <p>{{ getTotalProductos(pedido) }} productos</p>
-        <p class="precio-total">Total: {{ formatearPrecio(pedido.precio_total) }}</p>
+        <p class="precio-total">Total: {{ formatearPrecio(pedido.precio_total || pedido.precio || pedido.cuenta || 0) }}</p>
       </div>
 
       <!-- Hora -->
       <div class="info-section">
         <h4><ion-icon name="time-outline"></ion-icon> Hora del Pedido</h4>
-        <p>{{ formatearFecha(pedido.created_at!) }}</p>
+        <p>{{ formatearFecha(pedido.created_at || pedido.fecha_pedido || '') }}</p>
       </div>
 
       <!-- Botones de Acción -->
       <div class="actions-section">
         <!-- Confirmar Recepción y Navegar (solo si está listo para entregar) -->
         <ion-button 
-          *ngIf="pedido.estado === 'confirmado' && estaListoParaEntregar(pedido)"
+          *ngIf="(pedido.estado === 'confirmado' || pedido.estado === 'en preparacion') && estaListoParaEntregar(pedido)"
           expand="block" 
           color="success" 
           (click)="confirmarRecepcion(pedido)">
@@ -136,7 +136,7 @@
 
         <!-- Mensaje si no está listo -->
         <ion-card 
-          *ngIf="pedido.estado === 'confirmado' && !estaListoParaEntregar(pedido)"
+          *ngIf="(pedido.estado === 'confirmado' || pedido.estado === 'en preparacion') && !estaListoParaEntregar(pedido)"
           color="warning" 
           class="info-card">
           <ion-card-content>

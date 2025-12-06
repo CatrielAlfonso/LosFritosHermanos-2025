@@ -270,7 +270,7 @@ async derivarACocinaYBar(pedido: PedidoDelivery) {
       comidas: pedido.comidas || [],
       bebidas: pedido.bebidas || [],
       postres: pedido.postres || [],
-      precio: pedido.precio_productos,
+      precio: pedido.precio_productos || pedido.precio_total,
       tiempo_estimado: pedido.tiempo_estimado || 45,
       confirmado: false, // Pendiente de confirmación del mozo
       mesa: 'DELIVERY', 
@@ -280,8 +280,15 @@ async derivarACocinaYBar(pedido: PedidoDelivery) {
       estado_postre: 'pendiente',
       recepcion: false,
       pagado: 0,
-      cuenta: 0,
+      cuenta: pedido.precio_productos || pedido.precio_total || 0,
       fecha_pedido: new Date().toISOString(),
+      // Campos para el repartidor
+      cliente_nombre: pedido.cliente_nombre,
+      cliente_telefono: pedido.cliente_telefono,
+      direccion_completa: pedido.direccion_completa,
+      direccion_referencia: pedido.direccion_referencia,
+      latitud: pedido.latitud,
+      longitud: pedido.longitud,
       // Guardamos el ID numérico en observaciones por si acaso
       observaciones_generales: `DELIVERY - CLIENTE #${pedido.cliente_id}: ${pedido.cliente_nombre} - DIR: ${pedido.direccion_completa} - OBS: ${pedido.observaciones_generales || ''}`
     };

@@ -141,8 +141,9 @@ export class PanelRepartidorComponent implements OnInit {
   aplicarFiltro() {
     if (this.filtroEstado === 'listos') {
       // Mostrar solo pedidos que están completamente listos para entregar
+      // Acepta 'confirmado' o 'en preparacion' ya que el mozo cambia el estado
       this.pedidosFiltrados = this.pedidos.filter(
-        p => p.estado === 'confirmado' && this.estaListoParaEntregar(p)
+        p => (p.estado === 'confirmado' || p.estado === 'en preparacion') && this.estaListoParaEntregar(p)
       );
     } else if (this.filtroEstado === 'en_camino') {
       this.pedidosFiltrados = this.pedidos.filter(p => p.estado === 'en_camino');
@@ -278,11 +279,11 @@ export class PanelRepartidorComponent implements OnInit {
   }
 
   getCantidadAsignados(): number {
-    return this.pedidos.filter(p => (p.estado === 'confirmado' || p.estado === 'preparando') && !this.estaListoParaEntregar(p)).length;
+    return this.pedidos.filter(p => (p.estado === 'confirmado' || p.estado === 'en preparacion') && !this.estaListoParaEntregar(p)).length;
   }
 
   getCantidadListos(): number {
-    return this.pedidos.filter(p => (p.estado === 'confirmado' || p.estado === 'preparando') && this.estaListoParaEntregar(p)).length;
+    return this.pedidos.filter(p => (p.estado === 'confirmado' || p.estado === 'en preparacion') && this.estaListoParaEntregar(p)).length;
   }
 
   getCantidadEnCamino(): number {

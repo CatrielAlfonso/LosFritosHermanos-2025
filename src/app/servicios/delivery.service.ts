@@ -16,17 +16,17 @@ export interface DireccionDelivery {
 export interface PedidoDelivery {
   id?: number;
   cliente_id: number;
-  cliente_email: string;
+  cliente_email?: string;
   cliente_nombre: string;
   cliente_telefono?: string;
   
   // Dirección
-  direccion_calle: string;
-  direccion_numero: string;
+  direccion_calle?: string;
+  direccion_numero?: string;
   direccion_piso?: string;
   direccion_depto?: string;
   direccion_referencia?: string;
-  direccion_completa: string;
+  direccion_completa?: string;
   latitud?: number;
   longitud?: number;
   
@@ -35,9 +35,11 @@ export interface PedidoDelivery {
   bebidas: any[];
   postres: any[];
   productos?: any[]; // Array combinado de todos los productos (para compatibilidad)
-  precio_productos: number;
-  precio_envio: number;
-  precio_total: number;
+  precio_productos?: number;
+  precio_envio?: number;
+  precio_total?: number;
+  precio?: number; // Campo de tabla pedidos
+  cuenta?: number; // Campo de tabla pedidos
   propina?: number; // Propina del cliente
   
   // Estado
@@ -57,8 +59,10 @@ export interface PedidoDelivery {
   metodo_pago?: string;
   pagado?: boolean;
   
+  // Timestamps (compatibilidad con ambas tablas)
   created_at?: string;
   updated_at?: string;
+  fecha_pedido?: string; // Campo de tabla pedidos
 }
 
 @Injectable({
@@ -406,16 +410,24 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
     }
 
     // Asignar repartidor disponible automáticamente
+    console.log('🚴 [confirmarPedidoDelivery] Intentando asignar repartidor...');
     const { data: repartidor, error: repartidorError } = await this.supabase.supabase
       .rpc('asignar_repartidor_disponible', { pedido_id_param: id });
 
+    console.log('🚴 [confirmarPedidoDelivery] Resultado RPC:', { repartidor, repartidorError });
+
     if (repartidorError) {
-      console.error('Error al asignar repartidor:', repartidorError);
-    } else if (repartidor) {
-      console.log('Repartidor asignado:', repartidor);
-      // Enviar notificación al repartidor
+      console.error('❌ Error al asignar repartidor via RPC:', repartidorError);
+      // Intentar notificar a todos los repartidores disponibles como fallback
+      await this.notificarTodosRepartidoresDisponibles(id, pedido.cliente_nombre, pedido.direccion_completa);
+    } else if (repartidor && repartidor.correo) {
+      console.log('✅ Repartidor asignado:', repartidor);
+      // Enviar notificación al repartidor asignado
       await this.notificarRepartidorPedido(repartidor.correo, id, 
         pedido.cliente_nombre, pedido.direccion_completa);
+    } else {
+      console.log('⚠️ RPC no retornó repartidor o sin correo, notificando a todos los disponibles');
+      await this.notificarTodosRepartidoresDisponibles(id, pedido.cliente_nombre, pedido.direccion_completa);
     }
 
     // Notificar al cliente
@@ -535,13 +547,14 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
   }
 
   /**
-   * Obtiene los pedidos asignados a un repartidor
+   * Obtiene los pedidos DELIVERY asignados a un repartidor
    */
   async obtenerPedidosRepartidor(repartidorId: number): Promise<PedidoDelivery[]> {
     const { data, error } = await this.supabase.supabase
       .from('pedidos')
       .select('*')
       .eq('repartidor_id', repartidorId)
+      .eq('mesa', 'DELIVERY') // Solo pedidos delivery
       .order('fecha_pedido', { ascending: false });
 
     if (error) {
@@ -549,6 +562,7 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
       throw new Error(`Error al obtener pedidos: ${error.message}`);
     }
 
+    console.log('🚴 [obtenerPedidosRepartidor] Pedidos encontrados:', data?.length || 0);
     return data || [];
   }
 
@@ -571,37 +585,36 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
   }
 
   /**
-   * Actualiza el estado de un pedido delivery
+   * Actualiza el estado de un pedido delivery (tabla pedidos)
    */
   async actualizarEstadoPedidoDelivery(pedidoId: number, nuevoEstado: string): Promise<void> {
+    console.log('🚴 [actualizarEstadoPedidoDelivery] Actualizando pedido:', pedidoId, 'a estado:', nuevoEstado);
+    
     const updateData: any = { 
-      estado: nuevoEstado,
-      updated_at: new Date().toISOString()
+      estado: nuevoEstado
     };
 
-    // Agregar timestamp específico según el estado
-    if (nuevoEstado === 'en_camino') {
-      updateData.hora_en_camino = new Date().toISOString();
-    }
-
+    // Actualizar en tabla PEDIDOS (no pedidos_delivery)
     const { error } = await this.supabase.supabase
-      .from('pedidos_delivery')
+      .from('pedidos')
       .update(updateData)
       .eq('id', pedidoId);
 
     if (error) {
-      console.error('Error al actualizar estado:', error);
+      console.error('❌ Error al actualizar estado en pedidos:', error);
       throw new Error(`Error al actualizar: ${error.message}`);
     }
 
-    // Notificar al cliente
+    console.log('✅ Estado actualizado correctamente en tabla pedidos');
+
+    // También actualizar en pedidos_delivery si existe
     try {
-      const pedido = await this.obtenerPedidoPorId(pedidoId);
-      if (pedido) {
-        await this.notificarClienteEstadoPedido(pedido, nuevoEstado);
-      }
-    } catch (notifError) {
-      console.error('Error al notificar cliente:', notifError);
+      await this.supabase.supabase
+        .from('pedidos_delivery')
+        .update({ estado: nuevoEstado, updated_at: new Date().toISOString() })
+        .eq('id', pedidoId);
+    } catch (e) {
+      // Ignorar si no existe en pedidos_delivery
     }
   }
 
@@ -609,6 +622,24 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
    * Marca un pedido como entregado
    */
   async marcarPedidoEntregado(pedidoId: number): Promise<void> {
+    console.log('🚴 [marcarPedidoEntregado] Marcando pedido como entregado:', pedidoId);
+    
+    // Actualizar en tabla PEDIDOS
+    const { error: errorPedidos } = await this.supabase.supabase
+      .from('pedidos')
+      .update({ 
+        estado: 'entregado'
+      })
+      .eq('id', pedidoId);
+
+    if (errorPedidos) {
+      console.error('❌ Error al marcar entregado en pedidos:', errorPedidos);
+      throw new Error(`Error al marcar entregado: ${errorPedidos.message}`);
+    }
+
+    console.log('✅ Pedido marcado como entregado en tabla pedidos');
+
+    // También actualizar en pedidos_delivery si existe
     const { data: pedido, error: updateError } = await this.supabase.supabase
       .from('pedidos_delivery')
       .update({ 
@@ -658,6 +689,8 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
     direccion: string
   ): Promise<void> {
     try {
+      console.log('🚴 [notificarRepartidorPedido] Enviando notificación a:', repartidorEmail);
+      
       const backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
       // const backendUrl = 'http://localhost:8080'; // Para desarrollo local
       
@@ -674,14 +707,55 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
         })
       });
 
+      const responseData = await response.json();
+      console.log('🚴 [notificarRepartidorPedido] Respuesta:', responseData);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      console.log('Notificación enviada al repartidor exitosamente');
+      console.log('✅ Notificación enviada al repartidor exitosamente');
     } catch (error) {
-      console.error('Error al notificar al repartidor:', error);
+      console.error('❌ Error al notificar al repartidor:', error);
       // No lanzar error para no afectar el flujo principal
+    }
+  }
+
+  /**
+   * Notifica a TODOS los repartidores disponibles sobre un nuevo pedido
+   * Se usa como fallback cuando no hay repartidor asignado específico
+   */
+  private async notificarTodosRepartidoresDisponibles(
+    pedidoId: number, 
+    clienteNombre: string, 
+    direccion: string
+  ): Promise<void> {
+    try {
+      console.log('🚴 [notificarTodosRepartidoresDisponibles] Notificando a todos los repartidores...');
+      
+      const backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
+      // const backendUrl = 'http://localhost:8080';
+      
+      const response = await fetch(`${backendUrl}/notify-all-repartidores`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pedidoId,
+          clienteNombre,
+          direccion
+        })
+      });
+
+      const responseData = await response.json();
+      console.log('🚴 [notificarTodosRepartidoresDisponibles] Respuesta:', responseData);
+
+      if (!response.ok) {
+        console.error('Error en respuesta:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Error al notificar a todos los repartidores:', error);
     }
   }
 
