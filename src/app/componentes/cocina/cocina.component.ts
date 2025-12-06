@@ -200,12 +200,25 @@ export class CocinaComponent  implements OnInit {
         pedido.id
       );
       
+      // 4.1. Si es DELIVERY y el pedido completo está listo, notificar al repartidor
+      if (pedido.mesa === 'DELIVERY' && pedidoCompleto) {
+        console.log('🚴 Pedido DELIVERY completo - Notificando al repartidor');
+        await this.notificarRepartidorPedidoListo(pedido);
+      }
+      
       this.supabaseService.cargarPedidos()
       // 5. Mostrar confirmación
+      let mensaje = '';
+      if (pedido.mesa === 'DELIVERY' && pedidoCompleto) {
+        mensaje = `✅ Pedido DELIVERY completo - Repartidor notificado`;
+      } else if (pedidoCompleto) {
+        mensaje = `✅ Pedido completo de Mesa ${pedido.mesa} - Mozo notificado`;
+      } else {
+        mensaje = `✅ Comidas de Mesa ${pedido.mesa} listas - Mozo notificado`;
+      }
+      
       const toast = await this.toastController.create({
-        message: pedidoCompleto 
-          ? `✅ Pedido completo de Mesa ${pedido.mesa} - Mozo notificado` 
-          : `✅ Comidas de Mesa ${pedido.mesa} listas - Mozo notificado`,
+        message: mensaje,
         duration: 3000,
         color: 'success',
         position: 'top'
@@ -259,6 +272,39 @@ export class CocinaComponent  implements OnInit {
       
     } catch (error) {
       console.error('❌ Error en sincronización con delivery:', error);
+    }
+  }
+
+  /**
+   * Notifica al repartidor que el pedido delivery está listo para recoger
+   */
+  private async notificarRepartidorPedidoListo(pedido: any) {
+    try {
+      // Extraer info del pedido delivery desde observaciones
+      const observaciones = pedido.observaciones_generales || '';
+      const matchCliente = observaciones.match(/CLIENTE #(\d+):\s*([^-]+)/);
+      const matchDir = observaciones.match(/DIR:\s*([^-]+)/);
+      
+      const clienteNombre = matchCliente ? matchCliente[2].trim() : 'Cliente';
+      const direccion = matchDir ? matchDir[1].trim() : 'Sin dirección';
+      
+      const backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
+      // const backendUrl = 'http://localhost:8080';
+      
+      await fetch(`${backendUrl}/notify-repartidor-pedido-listo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pedidoId: pedido.id,
+          clienteNombre,
+          direccion
+        })
+      });
+      
+      console.log('✅ Repartidor notificado - Pedido listo para recoger');
+      
+    } catch (error) {
+      console.error('❌ Error al notificar al repartidor:', error);
     }
   }
 

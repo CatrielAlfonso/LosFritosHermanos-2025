@@ -2782,6 +2782,128 @@ app.post("/notify-repartidor-pedido", async (req, res) => {
   }
 });
 
+// Endpoint para notificar al repartidor que el pedido está LISTO para recoger
+// Se llama cuando AMBOS (cocina Y bar) terminaron de preparar
+app.post("/notify-repartidor-pedido-listo", async (req, res) => {
+  try {
+    const { pedidoId, clienteNombre, direccion } = req.body;
+    
+    console.log("📦 Notificando repartidor - Pedido listo:", { pedidoId, clienteNombre, direccion });
+    
+    if (!pedidoId) {
+      return res.status(400).send({ 
+        error: "pedidoId es requerido" 
+      });
+    }
+
+    // Buscar el pedido para obtener el repartidor asignado
+    const { data: pedidoDelivery, error: pedidoError } = await supabase
+      .from("pedidos_delivery")
+      .select("repartidor_id")
+      .eq("id", pedidoId)
+      .single();
+
+    // Si no encontramos en pedidos_delivery, buscar el repartidor asignado de otra forma
+    // o notificar a todos los repartidores disponibles
+    let repartidorId = pedidoDelivery?.repartidor_id;
+
+    if (!repartidorId) {
+      // Si no hay repartidor asignado específico, notificar a todos los repartidores disponibles
+      console.log("⚠️ No hay repartidor asignado, notificando a todos los disponibles");
+      
+      const { data: repartidores, error: repartidoresError } = await supabase
+        .from("repartidores")
+        .select("fcm_token, nombre")
+        .eq("disponible", true)
+        .not("fcm_token", "is", null);
+
+      if (repartidoresError || !repartidores || repartidores.length === 0) {
+        console.log("No hay repartidores disponibles con FCM token");
+        return res.status(200).send({ message: "No hay repartidores disponibles para notificar" });
+      }
+
+      // Enviar a todos los repartidores disponibles
+      const title = "🍽️ ¡Pedido Listo para Recoger!";
+      const body = `El pedido #${pedidoId} para ${clienteNombre || 'cliente'} está listo. Dirección: ${direccion || 'Ver en app'}`;
+
+      const notificaciones = repartidores.map(async (repartidor) => {
+        if (!repartidor.fcm_token) return null;
+        
+        const message = {
+          notification: { title, body },
+          token: repartidor.fcm_token,
+          data: {
+            link: '/panel-repartidor',
+            pedidoId: pedidoId.toString(),
+            tipo: 'pedido_listo'
+          }
+        };
+
+        try {
+          return await admin.messaging().send(message);
+        } catch (err) {
+          console.error(`Error enviando a ${repartidor.nombre}:`, err.message);
+          return null;
+        }
+      });
+
+      const resultados = await Promise.all(notificaciones);
+      const enviados = resultados.filter(r => r !== null).length;
+      
+      console.log(`✅ Notificaciones enviadas a ${enviados} repartidores`);
+      return res.status(200).send({ 
+        message: `Notificación enviada a ${enviados} repartidores`,
+        enviados
+      });
+    }
+
+    // Si hay repartidor asignado, notificar solo a él
+    const { data: repartidor, error: repartidorError } = await supabase
+      .from("repartidores")
+      .select("fcm_token, nombre, apellido")
+      .eq("id", repartidorId)
+      .single();
+
+    if (repartidorError || !repartidor) {
+      console.error("Error al buscar repartidor:", repartidorError);
+      return res.status(404).send({ error: "Repartidor no encontrado" });
+    }
+
+    if (!repartidor.fcm_token) {
+      console.log("Repartidor no tiene token FCM registrado");
+      return res.status(200).send({ message: "Repartidor no tiene notificaciones habilitadas" });
+    }
+
+    // Construir mensaje de notificación
+    const title = "🍽️ ¡Pedido Listo para Recoger!";
+    const body = `El pedido #${pedidoId} para ${clienteNombre || 'cliente'} está listo. Dirección: ${direccion || 'Ver en app'}`;
+
+    const message = {
+      notification: { title, body },
+      token: repartidor.fcm_token,
+      data: {
+        link: '/panel-repartidor',
+        pedidoId: pedidoId.toString(),
+        tipo: 'pedido_listo'
+      }
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log("✅ Notificación enviada al repartidor:", response);
+
+    res.status(200).send({ 
+      message: "Notificación enviada al repartidor exitosamente", 
+      response 
+    });
+
+  } catch (error) {
+    console.error("Error en /notify-repartidor-pedido-listo:", error);
+    res.status(500).send({ 
+      error: `Falló el envío de la notificación: ${error.message}` 
+    });
+  }
+});
+
 // Endpoint para generar y enviar boleta de delivery en PDF
 app.post("/generar-boleta-delivery", async (req, res) => {
   try {
