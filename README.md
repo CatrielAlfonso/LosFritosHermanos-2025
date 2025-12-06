@@ -158,4 +158,4 @@ Mesa 12:
 
 Propina:
 
-<img width="2048" height="2048" alt="propina-qr" src="https://github.com/user-attachments/assets/aafb0590-0a03-41bf-a6e6-0ce8bad58439" />
+<img width="1048" height="1048" alt="propina-qr" src="https://github.com/user-attachments/assets/aafb0590-0a03-41bf-a6e6-0ce8bad58439" />
