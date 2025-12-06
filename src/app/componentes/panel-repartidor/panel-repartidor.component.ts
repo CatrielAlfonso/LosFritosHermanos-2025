@@ -349,21 +349,18 @@ export class PanelRepartidorComponent implements OnInit {
 
   /**
    * Determina si un pedido de delivery está completamente listo para ser entregado
-   * Similar a la lógica del mozo pero adaptada para delivery
+   * Solo verifica estado_comida y estado_bebida de la tabla pedidos
    */
   estaListoParaEntregar(pedido: PedidoDelivery): boolean {
     const tieneComida = pedido.comidas && pedido.comidas.length > 0;
     const tieneBebida = pedido.bebidas && pedido.bebidas.length > 0;
-    const tienePostre = pedido.postres && pedido.postres.length > 0;
     
     console.log('🔍 Debug estaListoParaEntregar (Delivery):', {
       id: pedido.id,
       tieneComida,
       tieneBebida,
-      tienePostre,
       estado_comida: pedido.estado_comida,
-      estado_bebida: pedido.estado_bebida,
-      estado_postre: pedido.estado_postre
+      estado_bebida: pedido.estado_bebida
     });
     
     // Si tiene comida, debe estar lista
@@ -376,17 +373,12 @@ export class PanelRepartidorComponent implements OnInit {
       return false;
     }
     
-    // Si tiene postre, debe estar listo
-    if (tienePostre && pedido.estado_postre !== 'listo') {
+    // Si no tiene ni comida ni bebida, no está listo
+    if (!tieneComida && !tieneBebida) {
       return false;
     }
     
-    // Si no tiene ningún producto, no está listo
-    if (!tieneComida && !tieneBebida && !tienePostre) {
-      return false;
-    }
-    
-    // Si llegamos aquí, todos los productos que tiene están listos
+    // Si llegamos aquí, comida y bebida están listos
     return true;
   }
 

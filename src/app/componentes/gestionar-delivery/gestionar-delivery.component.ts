@@ -272,18 +272,18 @@ async derivarACocinaYBar(pedido: PedidoDelivery) {
       postres: pedido.postres || [],
       precio: pedido.precio_productos,
       tiempo_estimado: pedido.tiempo_estimado || 45,
-      confirmado: true,
+      confirmado: false, // Pendiente de confirmación del mozo
       mesa: 'DELIVERY', 
-      estado: 'en preparacion',
-      estado_comida: (pedido.comidas && pedido.comidas.length > 0) ? 'derivado' : 'pendiente',
-      estado_bebida: (pedido.bebidas && pedido.bebidas.length > 0) ? 'derivado' : 'pendiente',
-      estado_postre: (pedido.postres && pedido.postres.length > 0) ? 'derivado' : 'pendiente',
-      recepcion: true,
-      pagado: 0, // Recordar usar 0 y no false
+      estado: 'pendiente', // El mozo debe aceptarlo primero
+      estado_comida: 'pendiente',
+      estado_bebida: 'pendiente',
+      estado_postre: 'pendiente',
+      recepcion: false,
+      pagado: 0,
       cuenta: 0,
       fecha_pedido: new Date().toISOString(),
       // Guardamos el ID numérico en observaciones por si acaso
-      observaciones_generales: `CLIENTE #${pedido.cliente_id}: ${pedido.cliente_nombre} - DIR: ${pedido.direccion_completa} - OBS: ${pedido.observaciones_generales || ''}`
+      observaciones_generales: `DELIVERY - CLIENTE #${pedido.cliente_id}: ${pedido.cliente_nombre} - DIR: ${pedido.direccion_completa} - OBS: ${pedido.observaciones_generales || ''}`
     };
 
     const { data: pedidoCreado, error } = await this.deliveryService.crearPedidoRestaurante(pedidoRestaurante);
@@ -293,9 +293,10 @@ async derivarACocinaYBar(pedido: PedidoDelivery) {
       throw new Error(`Error BD: ${error.message}`); 
     }
 
-    await this.notificarCocinaYBar(pedido, pedidoCreado);
+    // Notificar a los mozos para que acepten el pedido
+    await this.notificarMozosNuevoPedido(pedido, pedidoCreado);
 
-    console.log('✅ Pedido derivado a cocina y bar exitosamente');
+    console.log('✅ Pedido delivery creado y enviado a mozos para confirmación');
 
   } catch (error: any) {
     console.error('Error al derivar a cocina y bar:', error);
@@ -344,6 +345,32 @@ async derivarACocinaYBar(pedido: PedidoDelivery) {
 
     } catch (error) {
       console.error('Error al notificar a cocina/bar:', error);
+      // No lanzamos error para no bloquear la confirmación del pedido
+    }
+  }
+
+  /**
+   * Notifica a todos los mozos sobre un nuevo pedido delivery pendiente
+   */
+  async notificarMozosNuevoPedido(pedidoDelivery: PedidoDelivery, pedidoRestaurante: any) {
+    try {
+      const backendUrl = 'https://los-fritos-hermanos-backend.onrender.com';
+      // const backendUrl = 'http://localhost:8080';
+
+      await fetch(`${backendUrl}/notify-mozo-new-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mesaNumero: 'DELIVERY',
+          clienteNombre: pedidoDelivery.cliente_nombre,
+          pedidoId: pedidoRestaurante.id
+        })
+      });
+
+      console.log('✅ Notificación enviada a mozos para pedido delivery');
+
+    } catch (error) {
+      console.error('Error al notificar a mozos:', error);
       // No lanzamos error para no bloquear la confirmación del pedido
     }
   }

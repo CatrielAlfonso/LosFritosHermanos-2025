@@ -539,10 +539,10 @@ async obtenerUuidClientePorEmail(email: string): Promise<string | null> {
    */
   async obtenerPedidosRepartidor(repartidorId: number): Promise<PedidoDelivery[]> {
     const { data, error } = await this.supabase.supabase
-      .from('pedidos_delivery')
+      .from('pedidos')
       .select('*')
       .eq('repartidor_id', repartidorId)
-      .order('created_at', { ascending: false });
+      .order('fecha_pedido', { ascending: false });
 
     if (error) {
       console.error('Error al obtener pedidos del repartidor:', error);

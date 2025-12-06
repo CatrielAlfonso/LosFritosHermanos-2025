@@ -67,37 +67,38 @@ Permite gestionar mesas, pedidos, clientes registrados o anónimos, juegos con d
 | Punto | Responsable | Rama                             |    Estado      |  Inicio    |     Fin     |
 |-------|-------------|----------------------------------|----------------|------------|-------------|
 | 1     | Lucas       | master/punto-1-empleado          | ✅ Completado  | 06/09/2025 | 23/09/2025 |
-| 2     | Lucas       | master/punto-2-plato             | 🚧 En progreso | 12/09/2025 | ... |
+| 2     | Lucas       | master/punto-2-plato             | ✅ Completado | 12/09/2025 | ... |
 | 3     | Catriel     | master/punto-3-bebida            | ✅ Completado | 12/09/2025 |20/09/2025 |
 | 4     | Catriel       | master/punto-4-mesa              | ✅ Completado   | 12/09/2025 |25/09/2025 |
 | 5     | Lucas       | master/punto-5-cliente-registrado| ✅ Completado  | 06/09/2025 | 12/09/2025 |
-| 6     | Catriel     | master/punto-6-verificar-cliente | 🚧 En progreso| 06/09/2025 | |
-| 7     | Tomas       | master/punto-7-rechazo-cliente   | ✅ Completado  | 24/09/2025 | -- |
-| 8     | Tomas       | master/punto-8-aceptacion-cliente| ✅ Completado| 24/09/2025 | -- |
-| 9     | Catriel     | master/punto-9-cliente-anonimo   | ✅ Completado | 19/09/2025 | ... |
-| 10    | Catriel       | master/punto-10-asignacion-mesa  | 🚧 En progreso| -- | -- |
-| 11    | Lucas       | master/punto-11-menu-consulta    | ✅ Completado    | -- | -- |
-| 12    | Lucas      | master/punto-12-pedido           | ✅ Completado   | -- | -- |
-| 13    | Tomas       | master/punto-13-rechazo-pedido   | ✅ Completado   | -- | -- |
-| 14    | Lucas       | master/punto-14-confirmar-pedido | ✅ Completado  | -- | -- |
-| 15    | Lucas     | master/punto-15-bar              | 🚧 En progreso | -- | -- |
-| 16    | Lucas       | master/punto-16-cocina           | ✅ Completado  | -- | -- |
-| 17    | Lucas-Catriel       | master/punto-17-juegos           | 🚧 En progreso | 12/09/2025 | ... |
-| 18    | Catriel     | master/punto-18-confirmar-sectores| ⏳ Pendiente | -- | -- |
-| 19    | Tomas       | master/punto-19-entrega-pedido   | ⏳ Pendiente | -- | -- |
+| 6     | Catriel     | master/punto-6-verificar-cliente | ✅ Completado | 06/09/2025 | |
+| 7     | Tomas       | master/punto-7-rechazo-cliente   | ✅ Completado  | 24/09/2025 | 24/10/2025 |
+| 8     | Tomas       | master/punto-8-aceptacion-cliente| ✅ Completado| 24/09/2025 | 24/10/2025 |
+| 9     | Catriel     | master/punto-9-cliente-anonimo   | ✅ Completado | 19/09/2025 | 24/10/2025 |
+| 10    | Catriel       | master/punto-10-asignacion-mesa  | ✅ Completado | 24/10/2025 | 24/10/2025 |
+| 11    | Lucas       | master/punto-11-menu-consulta    | ✅ Completado    | 28/11/2025 | 24/10/2025 |
+| 12    | Lucas      | master/punto-12-pedido           | ✅ Completado   | 24/09/2025 | 24/10/2025 |
+| 13    | Tomas       | master/punto-13-rechazo-pedido   | ✅ Completado   | 22/09/2025 | 24/10/2025 |
+| 14    | Lucas       | master/punto-14-confirmar-pedido | ✅ Completado  | 12/09/2025 | 24/10/2025 |
+| 15    | Lucas     | master/punto-15-bar              | ✅ Completado  | 12/09/2025 | 24/10/2025 |
+| 16    | Lucas       | master/punto-16-cocina           | ✅ Completado  | 12/09/2025 | 24/10/2025 |
+| 17    | Catriel       | master/punto-17-juegos           | ✅ Completado | 12/09/2025 | 25/11/2025 |
+| 18    | Catriel     | master/punto-18-confirmar-sectores| ✅ Completado  | 17/10/2025 | 05/12/2025 |
+| 19    | Tomas       | master/punto-19-entrega-pedido   | ✅ Completado  | 17/10/2025 | 05/12/2025|
 | 20    | Catriel       | master/punto-20-encuesta         | ✅ Completado  | 10/10/2025 | 10/10/2025 |
-| 21    | Catriel     | master/punto-21-cuenta-pago      | ⏳ Pendiente | -- | -- |
-| 22    | Catriel     | master/punto-22-confirmar-pago   | ⏳ Pendiente | -- | -- |
-| 22a    |   Lucas, Catriel | master/punto-22a-factura   | ⏳ Pendiente | -- | -- |
-| 23 | Tomás | master/punto-23-login-social | ⏳ Pendiente | -- | -- |
-| 24 | Catriel | master/punto-24-reservas-cliente | ⏳ Pendiente | -- | -- |
-| 25 | Lucas | master/punto-25-confirmar-reserva | ⏳ Pendiente | -- | -- |
-| 26 | Catriel | master/punto-26-gestionar-reserva-tiempo | ⏳ Pendiente | -- | -- |
-| 27 | Tomás | master/punto-27-pedido-delivery | ⏳ Pendiente | -- | -- |
-| 28 | Lucas | master/punto-28-confirmar-delivery | ⏳ Pendiente | -- | -- |
-| 29 | Catriel | master/punto-29-ruta-delivery-chat | ⏳ Pendiente | -- | -- |
-| 30 | Tomás | master/punto-30-entrega-delivery-pdf | ⏳ Pendiente | -- | -- |
-| 31 | Lucas | master/punto-31-sensores-menu | ⏳ Pendiente | -- | -- |
+| 21    | Lucas     | master/punto-21-cuenta-pago      | ✅ Completado | 17/10/2025 | 05/12/2025 |
+| 22    | Lucas     | master/punto-22-confirmar-pago   | ✅ Completado | 23/10/2025 | 05/12/2025 |
+| 22a    |   Lucas | master/punto-22a-factura   | ✅ Completado | 08/11/2025 |  05/12/2025|
+| 23 | Tomás | master/punto-23-login-social | ✅ Completado  | 08/11/2025 | 05/12/2025 |
+| 24 | Catriel | master/punto-24-reservas-cliente | ✅ Completado  | 08/11/2025 | 05/12/2025 |
+| 25 | Lucas | master/punto-25-confirmar-reserva | ✅ Completado  | 08/11/2025 | 05/12/2025 |
+| 26 | Tomás | master/punto-26-gestionar-reserva-tiempo | ✅ Completado | 08/11/2025 | 05/12/2025 |
+| 27 | Lucas | master/punto-27-pedido-delivery | ✅ Completado  | 18/12/2025 | 25/11/2025 |
+| 28 | Tomás | master/punto-28-confirmar-delivery | ✅ Completado  | 19/11/2025 | 23/11/2025 |
+| 29 | Tomás | master/punto-29-ruta-delivery-chat | ✅ Completado | 17/11/2025| 17/11/2025|
+| 30 | Tomás | master/punto-30-entrega-delivery-pdf | ✅ Completado  | 17/11/2025 | 17/11/2025 |
+| 31 | Tomás | master/punto-31-sensores-menu | ✅ Completado  | 10/11/2025| 17/11/2025 |
+| 31 | Catriel | master/punto-31-juego-extra | ✅ Completado  | 10/11/2025| 05/12/2025 |
 ---
 
 ## ✅ Convenciones de estado
@@ -115,6 +116,7 @@ Permite gestionar mesas, pedidos, clientes registrados o anónimos, juegos con d
 - 24/09/2025: Punto 8 (aceptacion-cliente) pasó de Tomas → Catriel.
 - 26/09/2025: Punto 7 (rechazo-cliente) pasó de Catriel → Tomas.
 - 26/09/2025: Punto 8 (aceptacion-cliente) pasó de Catriel → Tomas.
+- 
 ---
 QRS:
 
