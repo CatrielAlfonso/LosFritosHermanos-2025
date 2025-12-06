@@ -1,4 +1,4 @@
-// equilibrio.component.ts - VERSIÓN COMPLETA CORREGIDA
+// equilibrio.component.ts - VERSIÓN CORREGIDA
 
 import {
   Component,
@@ -14,8 +14,6 @@ import { Motion, MotionOrientationEventResult } from '@capacitor/motion';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Router } from '@angular/router';
 import { inject } from '@angular/core';
-//import { JuegosService } from '../servicios/juegos.service';
-//import { DeliveryService } from '../servicios/delivery.service';
 import { ToastController } from '@ionic/angular';
 import { JuegosService } from 'src/app/servicios/juegos.service';
 import { DeliveryService } from 'src/app/servicios/delivery.service';
@@ -47,14 +45,14 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   private deliveryService = inject(DeliveryService);
   private toastCtrl = inject(ToastController);
 
-  // ✅ NUEVO: Variables para sistema de descuentos
+  // Variables para sistema de descuentos
   puedeJugarPorDescuento: boolean = false;
   yaUsoIntento: boolean = false;
   esAnonimo: boolean = false;
   esDelivery: boolean = false;
   pedidoDeliveryId: number | null = null;
   mensajeResultado: string = '';
-  descuentoObtenido: number = 15; // Mozo Equilibrio da 15% de descuento
+  descuentoObtenido: number = 15;
 
   state: GameState = 'idle';
 
@@ -62,8 +60,9 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   areaHeight = 0;
   mensaje = '';
 
-  mozo: Entity = { x: 0, y: 0, width: 60, height: 60 };
-  mesa: Entity = { x: 0, y: 0, width: 60, height: 60 };
+  // ✅ TAMAÑOS AUMENTADOS PARA MÓVIL
+  mozo: Entity = { x: 0, y: 0, width: 70, height: 70 };
+  mesa: Entity = { x: 0, y: 0, width: 70, height: 70 };
   obstacles: Entity[] = [];
 
   vx = 0;
@@ -79,7 +78,6 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   async ngOnInit() {
     this.activarControlesTeclado();
     
-    // ✅ NUEVO: Verificar si viene de delivery
     const pedidoIdStr = localStorage.getItem('pedidoDeliveryActual');
     if (pedidoIdStr) {
       this.esDelivery = true;
@@ -87,11 +85,9 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
       console.log('🎮 Juego iniciado desde delivery, pedido:', this.pedidoDeliveryId);
     }
 
-    // ✅ NUEVO: Verificar elegibilidad para descuento
     await this.verificarElegibilidad();
   }
 
-  // ✅ NUEVO: Verificar elegibilidad para descuentos
   async verificarElegibilidad() {
     const elegibilidad = await this.juegosService.verificarElegibilidadDescuento();
     this.puedeJugarPorDescuento = elegibilidad.puedeJugarPorDescuento;
@@ -111,29 +107,52 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
         case 'ArrowUp':
         case 'w':
         case 'W':
-          this.mozo.y -= velocidad;
+          this.vy = -velocidad;
           break;
 
         case 'ArrowDown':
         case 's':
         case 'S':
-          this.mozo.y += velocidad;
+          this.vy = velocidad;
           break;
 
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          this.mozo.x -= velocidad;
+          this.vx = -velocidad;
           break;
 
         case 'ArrowRight':
         case 'd':
         case 'D':
-          this.mozo.x += velocidad;
+          this.vx = velocidad;
           break;
       }
+    });
 
-      this.update();
+    // ✅ RESETEAR VELOCIDAD AL SOLTAR TECLA
+    window.addEventListener('keyup', (event) => {
+      if (this.state !== "playing") return;
+
+      switch (event.key) {
+        case 'ArrowUp':
+        case 'ArrowDown':
+        case 'w':
+        case 's':
+        case 'W':
+        case 'S':
+          this.vy = 0;
+          break;
+
+        case 'ArrowLeft':
+        case 'ArrowRight':
+        case 'a':
+        case 'd':
+        case 'A':
+        case 'D':
+          this.vx = 0;
+          break;
+      }
     });
   }
 
@@ -168,6 +187,10 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   async startGame() {
+    // ✅ IMPORTANTE: Detener motion anterior primero
+    this.stopMotion();
+    this.stopLoop();
+
     this.state = 'playing';
     this.mensaje = '';
     this.mensajeResultado = '';
@@ -176,10 +199,14 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     this.setupCorners();
     this.generateObstacles();
 
+    // ✅ RESETEAR VELOCIDADES
     this.vx = 0;
     this.vy = 0;
 
     this.safePlay(this.startSound);
+    
+    // ✅ Esperar un momento antes de iniciar motion
+    await new Promise(resolve => setTimeout(resolve, 100));
     await this.startMotion();
     this.startLoop();
   }
@@ -192,12 +219,15 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     const centerYMin = this.areaHeight * 0.25;
     const centerYMax = this.areaHeight * 0.75;
 
+    // ✅ TAMAÑO AUMENTADO PARA MÓVIL
+    const obstacleSize = 70;
+
     for (let i = 0; i < 3; i++) {
       this.obstacles.push({
-        x: centerXMin + Math.random() * (centerXMax - centerXMin - this.mozo.width),
-        y: centerYMin + Math.random() * (centerYMax - centerYMin - this.mozo.height),
-        width: 60,
-        height: 60,
+        x: centerXMin + Math.random() * (centerXMax - centerXMin - obstacleSize),
+        y: centerYMin + Math.random() * (centerYMax - centerYMin - obstacleSize),
+        width: obstacleSize,
+        height: obstacleSize,
         type: this.obstacleTypes[i],
       });
     }
@@ -208,7 +238,6 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     this.stopMotion();
     this.state = 'idle';
     
-    // ✅ NUEVO: Limpiar localStorage
     localStorage.removeItem('pedidoDeliveryActual');
     localStorage.removeItem('juegoSeleccionado');
     localStorage.removeItem('puedeJugarPorDescuento');
@@ -221,7 +250,10 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private async startMotion() {
-    if (this.motionListenerActive) return;
+    if (this.motionListenerActive) {
+      console.log('Motion listener ya está activo');
+      return;
+    }
 
     try {
       await Motion.addListener(
@@ -229,24 +261,39 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
         (event: MotionOrientationEventResult) => {
           if (this.state !== 'playing') return;
 
-          const beta = event.beta ?? 0;
-          const gamma = event.gamma ?? 0;
+          const beta = event.beta ?? 0;  // Inclinación adelante/atrás (-180 a 180)
+          const gamma = event.gamma ?? 0; // Inclinación izquierda/derecha (-90 a 90)
 
-          const factor = 0.15;
-          this.vx = gamma * factor;
-          this.vy = beta * factor;
+          // ✅ FACTOR REDUCIDO Y CON LÍMITE DE VELOCIDAD
+          const factor = 0.3;
+          const maxSpeed = 8;
+
+          // Calcular velocidades con límite
+          let newVx = gamma * factor;
+          let newVy = beta * factor;
+
+          // Limitar velocidad máxima
+          this.vx = Math.max(-maxSpeed, Math.min(maxSpeed, newVx));
+          this.vy = Math.max(-maxSpeed, Math.min(maxSpeed, newVy));
         },
       );
       this.motionListenerActive = true;
+      console.log('✅ Motion listener iniciado correctamente');
     } catch (e) {
-      console.error('Error iniciando Motion', e);
+      console.error('❌ Error iniciando Motion', e);
     }
   }
 
   private stopMotion() {
     if (!this.motionListenerActive) return;
-    Motion.removeAllListeners();
-    this.motionListenerActive = false;
+    
+    try {
+      Motion.removeAllListeners();
+      this.motionListenerActive = false;
+      console.log('🛑 Motion listener detenido');
+    } catch (e) {
+      console.error('Error deteniendo motion:', e);
+    }
   }
 
   private startLoop() {
@@ -269,22 +316,36 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private update() {
+    // ✅ APLICAR VELOCIDADES CON LÍMITES ESTRICTOS
     let newX = this.mozo.x + this.vx;
     let newY = this.mozo.y + this.vy;
 
+    // ✅ CONSTRAIN: Mantener dentro de los límites
+    newX = Math.max(0, Math.min(this.areaWidth - this.mozo.width, newX));
+    newY = Math.max(0, Math.min(this.areaHeight - this.mozo.height, newY));
+
+    // ✅ DETECCIÓN MEJORADA DE COLISIÓN CON BORDES
     if (
-      newX < 0 ||
-      newY < 0 ||
-      newX + this.mozo.width > this.areaWidth ||
-      newY + this.mozo.height > this.areaHeight
+      newX <= 0 ||
+      newY <= 0 ||
+      newX >= this.areaWidth - this.mozo.width ||
+      newY >= this.areaHeight - this.mozo.height
     ) {
-      this.handleLose();
-      return;
+      // Si toca el borde, detener el movimiento en esa dirección
+      if (newX <= 0) newX = 0;
+      if (newX >= this.areaWidth - this.mozo.width) newX = this.areaWidth - this.mozo.width;
+      if (newY <= 0) newY = 0;
+      if (newY >= this.areaHeight - this.mozo.height) newY = this.areaHeight - this.mozo.height;
+      
+      // ✅ OPCIONAL: Descomentar para perder al tocar borde
+      // this.handleLose();
+      // return;
     }
 
     this.mozo.x = newX;
     this.mozo.y = newY;
 
+    // Verificar colisiones con obstáculos
     for (const o of this.obstacles) {
       if (this.collide(this.mozo, o)) {
         this.handleLose();
@@ -292,6 +353,7 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
       }
     }
 
+    // Verificar si llegó a la meta
     if (this.collide(this.mozo, this.mesa)) {
       this.handleWin();
     }
@@ -306,15 +368,16 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     );
   }
 
-  // ✅ MODIFICADO: handleLose con lógica de descuentos
   private async handleLose() {
     if (this.state !== 'playing') return;
     this.state = 'lost';
-    this.mensaje = '😔 Perdiste';
+    this.mensaje = '😢 Perdiste';
 
+    // ✅ RESETEAR VELOCIDADES
     this.vx = 0;
     this.vy = 0;
     this.stopMotion();
+    this.stopLoop();
 
     this.safePlay(this.errorSound);
 
@@ -322,33 +385,29 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
       await Haptics.impact({ style: ImpactStyle.Heavy });
     } catch {}
 
-    // ✅ NUEVO: Registrar resultado (perdió = no descuento)
     await this.registrarResultado(false);
   }
 
-  // ✅ MODIFICADO: handleWin con lógica de descuentos
   private async handleWin() {
     if (this.state !== 'playing') return;
     this.state = 'won';
     this.mensaje = '🎉 ¡Ganaste!';
 
+    // ✅ RESETEAR VELOCIDADES
     this.vx = 0;
     this.vy = 0;
     this.stopMotion();
+    this.stopLoop();
 
     this.safePlay(this.winSound);
 
-    // ✅ NUEVO: Registrar resultado (ganó = posible descuento)
     await this.registrarResultado(true);
   }
 
-  // ✅ NUEVO: Registrar resultado del juego
   private async registrarResultado(gano: boolean) {
     if (this.esDelivery && this.pedidoDeliveryId) {
-      // Delivery: aplicar descuento si ganó
       await this.guardarDescuentoDelivery(gano ? this.descuentoObtenido : 0);
     } else {
-      // Restaurante: usar servicio de juegos
       const resultado = await this.juegosService.registrarResultadoJuego(
         'mozo-equilibrio',
         gano
@@ -359,7 +418,6 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  // ✅ NUEVO: Guardar descuento en delivery
   private async guardarDescuentoDelivery(porcentaje: number) {
     try {
       await this.deliveryService.actualizarDescuentoDelivery(
@@ -382,14 +440,13 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  // ✅ NUEVO: Generar mensaje según el contexto
   generarMensajeResultado(gano: boolean, resultado: any): string {
     if (resultado.descuentoAplicado && gano) {
       return `🎉 ¡Ganaste ${resultado.porcentajeDescuento}% de descuento en tu primer intento!`;
     }
     
     if (!this.yaUsoIntento && !gano) {
-      return '😔 No ganaste el descuento en tu primer intento. ¡Puedes seguir jugando por diversión!';
+      return '😢 No ganaste el descuento en tu primer intento. ¡Puedes seguir jugando por diversión!';
     }
     
     if (this.yaUsoIntento) {
@@ -402,12 +459,10 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     return resultado.mensaje || '¡Gracias por jugar!';
   }
 
-  // ✅ NUEVO: Determinar si debe mostrar descuento
   deberMostrarDescuento(): boolean {
     return this.puedeJugarPorDescuento && this.state === 'won';
   }
 
-  // ✅ NUEVO: Mensaje de inicio según elegibilidad
   getMensajeInicio(): string {
     if (this.esAnonimo) {
       return '🎮 ¡Jugá por diversión! Los descuentos son para clientes registrados.';
