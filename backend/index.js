@@ -2001,12 +2001,15 @@ app.post("/enviar-correo-reserva-aprobada", async (req, res) => {
   try {
     const { sendEmail } = require('./services/email.service');
     
-    // Formatear fecha
-    const fechaFormateada = new Date(fechaReserva).toLocaleDateString('es-AR', { 
+    // Formatear fecha (parseando como fecha local Argentina, no UTC)
+    const [year, month, day] = fechaReserva.split('-').map(Number);
+    const fechaLocal = new Date(year, month - 1, day);
+    const fechaFormateada = fechaLocal.toLocaleDateString('es-AR', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric' 
+      day: 'numeric',
+      timeZone: 'America/Argentina/Buenos_Aires'
     });
     
     const htmlContent = `
@@ -2245,12 +2248,15 @@ app.post("/enviar-correo-reserva-confirmada-sin-mesa", async (req, res) => {
   try {
     const { sendEmail } = require('./services/email.service');
     
-    // Formatear fecha
-    const fechaFormateada = new Date(fechaReserva).toLocaleDateString('es-AR', { 
+    // Formatear fecha (parseando como fecha local Argentina, no UTC)
+    const [year, month, day] = fechaReserva.split('-').map(Number);
+    const fechaLocal = new Date(year, month - 1, day);
+    const fechaFormateada = fechaLocal.toLocaleDateString('es-AR', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric' 
+      day: 'numeric',
+      timeZone: 'America/Argentina/Buenos_Aires'
     });
     
     const htmlContent = `
@@ -2457,12 +2463,15 @@ app.post("/enviar-correo-reserva-rechazada", async (req, res) => {
   try {
     const { sendEmail } = require('./services/email.service');
     
-    // Formatear fecha
-    const fechaFormateada = new Date(fechaReserva).toLocaleDateString('es-AR', { 
+    // Formatear fecha (parseando como fecha local Argentina, no UTC)
+    const [year, month, day] = fechaReserva.split('-').map(Number);
+    const fechaLocal = new Date(year, month - 1, day);
+    const fechaFormateada = fechaLocal.toLocaleDateString('es-AR', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric' 
+      day: 'numeric',
+      timeZone: 'America/Argentina/Buenos_Aires'
     });
     
     const htmlContent = `
