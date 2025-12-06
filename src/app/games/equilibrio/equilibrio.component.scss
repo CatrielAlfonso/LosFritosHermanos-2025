@@ -1,4 +1,4 @@
-// equilibrio.component.scss - VERSIÓN COMPLETA CON NUEVOS ESTILOS
+// equilibrio.component.scss - VERSIÓN CORREGIDA CON TAMAÑOS AJUSTADOS
 
 .game-wrapper {
   display: flex;
@@ -39,13 +39,18 @@
   box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* Tamaños del "mundo" */
+/* ✅ TAMAÑOS AUMENTADOS PARA MÓVIL */
 .mozo,
-.mesa,
+.mesa {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+}
+
 .obstaculo {
   position: absolute;
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
 }
 
 .mozo {
@@ -54,6 +59,8 @@
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 0.05s ease-out;
 }
 
 .mesa {
@@ -62,6 +69,7 @@
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 .obstaculo {
@@ -70,6 +78,7 @@
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 
 /* Clases específicas por tipo */
@@ -94,7 +103,7 @@
   background-position: center;
 }
 
-/* ✅ PANTALLA DE INICIO MEJORADA */
+/* PANTALLA DE INICIO MEJORADA */
 .inicio-screen {
   position: absolute;
   inset: 0;
@@ -166,7 +175,7 @@
   }
 }
 
-/* ✅ OVERLAY DE MENSAJE MEJORADO */
+/* OVERLAY DE MENSAJE MEJORADO */
 .mensaje-overlay {
   position: absolute;
   inset: 0;
@@ -297,5 +306,54 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ✅ AJUSTES RESPONSIVE PARA MÓVILES */
+@media (max-width: 768px) {
+  .mozo,
+  .mesa,
+  .obstaculo {
+    width: 70px !important;
+    height: 70px !important;
+  }
+
+  .inicio-screen {
+    h1 {
+      font-size: 2rem;
+    }
+
+    .estado-mensaje {
+      font-size: 1rem;
+      padding: 12px 20px;
+    }
+
+    .instrucciones {
+      font-size: 0.9rem;
+    }
+
+    ion-button {
+      width: 220px;
+      font-size: 1rem;
+    }
+  }
+
+  .mensaje-contenido {
+    padding: 30px 20px;
+    width: 95%;
+
+    h2 {
+      font-size: 2rem;
+    }
+  }
+}
+
+/* ✅ PARA PANTALLAS MUY PEQUEÑAS */
+@media (max-width: 480px) {
+  .mozo,
+  .mesa,
+  .obstaculo {
+    width: 60px !important;
+    height: 60px !important;
   }
 }
