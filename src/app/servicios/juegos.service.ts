@@ -8,6 +8,7 @@ export interface EstadoDescuentoCliente {
   descuento_ganado: boolean;
   porcentaje_desc: number;
   esAnonimo: boolean;
+  uso_intento_juego: boolean;
 }
 
 export interface ResultadoJuego {
@@ -43,7 +44,7 @@ export class JuegosService {
     try {
       const { data, error } = await this.sb.supabase
         .from('clientes')
-        .select('id, descuento_ganado, porcentaje_desc, nombre')
+        .select('id, descuento_ganado, porcentaje_desc, nombre, uso_intento_juego')
         .eq('id', clienteId)
         .single();
 
@@ -60,7 +61,8 @@ export class JuegosService {
         id: data.id,
         descuento_ganado: data.descuento_ganado || false,
         porcentaje_desc: data.porcentaje_desc || 0,
-        esAnonimo
+        esAnonimo,
+        uso_intento_juego: data.uso_intento_juego || false
       };
     } catch (error) {
       console.error('Error en verificarEstadoDescuento:', error);
@@ -207,8 +209,8 @@ export class JuegosService {
     }
 
     return {
-      puedeJugarPorDescuento: !estado.descuento_ganado, // Solo si NO ha usado su intento
-      yaUsoIntento: estado.descuento_ganado,
+      puedeJugarPorDescuento: !estado.uso_intento_juego, // Solo si NO ha usado su primer intento
+      yaUsoIntento: estado.uso_intento_juego,
       esAnonimo: false,
       descuentoActual: estado.porcentaje_desc,
       clienteId: cliente.id
@@ -258,12 +260,14 @@ export class JuegosService {
 
     try {
       // 1. Marcar que ya usó su intento en la tabla clientes
-      // Solo poner descuento_ganado: true si realmente ganó
+      // uso_intento_juego: SIEMPRE true (ya usó su primer intento)
+      // descuento_ganado: solo true si ganó
       console.log('🎮 [registrarResultadoJuego] Paso 1: Actualizando tabla clientes...');
       const { error: errorCliente } = await this.sb.supabase
         .from('clientes')
         .update({
-          descuento_ganado: gano, // Solo true si ganó, false si perdió
+          uso_intento_juego: true, // SIEMPRE true - indica que ya jugó su primer intento
+          descuento_ganado: gano, // true solo si ganó
           porcentaje_desc: porcentajeFinal
         })
         .eq('id', elegibilidad.clienteId);
