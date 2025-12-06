@@ -264,17 +264,39 @@
           </button>
         </div>
 
-        <!-- Pago pendiente de confirmación -->
-        <div *ngIf="pedido.estado === 'pagado_pendiente'" class="solicitud-cuenta pago-pendiente">
-          <ion-icon name="cash-outline"></ion-icon>
-          <div class="pago-info">
-            <span class="pago-titulo">💰 Cliente pagó: {{pedido.pagado | currency}}</span>
-            <span class="pago-mesa">Mesa {{pedido.mesa}}</span>
-          </div>
-          <button class="btn-confirmar-pago" (click)="confirmarPagoPedido(pedido)">
-            Confirmar Pago
-          </button>
-        </div>
+      <!-- ✨ REEMPLAZAR la sección de "pagado_pendiente" por esto: -->
+
+<!-- Para pedidos con pago pendiente de confirmación -->
+<div *ngIf="pedido.estado === 'pagado_pendiente'" class="solicitud-pago-container">
+  <div class="pago-pendiente-card">
+    <div class="pago-header">
+      <ion-icon name="cash-outline" class="pago-icon"></ion-icon>
+      <h3 class="pago-titulo">Pago Recibido</h3>
+    </div>
+    
+    <div class="pago-detalles">
+      <div class="pago-item">
+        <span class="pago-label">Mesa:</span>
+        <span class="pago-valor">{{pedido.mesa}}</span>
+      </div>
+      <div class="pago-item">
+        <span class="pago-label">Monto pagado:</span>
+        <span class="pago-valor destacado">{{pedido.pagado | currency}}</span>
+      </div>
+      <div class="pago-item">
+        <span class="pago-label">Total pedido:</span>
+        <span class="pago-valor">{{pedido.cuenta | currency}}</span>
+      </div>
+    </div>
+    
+    <button 
+      class="btn-confirmar-pago" 
+      (click)="confirmarPagoPedido(pedido)">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      Confirmar Pago
+    </button>
+  </div>
+</div>
 
         <!-- Resumen del pedido -->
         <div class="resumen-pedido">

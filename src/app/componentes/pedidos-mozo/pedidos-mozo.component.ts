@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { PushNotificationService } from 'src/app/servicios/push-notification.service';
 import { FeedbackService } from 'src/app/servicios/feedback-service.service';
 import { Haptics } from '@capacitor/haptics';
+import { CustomLoader } from 'src/app/servicios/custom-loader.service'; // ✨ Importar CustomLoader
 
 @Component({
   selector: 'app-pedidos-mozo',
@@ -17,56 +18,55 @@ import { Haptics } from '@capacitor/haptics';
 })
 export class PedidosMozoComponent  implements OnInit {
 
-  //pedidosPendientes = signal<any[]>([]);
-  //pedidosPendientes = computed(() => this.sb.pedidosPendientes());
   pedidosPendientes = computed(() => {
-  const todosPedidos = this.sb.todosLosPedidos();
-  
-  return todosPedidos.filter(pedido => 
-    pedido.estado === 'pendiente' || 
-    pedido.estado === 'en preparacion' ||
-    pedido.estado === 'entregado' ||
-    pedido.estado === 'pagado_pendiente'
-  );
-});
+    const todosPedidos = this.sb.todosLosPedidos();
+    
+    return todosPedidos.filter(pedido => 
+      pedido.estado === 'pendiente' || 
+      pedido.estado === 'en preparacion' ||
+      pedido.estado === 'entregado' ||
+      pedido.estado === 'pagado_pendiente'
+    );
+  });
+
   categoriasAbiertas = signal<{[key: string]: {[categoria: string]: boolean}}>({});
   pedidos :any = []
+  
   pedidosListosParaEntregar = computed(() => {
-  const todosPedidos = this.sb.todosLosPedidos();
-  
-  return todosPedidos.filter(pedido => 
-    pedido.estado === 'en preparacion' && 
-    this.estaListoParaEntregar(pedido)
-  );
-});
+    const todosPedidos = this.sb.todosLosPedidos();
+    
+    return todosPedidos.filter(pedido => 
+      pedido.estado === 'en preparacion' && 
+      this.estaListoParaEntregar(pedido)
+    );
+  });
 
-pedidosHistorial = computed(() => {
-  const todosPedidos = this.sb.todosLosPedidos();
-  
-  return todosPedidos.filter(pedido => 
-    pedido.estado === 'entregado' || 
-    pedido.estado === 'cancelado' ||
-    pedido.estado === 'finalizado'
-  ).sort((a, b) => new Date(b.fecha_pedido).getTime() - new Date(a.fecha_pedido).getTime());
-});
+  pedidosHistorial = computed(() => {
+    const todosPedidos = this.sb.todosLosPedidos();
+    
+    return todosPedidos.filter(pedido => 
+      pedido.estado === 'entregado' || 
+      pedido.estado === 'cancelado' ||
+      pedido.estado === 'finalizado'
+    ).sort((a, b) => new Date(b.fecha_pedido).getTime() - new Date(a.fecha_pedido).getTime());
+  });
 
-segmentoActivo = 'activos';
+  segmentoActivo = 'activos';
 
-  constructor(private sb : SupabaseService,
+  constructor(
+    private sb : SupabaseService,
     private toastController: ToastController,
     private alertController: AlertController,
     private http: HttpClient,
     private pushNotificationService: PushNotificationService,
-    private toastService : FeedbackService
-  ) { 
-    
-  }
+    private toastService : FeedbackService,
+    private customLoader: CustomLoader // ✨ Inyectar CustomLoader
+  ) { }
 
   async ngOnInit() {
     console.log('🎯 Componente mozo iniciado');
     console.log('Pedidos iniciales:', this.pedidosPendientes());
     this.sb.getPedidos();
-    
   }
 
   cambiarSegmento(event: any) {
@@ -100,36 +100,30 @@ segmentoActivo = 'activos';
 
   async aceptarPedido(pedido: any) {
     try{
-      // Determinar qué sectores tienen productos
       const tieneComidas = pedido.comidas?.length > 0 || pedido.postres?.length > 0;
       const tieneBebidas = pedido.bebidas?.length > 0;
       
-      // Preparar objeto de actualización con estados derivados
       const actualizacion: any = {
         estado: 'en preparacion',
         confirmado: true
       };
       
-      // Derivar a cocina si hay comidas/postres
       if (tieneComidas) {
         actualizacion.estado_comida = 'derivado';
       }
       
-      // Derivar a bar si hay bebidas
       if (tieneBebidas) {
         actualizacion.estado_bebida = 'derivado';
       }
       
       await this.sb.actualizarPedido(pedido.id, actualizacion);
       
-      // Notificar al cliente que el pedido fue confirmado
       try {
         await this.notificarClientePedidoConfirmado(pedido);
       } catch (notifError) {
         console.error('Error al notificar cliente sobre confirmación:', notifError);
       }
       
-      // Notificar a cocineros si hay comidas/postres
       if (tieneComidas) {
         try {
           const comidas = pedido.comidas?.map((c: any) => c.nombre) || [];
@@ -145,7 +139,6 @@ segmentoActivo = 'activos';
         }
       }
       
-      // Notificar a bartenders si hay bebidas
       if (tieneBebidas) {
         try {
           const bebidas = pedido.bebidas?.map((b: any) => b.nombre) || [];
@@ -172,10 +165,6 @@ segmentoActivo = 'activos';
     }
   }
 
-  suscribirCambiosEnTiempoReal() {
-    
-  }
-
   toggleCategoria(pedidoId: string, categoria: string) {
     const actual = this.categoriasAbiertas();
     const pedidoActual = actual[pedidoId] || {};
@@ -193,43 +182,41 @@ segmentoActivo = 'activos';
     return this.categoriasAbiertas()[pedidoId]?.[categoria] || false;
   }
 
-
   async rechazarPedido(pedido: any) {
-  const alert = await this.alertController.create({
-    header: 'Rechazar Pedido',
-    message: `Mesa ${pedido.mesa} - $${pedido.cuenta}`,
-    inputs: [
-      {
-        name: 'motivo',
-        type: 'textarea',
-        placeholder: 'Ingresá el motivo del rechazo...',
-        attributes: {
-          required: true
-        }
-      }
-    ],
-    buttons: [
-      {
-        text: 'Cancelar',
-        role: 'cancel'
-      },
-      {
-        text: 'Rechazar Pedido',
-        handler: (data) => {
-          if (!data.motivo || data.motivo.trim() === '') {
-            // Mostrar error si no hay motivo
-            this.mostrarErrorMotivo();
-            return false; // Previene que se cierre el alert
+    const alert = await this.alertController.create({
+      header: 'Rechazar Pedido',
+      message: `Mesa ${pedido.mesa} - $${pedido.cuenta}`,
+      inputs: [
+        {
+          name: 'motivo',
+          type: 'textarea',
+          placeholder: 'Ingresá el motivo del rechazo...',
+          attributes: {
+            required: true
           }
-          this.confirmarRechazo(pedido, data.motivo.trim());
-          return true;
         }
-      }
-    ]
-  });
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Rechazar Pedido',
+          handler: (data) => {
+            if (!data.motivo || data.motivo.trim() === '') {
+              this.mostrarErrorMotivo();
+              return false;
+            }
+            this.confirmarRechazo(pedido, data.motivo.trim());
+            return true;
+          }
+        }
+      ]
+    });
 
-  await alert.present();
-}
+    await alert.present();
+  }
 
   private async mostrarErrorMotivo() {
     const toast = await this.toastController.create({
@@ -243,22 +230,17 @@ segmentoActivo = 'activos';
 
   private async confirmarRechazo(pedido: any, motivo: string) {
     try {
-      
       await this.sb.actualizarPedido(pedido.id, {
         estado: 'cancelado',
         confirmado: false,
         motivo_rechazo: motivo
       });
 
-      // Notificar al cliente que el pedido fue rechazado
       try {
         await this.notificarClientePedidoRechazado(pedido, motivo);
       } catch (notifError) {
         console.error('Error al notificar cliente sobre rechazo:', notifError);
-        // No bloquear el flujo si falla la notificación
       }
-
-      // No necesitas recargar manualmente, realtime lo hará automáticamente
       
       const toast = await this.toastController.create({
         message: `Pedido de Mesa ${pedido.mesa} rechazado`,
@@ -271,7 +253,6 @@ segmentoActivo = 'activos';
     } catch (error) {
       console.error('Error rechazando pedido:', error);
       
-      // Vibrar en error
       try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
       
       const toast = await this.toastController.create({
@@ -287,17 +268,6 @@ segmentoActivo = 'activos';
   estaListoParaEntregar(pedido: any): boolean {
     const tieneComida = pedido.comidas.length > 0;
     const tieneBebida = pedido.bebidas.length > 0;
-    
-    // console.log('🔍 Debug estaListoParaEntregar:', {
-    //   mesa: pedido.mesa,
-    //   tieneComida,
-    //   tieneBebida, 
-    //   estado_comida: pedido.estado_comida,
-    //   estado_bebida: pedido.estado_bebida,
-    //   comidas: pedido.comidas,
-    //   bebidas: pedido.bebidas,
-    //   precio: pedido.precio
-    // });
     
     if (tieneComida && tieneBebida) {
       return pedido.estado_comida === 'listo' && pedido.estado_bebida === 'listo';
@@ -331,7 +301,6 @@ segmentoActivo = 'activos';
     } catch (error) {
       console.error('Error entregando pedido:', error);
       
-      // Vibrar en error
       try { await Haptics.vibrate({ duration: 300 }); } catch (e) {}
       
       const toast = await this.toastController.create({
@@ -343,7 +312,6 @@ segmentoActivo = 'activos';
       await toast.present();
     }
   }
-
 
   getEstadoTexto(estado: string): string {
     const estados: {[key: string]: string} = {
@@ -358,55 +326,54 @@ segmentoActivo = 'activos';
     return estados[estado] || estado;
   }
 
-  async confirmarPagoPedido(pedido : any){
-    try{
-      const esClienteAnonimo = false
-
+  // ✨ MÉTODO ACTUALIZADO CON CUSTOM LOADER
+  async confirmarPagoPedido(pedido: any) {
+    try {
+      // ✨ Mostrar loader custom
+      this.customLoader.show('Confirmando pago y generando factura...');
+      
+      const esClienteAnonimo = false;
       console.log('DEBUG: El objeto PEDIDO que se envía es:', pedido);
 
       const resultado = await this.pushNotificationService.generarFacturaYConfirmarPago(pedido);
 
       if (resultado.success) {
-        // ¡Éxito! Muestra un toast al mozo
         console.log('Pago confirmado y factura generada:', resultado.pdfUrl);
         
-        // 1. Actualizar estado del pedido a finalizado
         await this.sb.actualizarPedido(pedido.id, {
           estado: 'finalizado'
         });
 
-        // 2. Liberar la mesa
         await this.liberarMesa(pedido.mesa);
 
-        // 3. Notificar a dueños y supervisores
         try {
           await this.notificarConfirmacionPago(pedido);
         } catch (notifError) {
           console.error('Error al notificar confirmación de pago:', notifError);
-          // No bloquear el flujo si falla la notificación
         }
 
-        // 4. Recargar pedidos para actualizar la UI
         await this.sb.cargarPedidos();
-
+        
+        // ✨ Ocultar loader antes de mostrar toast
+        this.customLoader.hide();
+        
         this.toastService.showToast('exito', 'Pago confirmado y mesa liberada');
       } else {
-        // El backend manejó el error
         throw new Error(resultado.error || 'Error desconocido en el backend');
       }
 
     } catch (error) {
       console.error('Error al confirmar el pago:', error);
-      this.toastService.showToast('error', 'Error al confirmar el pago')
+      
+      // ✨ Ocultar loader en caso de error
+      this.customLoader.hide();
+      
+      this.toastService.showToast('error', 'Error al confirmar el pago');
     }
   }
   
-  /**
-   * Notifica al cliente que su pedido fue confirmado
-   */
   private async notificarClientePedidoConfirmado(pedido: any) {
     try {
-      // Obtener email del cliente
       const { data: cliente } = await this.sb.supabase
         .from('clientes')
         .select('correo')
@@ -426,12 +393,8 @@ segmentoActivo = 'activos';
     }
   }
 
-  /**
-   * Notifica al cliente que su pedido fue rechazado
-   */
   private async notificarClientePedidoRechazado(pedido: any, motivo: string) {
     try {
-      // Obtener email del cliente
       const { data: cliente } = await this.sb.supabase
         .from('clientes')
         .select('correo')
@@ -451,9 +414,6 @@ segmentoActivo = 'activos';
     }
   }
 
-  /**
-   * Libera una mesa estableciendo su estado como disponible
-   */
   private async liberarMesa(numeroMesa: string) {
     try {
       const { error } = await this.sb.supabase
@@ -478,12 +438,8 @@ segmentoActivo = 'activos';
     }
   }
 
-  /**
-   * Notifica a dueños y supervisores sobre la confirmación de pago
-   */
   private async notificarConfirmacionPago(pedido: any) {
     try {
-      // Obtener nombre del mozo actual
       const { data: { user } } = await this.sb.supabase.auth.getUser();
       let mozoNombre = 'Mozo';
       
@@ -509,5 +465,4 @@ segmentoActivo = 'activos';
       throw error;
     }
   }
-
 }

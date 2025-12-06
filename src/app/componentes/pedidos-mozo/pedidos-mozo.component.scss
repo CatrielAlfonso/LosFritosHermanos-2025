@@ -721,3 +721,266 @@ ion-segment-button {
     width: 100%;
   }
 }
+
+// Contenedor principal del card de pago
+.solicitud-pago-container {
+  position: relative;
+  margin-top: 1rem;
+  padding: 0;
+}
+
+// ✨ IMPORTANTE: Eliminar/comentar el fondo naranja anterior
+.pedido-pagado-pendiente {
+  // background: #fff3cd !important; // ❌ ELIMINAR ESTA LÍNEA
+  border-left: 4px solid #28a745; // ✅ Solo borde verde sutil
+}
+
+// Card de pago pendiente con diseño limpio
+.pago-pendiente-card {
+  background: #ffffff;
+  border: 2px solid #28a745;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+  transition: all 0.3s ease;
+  animation: slideInUp 0.4s ease-out;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+    transform: translateY(-2px);
+  }
+}
+
+// Header del card con icono y título
+.pago-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+
+  .pago-icon {
+    font-size: 2rem;
+    color: #28a745;
+    animation: pulse-icon 2s ease-in-out infinite;
+  }
+
+  .pago-titulo {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+// Detalles del pago
+.pago-detalles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.pago-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    transform: translateX(4px);
+  }
+
+  .pago-label {
+    font-size: 0.95rem;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .pago-valor {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 600;
+
+    &.destacado {
+      color: #28a745;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(40, 167, 69, 0.2);
+    }
+  }
+}
+
+// Botón de confirmar pago
+.btn-confirmar-pago {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(40, 167, 69, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  // Efecto de brillo al hover
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  ion-icon {
+    font-size: 1.5rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+  }
+}
+
+// ========================================
+// ANIMACIONES
+// ========================================
+
+// Animación de entrada para el card
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Efecto de pulso en el ícono
+@keyframes pulse-icon {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.8;
+  }
+}
+
+// Animación de shimmer para el botón
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+// ========================================
+// RESPONSIVE DESIGN
+// ========================================
+
+@media (max-width: 576px) {
+  .pago-pendiente-card {
+    padding: 1rem;
+  }
+
+  .pago-header .pago-titulo {
+    font-size: 1.1rem;
+  }
+
+  .pago-item {
+    padding: 0.6rem;
+  }
+
+  .btn-confirmar-pago {
+    font-size: 1rem;
+    padding: 0.875rem 1rem;
+  }
+}
+
+// ========================================
+// DARK MODE (OPCIONAL)
+// ========================================
+
+@media (prefers-color-scheme: dark) {
+  .pago-pendiente-card {
+    background: #1e1e1e;
+    border-color: #20c997;
+    box-shadow: 0 2px 8px rgba(32, 201, 151, 0.2);
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(32, 201, 151, 0.3);
+    }
+  }
+
+  .pago-header {
+    border-bottom-color: #333;
+
+    .pago-titulo {
+      color: #e0e0e0;
+    }
+
+    .pago-icon {
+      color: #20c997;
+    }
+  }
+
+  .pago-item {
+    background: linear-gradient(135deg, #2a2a2a 0%, #333 100%);
+
+    &:hover {
+      background: linear-gradient(135deg, #333 0%, #3a3a3a 100%);
+    }
+
+    .pago-label {
+      color: #999;
+    }
+
+    .pago-valor {
+      color: #e0e0e0;
+
+      &.destacado {
+        color: #20c997;
+      }
+    }
+  }
+
+  .btn-confirmar-pago {
+    background: linear-gradient(135deg, #20c997 0%, #17a589 100%);
+    box-shadow: 0 3px 8px rgba(32, 201, 151, 0.4);
+
+    &:hover {
+      box-shadow: 0 6px 16px rgba(32, 201, 151, 0.5);
+    }
+  }
+}
