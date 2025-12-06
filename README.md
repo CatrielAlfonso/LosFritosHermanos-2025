@@ -134,7 +134,7 @@ Mesa 2:
 
 Mesa 3:
 
-<img width="512" height="512" alt="mesa-3-qr" src="https://github.com/user-attachments/assets/fcd73332-77b1-4d7c-b8fc-31ee24390dec" />
+<img width="300" height="300" alt="mesa-3-qr" src="https://github.com/user-attachments/assets/fcd73332-77b1-4d7c-b8fc-31ee24390dec" />
 
 Mesa 5:
 
