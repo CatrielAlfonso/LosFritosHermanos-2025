@@ -126,7 +126,7 @@ ENTRADA AL LOCAL:
 
 MESA DELIVERY:
 
-<img width="1200" height="1200" alt="qr-delivery" src="https://github.com/user-attachments/assets/ac829a52-14d9-4153-b975-e2681650f11a" />
+<img width="512" height="512" alt="qr-delivery" src="https://github.com/user-attachments/assets/ac829a52-14d9-4153-b975-e2681650f11a" />
 
 Mesa 2:
 
