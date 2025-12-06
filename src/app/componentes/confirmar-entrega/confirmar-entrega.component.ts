@@ -204,7 +204,7 @@ export class ConfirmarEntregaComponent implements OnInit {
       await this.pushNotificationService.notificarConfirmacionDelivery(
         this.pedido.id!,
         this.pedido.cliente_nombre,
-        this.pedido.precio_total
+        this.pedido.precio_total || 0
       );
     } catch (error) {
       console.error('Error al enviar notificación de confirmación delivery:', error);
@@ -218,12 +218,12 @@ export class ConfirmarEntregaComponent implements OnInit {
       return this.propinaPersonalizada;
     }
     
-    return (this.pedido.precio_total * this.propinaPorcentaje) / 100;
+    return ((this.pedido.precio_total || 0) * this.propinaPorcentaje) / 100;
   }
 
   calcularTotal(): number {
     if (!this.pedido) return 0;
-    return this.pedido.precio_total + this.calcularPropina();
+    return (this.pedido.precio_total || 0) + this.calcularPropina();
   }
 
   async confirmarPropina() {

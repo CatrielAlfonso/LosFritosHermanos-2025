@@ -145,15 +145,15 @@
       <div class="info-section precios-section">
         <div class="precio-linea">
           <span>Subtotal:</span>
-          <span>{{ formatearPrecio(pedido.precio_productos) }}</span>
+          <span>{{ formatearPrecio(pedido.precio_productos || 0) }}</span>
         </div>
         <div class="precio-linea">
           <span>Envío:</span>
-          <span>{{ formatearPrecio(pedido.precio_envio) }}</span>
+          <span>{{ formatearPrecio(pedido.precio_envio || 0) }}</span>
         </div>
         <div class="precio-linea total">
           <span><strong>TOTAL:</strong></span>
-          <span><strong>{{ formatearPrecio(pedido.precio_total) }}</strong></span>
+          <span><strong>{{ formatearPrecio(pedido.precio_total || 0) }}</strong></span>
         </div>
       </div>
 

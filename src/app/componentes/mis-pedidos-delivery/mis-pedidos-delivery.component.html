@@ -107,13 +107,13 @@
           <!-- Total -->
           <div class="info-row total-row">
             <span class="label">Total:</span>
-            <span class="precio">{{ formatearPrecio(pedido.precio_total) }}</span>
+            <span class="precio">{{ formatearPrecio(pedido.precio_total || 0) }}</span>
           </div>
 
           <!-- Propina (si existe) -->
           <div *ngIf="pedido.propina && pedido.propina > 0" class="info-row propina-row">
             <span class="label">Propina dejada:</span>
-            <span class="propina">{{ formatearPrecio(pedido.propina) }}</span>
+            <span class="propina">{{ formatearPrecio(pedido.propina || 0) }}</span>
           </div>
 
           <!-- Botones de acción -->
