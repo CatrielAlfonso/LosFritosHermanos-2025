@@ -2,18 +2,21 @@
    VARIABLES DE MARCA & CONFIGURACIÓN
    ========================================= */
 :host {
-  /* Usamos las variables de Ionic directamente para asegurar consistencia */
-  --fritos-red-rgb: var(--ion-color-primary-rgb);
-  --fritos-blue: var(--ion-color-tertiary);
-  --fritos-yellow: var(--ion-color-secondary);
-  --fritos-orange: #ff9800;
-  --text-color: #ffffff; /* Texto blanco forzado */
+  --fritos-red: #dc2234;
+  --fritos-red-rgb: 220, 34, 52;
+  --fritos-blue: #4666de;
+  --fritos-yellow: #efbf2d;
+  --fritos-orange: #f39c12;
+  --fritos-green: #28a745;
+  --dark-bg: #1a1a2e;
+  --dark-bg-secondary: #16213e;
+  --text-color: #ffffff;
 }
 
 /* 1. FONDO DE PANTALLA */
 .content-delivery {
-  --background: linear-gradient(135deg, var(--fritos-yellow) 0%, var(--fritos-orange) 100%);
-  --color: var(--text-color); /* Hereda blanco a todo el contenido */
+  --background: linear-gradient(135deg, #4666de 0%, #2d4bb8 100%);
+  --color: var(--text-color);
 }
 
 /* 2. LOADING SPINNER */
@@ -27,14 +30,14 @@
   ion-spinner {
     transform: scale(1.5);
     margin-bottom: 20px;
-    color: var(--fritos-blue); /* Spinner azul */
+    --color: #efbf2d;
   }
   
   p {
-    color: white; /* Texto blanco */
+    color: #efbf2d;
     font-size: 18px;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
   }
 }
 
@@ -43,38 +46,34 @@
   animation: fadeInUp 0.5s ease-out;
 }
 
-/* 3. TARJETA PRINCIPAL (ROJA SUAVE) */
+/* 3. TARJETA PRINCIPAL */
 .main-card {
-  /* CAMBIO AQUÍ: Rojo más suave usando RGB y opacidad del 90% */
-  background: rgba(var(--fritos-red-rgb), 0.9);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(163, 23, 23, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
   overflow: hidden;
-  color: white; /* Todo el texto adentro es blanco */
+  color: white;
+  border: 2px solid rgba(70, 102, 222, 0.4);
   
-  /* CAMBIO AQUÍ: Sin borde */
-  border: none;
-  
-  /* HEADER DE LA TARJETA (AZUL) */
+  /* HEADER DE LA TARJETA */
   ion-card-header {
-    background: var(--fritos-blue); /* AZUL DE LA APP */
+    background: linear-gradient(135deg, #dc2234 0%, #b81d2b 100%);
     padding: 20px;
-    /* Borde inferior sutil para separar del cuerpo rojo */
-    border-bottom: 3px solid rgba(0,0,0,0.1); 
+    border-bottom: 3px solid #efbf2d;
     
     ion-card-title {
       display: flex;
       align-items: center;
       gap: 10px;
       font-size: 22px;
-      font-weight: 800; /* Letra gruesa */
+      font-weight: 800;
       color: white;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       
       ion-icon {
         font-size: 28px;
-        color: var(--fritos-yellow); /* Icono amarillo */
+        color: #efbf2d;
       }
     }
   }
@@ -84,34 +83,41 @@
   }
 }
 
-/* 4. SECCIONES DE INFORMACIÓN (Cajas internas) */
-/* Usamos un rojo más oscuro/transparente para separar */
+/* 4. SECCIONES DE INFORMACIÓN */
 .pedido-info, 
 .propina-personalizada, 
 .resumen-propina, 
 .calificacion-item {
-  background: rgba(0, 0, 0, 0.15); /* Fondo oscuro translúcido sutil */
+  background: rgba(70, 102, 222, 0.15);
   padding: 16px;
   border-radius: 12px;
   margin-bottom: 20px;
-  /* Borde muy sutil para definir los límites */
-  border: 1px solid rgba(255, 255, 255, 0.1); 
+  border: 2px solid rgba(70, 102, 222, 0.3);
   
   h3 {
     margin: 0 0 10px 0;
-    color: var(--fritos-yellow); /* Títulos en amarillo */
+    color: #efbf2d;
     font-weight: 800;
     font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    ion-icon {
+      color: #dc2234;
+    }
   }
   
   p, label, span {
     margin: 5px 0;
-    color: white; /* Texto blanco */
+    color: white;
     font-size: 1rem;
+    font-weight: 500;
   }
 
   strong {
-    color: var(--fritos-yellow);
+    color: #efbf2d;
+    font-weight: 700;
   }
 }
 
@@ -123,17 +129,25 @@
     margin: 0 0 10px 0;
     font-size: 16px;
     font-weight: 700;
-    color: white;
+    color: #efbf2d;
     text-transform: uppercase;
-    border-bottom: 1px solid rgba(255,255,255,0.3);
-    padding-bottom: 5px;
+    border-bottom: 2px solid rgba(239, 191, 45, 0.3);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    ion-icon {
+      color: #dc2234;
+    }
   }
   
   ion-chip {
-    background: white; /* Chip blanco */
-    color: var(--fritos-blue); /* Texto azul */
+    background: linear-gradient(135deg, #4666de 0%, #2d4bb8 100%);
+    color: white;
     margin: 4px;
     font-weight: 700;
+    border: 1px solid #efbf2d;
   }
 }
 
@@ -144,7 +158,11 @@
   color: white;
   margin: 20px 0;
   line-height: 1.5;
-  text-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  background: rgba(70, 102, 222, 0.2);
+  padding: 15px;
+  border-radius: 12px;
+  border: 2px solid rgba(70, 102, 222, 0.4);
 }
 
 /* 6. BOTONES DE PROPINA */
@@ -158,18 +176,25 @@
     margin: 0;
     font-weight: 800;
     --border-radius: 10px;
+    font-size: 0.95rem;
     
-    /* Botón no seleccionado (Outline Blanco) */
+    /* Botón no seleccionado */
     &[fill="outline"] {
-      --border-color: white;
-      --color: white;
+      --border-color: #efbf2d;
+      --border-width: 2px;
+      --color: #efbf2d;
       --background: transparent;
+      
+      &:hover {
+        --background: rgba(239, 191, 45, 0.1);
+      }
     }
 
-    /* Botón seleccionado (Relleno Amarillo) */
+    /* Botón seleccionado */
     &[fill="solid"] {
-      --background: var(--fritos-yellow);
-      --color: var(--ion-color-primary); /* Texto rojo para contraste */
+      --background: linear-gradient(135deg, #efbf2d 0%, #d4a629 100%);
+      --color: #1a1a2e;
+      box-shadow: 0 4px 12px rgba(239, 191, 45, 0.4);
     }
   }
 }
@@ -179,46 +204,71 @@
   ion-label {
     color: white !important;
     font-weight: bold;
+    font-size: 1.05rem;
   }
   
   ion-range {
-    --bar-background: rgba(255,255,255,0.3);
-    --bar-background-active: var(--fritos-yellow);
-    --knob-background: white;
-    --pin-background: var(--fritos-blue);
+    --bar-background: rgba(70, 102, 222, 0.3);
+    --bar-background-active: #efbf2d;
+    --bar-height: 6px;
+    --bar-border-radius: 3px;
+    --knob-background: #efbf2d;
+    --knob-size: 24px;
+    --knob-box-shadow: 0 3px 10px rgba(239, 191, 45, 0.5);
+    --pin-background: #dc2234;
     --pin-color: white;
-    padding: 10px 0;
+    padding: 15px 0;
   }
 }
 
 /* Resumen de Propina */
 .resumen-propina {
+  background: linear-gradient(135deg, rgba(220, 34, 52, 0.15) 0%, rgba(184, 29, 43, 0.15) 100%);
+  border: 2px solid rgba(220, 34, 52, 0.4);
+  
+  h3 {
+    color: #dc2234 !important;
+    
+    ion-icon {
+      color: #efbf2d;
+    }
+  }
+  
   .resumen-item {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
     font-size: 16px;
     color: white;
+    font-weight: 600;
     
     &.propina-amount {
-      color: var(--fritos-yellow);
+      color: #efbf2d;
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
     
     &.total {
-      border-top: 1px solid rgba(255,255,255,0.3);
-      margin-top: 8px;
-      padding-top: 12px;
-      font-size: 22px;
-      color: white;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      border-top: 2px solid rgba(239, 191, 45, 0.4);
+      margin-top: 10px;
+      padding-top: 15px;
+      font-size: 24px;
+      color: #efbf2d;
+      font-weight: 800;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
   }
 }
 
 /* 7. ENCUESTA (Estrellas) */
 .calificacion-item {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.15) 0%, rgba(30, 126, 52, 0.15) 100%);
+  border: 2px solid rgba(40, 167, 69, 0.4);
+  
+  h3 {
+    color: #28a745 !important;
+  }
+  
   label {
     display: block;
     font-weight: 700;
@@ -235,13 +285,17 @@
     
     ion-icon {
       font-size: 40px;
-      color: rgba(255,255,255,0.3); /* Estrellas apagadas */
+      color: rgba(239, 191, 45, 0.3);
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: all 0.2s ease;
       
       &.active {
-        color: var(--fritos-yellow); /* Estrellas encendidas */
-        filter: drop-shadow(0 0 5px rgba(255, 235, 59, 0.5));
+        color: #efbf2d;
+        filter: drop-shadow(0 0 8px rgba(239, 191, 45, 0.6));
+      }
+      
+      &:hover {
+        transform: scale(1.1);
       }
       
       &:active {
@@ -253,13 +307,16 @@
 
 /* Input de comentarios */
 ion-textarea {
-  --background: rgba(255,255,255,0.9); /* Fondo blanco casi opaco para escribir */
-  --color: #333; /* Texto negro al escribir para leer bien */
+  --background: rgba(255, 255, 255, 0.95);
+  --color: #1a1a2e;
   --placeholder-color: #666;
   --padding-start: 15px;
+  --padding-top: 12px;
   border-radius: 12px;
   margin-top: 15px;
   font-weight: 600;
+  border: 2px solid #4666de;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* 8. BOTONES GENERALES */
@@ -271,25 +328,41 @@ ion-button {
   letter-spacing: 0.5px;
   height: 50px;
   
-  /* Botón Principal (Success/Verde o Amarillo) */
+  /* Botón Principal (Success/Verde) */
   &[color="success"] {
-    --background: #28a745; /* Verde fuerte */
+    --background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
     --background-hover: #218838;
     --color: white;
-    --box-shadow: 0 4px 0 #1e7e34;
+    --box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    border: 2px solid #20c997;
+    
+    &:hover {
+      transform: translateY(-2px);
+      --box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+    }
   }
   
-  /* Botón Secundario/Cancelar (Outline Blanco) */
+  /* Botón Secundario/Cancelar */
   &[fill="outline"] {
-    --border-color: white;
-    --color: white;
+    --border-color: #efbf2d;
+    --border-width: 2px;
+    --color: #efbf2d;
     --background: transparent;
-    --background-hover: rgba(255,255,255,0.1);
+    --background-hover: rgba(239, 191, 45, 0.1);
     
     &[color="danger"] {
-      --border-color: #ffcbcb;
-      --color: #ffcbcb;
+      --border-color: #dc2234;
+      --color: #dc2234;
+      --background-hover: rgba(220, 34, 52, 0.1);
     }
+  }
+  
+  /* Botón Danger/Rojo */
+  &[color="danger"]:not([fill="outline"]) {
+    --background: linear-gradient(135deg, #dc2234 0%, #b81d2b 100%);
+    --background-hover: #a01927;
+    --box-shadow: 0 4px 15px rgba(220, 34, 52, 0.4);
+    border: 2px solid #efbf2d;
   }
 }
 
@@ -303,34 +376,37 @@ ion-button {
 
 .success-card {
   text-align: center;
-  /* Usamos el mismo rojo suave aquí también */
-  background: rgba(var(--fritos-red-rgb), 0.9); 
-  border: 4px solid var(--fritos-yellow); /* Borde festivo amarillo */
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 4px solid #efbf2d;
+  box-shadow: 0 8px 30px rgba(239, 191, 45, 0.4);
   
   .success-icon {
     ion-icon {
       font-size: 100px;
       color: white;
-      background: #28a745;
+      background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
       border-radius: 50%;
-      padding: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      padding: 20px;
+      box-shadow: 0 5px 20px rgba(40, 167, 69, 0.5);
       margin-bottom: 20px;
       animation: scaleIn 0.5s ease-out;
+      border: 3px solid #20c997;
     }
   }
   
   h2 {
-    color: var(--fritos-yellow);
+    color: #efbf2d;
     font-size: 28px;
     font-weight: 900;
     margin: 10px 0;
     text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
   }
   
   p {
     color: white;
     font-size: 18px;
+    font-weight: 600;
   }
   
   .propina-mensaje {
@@ -338,19 +414,68 @@ ion-button {
     font-weight: 700;
     font-size: 20px;
     margin-top: 20px;
-    background: rgba(255,255,255,0.2);
-    padding: 10px;
-    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(220, 34, 52, 0.3) 0%, rgba(184, 29, 43, 0.3) 100%);
+    padding: 15px;
+    border-radius: 12px;
+    border: 2px solid #dc2234;
   }
 }
 
 /* Animaciones */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateY(30px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.5); }
-  to { opacity: 1; transform: scale(1); }
+  from { 
+    opacity: 0; 
+    transform: scale(0.5) rotate(-10deg); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) rotate(0deg); 
+  }
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .propina-options {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .main-card {
+    ion-card-header {
+      ion-card-title {
+        font-size: 18px;
+      }
+    }
+  }
+  
+  .calificacion-item {
+    .estrellas {
+      ion-icon {
+        font-size: 35px;
+      }
+    }
+  }
+  
+  .success-card {
+    .success-icon {
+      ion-icon {
+        font-size: 80px;
+      }
+    }
+    
+    h2 {
+      font-size: 24px;
+    }
+  }
 }
