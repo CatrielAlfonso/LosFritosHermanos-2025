@@ -1,5 +1,3 @@
-// equilibrio.component.ts - VERSIÓN CORREGIDA
-
 import {
   Component,
   ElementRef,
@@ -45,7 +43,6 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   private deliveryService = inject(DeliveryService);
   private toastCtrl = inject(ToastController);
 
-  // Variables para sistema de descuentos
   puedeJugarPorDescuento: boolean = false;
   yaUsoIntento: boolean = false;
   esAnonimo: boolean = false;
@@ -60,9 +57,8 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   areaHeight = 0;
   mensaje = '';
 
-  // ✅ TAMAÑOS AUMENTADOS PARA MÓVIL
-  mozo: Entity = { x: 0, y: 0, width: 70, height: 70 };
-  mesa: Entity = { x: 0, y: 0, width: 70, height: 70 };
+  mozo: Entity = { x: 0, y: 0, width: 60, height: 60 };
+  mesa: Entity = { x: 0, y: 0, width: 60, height: 60 };
   obstacles: Entity[] = [];
 
   vx = 0;
@@ -70,19 +66,22 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private animationFrameId: number | null = null;
   private motionListenerActive = false;
+  // 🔧 FIX: Prevenir múltiples listeners de teclado
+  private keyboardListenerAttached = false;
 
   private startSound = new Audio('../../../assets/sounds/start_sound.mp3');
   private winSound = new Audio('../../../assets/sounds/winner.mp3');
   private errorSound = new Audio('../../../assets/sounds/error.mp3');
 
   async ngOnInit() {
+    console.log('🎮 [INIT] ngOnInit ejecutado');
     this.activarControlesTeclado();
     
     const pedidoIdStr = localStorage.getItem('pedidoDeliveryActual');
     if (pedidoIdStr) {
       this.esDelivery = true;
       this.pedidoDeliveryId = parseInt(pedidoIdStr);
-      console.log('🎮 Juego iniciado desde delivery, pedido:', this.pedidoDeliveryId);
+      console.log('🎮 [INIT] Juego iniciado desde delivery, pedido:', this.pedidoDeliveryId);
     }
 
     await this.verificarElegibilidad();
@@ -94,12 +93,22 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     this.yaUsoIntento = elegibilidad.yaUsoIntento;
     this.esAnonimo = elegibilidad.esAnonimo;
     
-    console.log('🎮 Elegibilidad Mozo Equilibrio:', elegibilidad);
+    console.log('🎮 [ELEGIBILIDAD] Mozo Equilibrio:', elegibilidad);
   }
 
   activarControlesTeclado() {
+    // 🔧 FIX: Solo agregar listener una vez
+    if (this.keyboardListenerAttached) {
+      console.log('⌨️ [TECLADO] Listener ya existe, omitiendo...');
+      return;
+    }
+
+    console.log('⌨️ [TECLADO] Activando controles de teclado');
     window.addEventListener('keydown', (event) => {
-      if (this.state !== "playing") return;
+      if (this.state !== "playing") {
+        console.log('⌨️ [TECLADO] Ignorado - Estado:', this.state);
+        return;
+      }
 
       const velocidad = 5;
 
@@ -107,68 +116,54 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
         case 'ArrowUp':
         case 'w':
         case 'W':
-          this.vy = -velocidad;
+          this.mozo.y -= velocidad;
+          console.log('⌨️ [TECLADO] Arriba - Y:', this.mozo.y);
           break;
 
         case 'ArrowDown':
         case 's':
         case 'S':
-          this.vy = velocidad;
+          this.mozo.y += velocidad;
+          console.log('⌨️ [TECLADO] Abajo - Y:', this.mozo.y);
           break;
 
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          this.vx = -velocidad;
+          this.mozo.x -= velocidad;
+          console.log('⌨️ [TECLADO] Izquierda - X:', this.mozo.x);
           break;
 
         case 'ArrowRight':
         case 'd':
         case 'D':
-          this.vx = velocidad;
+          this.mozo.x += velocidad;
+          console.log('⌨️ [TECLADO] Derecha - X:', this.mozo.x);
           break;
       }
+
+      this.update();
     });
-
-    // ✅ RESETEAR VELOCIDAD AL SOLTAR TECLA
-    window.addEventListener('keyup', (event) => {
-      if (this.state !== "playing") return;
-
-      switch (event.key) {
-        case 'ArrowUp':
-        case 'ArrowDown':
-        case 'w':
-        case 's':
-        case 'W':
-        case 'S':
-          this.vy = 0;
-          break;
-
-        case 'ArrowLeft':
-        case 'ArrowRight':
-        case 'a':
-        case 'd':
-        case 'A':
-        case 'D':
-          this.vx = 0;
-          break;
-      }
-    });
+    
+    this.keyboardListenerAttached = true;
   }
 
   ngAfterViewInit() {
+    console.log('🎮 [VIEW] ngAfterViewInit ejecutado');
     this.updateAreaSize();
     this.setupCorners();
     window.addEventListener('resize', this.onResize);
   }
 
   ngOnDestroy(): void {
+    console.log('🎮 [DESTROY] Limpiando componente');
     this.stopLoop();
     this.stopMotion();
     window.removeEventListener('resize', this.onResize);
   }
 
   private onResize = () => {
+    console.log('🎮 [RESIZE] Ventana redimensionada');
     this.updateAreaSize();
     this.setupCorners();
   };
@@ -177,6 +172,7 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     const rect = this.gameAreaRef.nativeElement.getBoundingClientRect();
     this.areaWidth = rect.width;
     this.areaHeight = rect.height;
+    console.log('📐 [SIZE] Área actualizada:', this.areaWidth, 'x', this.areaHeight);
   }
 
   private setupCorners() {
@@ -184,31 +180,41 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     this.mozo.y = 10;
     this.mesa.x = this.areaWidth - this.mesa.width - 10;
     this.mesa.y = this.areaHeight - this.mesa.height - 10;
+    console.log('🎯 [CORNERS] Mozo:', this.mozo.x, this.mozo.y, '| Mesa:', this.mesa.x, this.mesa.y);
   }
 
   async startGame() {
-    // ✅ IMPORTANTE: Detener motion anterior primero
-    this.stopMotion();
+    console.log('🚀 [START] ========== INICIANDO JUEGO ==========');
+    console.log('🚀 [START] Estado anterior:', this.state);
+    
+    // 🔧 FIX: Detener todo antes de reiniciar
     this.stopLoop();
-
+    this.stopMotion();
+    
+    // 🔧 FIX: Resetear TODOS los estados
     this.state = 'playing';
     this.mensaje = '';
     this.mensajeResultado = '';
+    this.vx = 0;
+    this.vy = 0;
+    
+    console.log('🚀 [START] Estado cambiado a:', this.state);
 
     this.updateAreaSize();
     this.setupCorners();
     this.generateObstacles();
 
-    // ✅ RESETEAR VELOCIDADES
-    this.vx = 0;
-    this.vy = 0;
-
     this.safePlay(this.startSound);
     
-    // ✅ Esperar un momento antes de iniciar motion
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // 🔧 FIX: Asegurar que Motion se inicie correctamente
     await this.startMotion();
+    
+    // 🔧 FIX: Iniciar loop después de configurar todo
     this.startLoop();
+    
+    console.log('🚀 [START] Juego iniciado correctamente');
+    console.log('🚀 [START] Motion activo:', this.motionListenerActive);
+    console.log('🚀 [START] Loop ID:', this.animationFrameId);
   }
 
   private generateObstacles() {
@@ -219,21 +225,21 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     const centerYMin = this.areaHeight * 0.25;
     const centerYMax = this.areaHeight * 0.75;
 
-    // ✅ TAMAÑO AUMENTADO PARA MÓVIL
-    const obstacleSize = 70;
-
     for (let i = 0; i < 3; i++) {
       this.obstacles.push({
-        x: centerXMin + Math.random() * (centerXMax - centerXMin - obstacleSize),
-        y: centerYMin + Math.random() * (centerYMax - centerYMin - obstacleSize),
-        width: obstacleSize,
-        height: obstacleSize,
+        x: centerXMin + Math.random() * (centerXMax - centerXMin - this.mozo.width),
+        y: centerYMin + Math.random() * (centerYMax - centerYMin - this.mozo.height),
+        width: 60,
+        height: 60,
         type: this.obstacleTypes[i],
       });
     }
+    
+    console.log('🚧 [OBSTACLES] Generados:', this.obstacles.length, 'obstáculos');
   }
 
   volverAjuegos() {
+    console.log('🔙 [BACK] Volviendo al menú');
     this.stopLoop();
     this.stopMotion();
     this.state = 'idle';
@@ -250,111 +256,121 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private async startMotion() {
+    console.log('📱 [MOTION] Iniciando Motion...');
+    
+    // 🔧 FIX: Siempre remover listeners previos antes de agregar nuevos
     if (this.motionListenerActive) {
-      console.log('Motion listener ya está activo');
-      return;
+      console.log('📱 [MOTION] Removiendo listener previo');
+      await Motion.removeAllListeners();
+      this.motionListenerActive = false;
     }
 
     try {
       await Motion.addListener(
         'orientation',
         (event: MotionOrientationEventResult) => {
-          if (this.state !== 'playing') return;
+          if (this.state !== 'playing') {
+            console.log('📱 [MOTION] Evento ignorado - Estado:', this.state);
+            return;
+          }
 
-          const beta = event.beta ?? 0;  // Inclinación adelante/atrás (-180 a 180)
-          const gamma = event.gamma ?? 0; // Inclinación izquierda/derecha (-90 a 90)
+          const beta = event.beta ?? 0;
+          const gamma = event.gamma ?? 0;
 
-          // ✅ FACTOR REDUCIDO Y CON LÍMITE DE VELOCIDAD
-          const factor = 0.3;
-          const maxSpeed = 8;
-
-          // Calcular velocidades con límite
-          let newVx = gamma * factor;
-          let newVy = beta * factor;
-
-          // Limitar velocidad máxima
-          this.vx = Math.max(-maxSpeed, Math.min(maxSpeed, newVx));
-          this.vy = Math.max(-maxSpeed, Math.min(maxSpeed, newVy));
+          const factor = 0.15;
+          this.vx = gamma * factor;
+          this.vy = beta * factor;
+          
+          // Log ocasional para no saturar consola
+          if (Math.random() < 0.01) {
+            console.log('📱 [MOTION] vx:', this.vx.toFixed(2), 'vy:', this.vy.toFixed(2));
+          }
         },
       );
       this.motionListenerActive = true;
-      console.log('✅ Motion listener iniciado correctamente');
+      console.log('📱 [MOTION] ✅ Listener activo');
     } catch (e) {
-      console.error('❌ Error iniciando Motion', e);
+      console.error('📱 [MOTION] ❌ Error iniciando Motion:', e);
     }
   }
 
   private stopMotion() {
-    if (!this.motionListenerActive) return;
-    
-    try {
-      Motion.removeAllListeners();
-      this.motionListenerActive = false;
-      console.log('🛑 Motion listener detenido');
-    } catch (e) {
-      console.error('Error deteniendo motion:', e);
+    if (!this.motionListenerActive) {
+      console.log('📱 [MOTION] No hay listener activo para detener');
+      return;
     }
+    console.log('📱 [MOTION] Deteniendo Motion...');
+    Motion.removeAllListeners();
+    this.motionListenerActive = false;
+    console.log('📱 [MOTION] ✅ Motion detenido');
   }
 
   private startLoop() {
+    console.log('🔄 [LOOP] Iniciando loop de animación...');
+    
+    // 🔧 FIX: Cancelar loop previo si existe
+    if (this.animationFrameId !== null) {
+      console.log('🔄 [LOOP] Cancelando loop previo:', this.animationFrameId);
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    
     const step = () => {
       if (this.state === 'playing') {
         this.update();
         this.animationFrameId = requestAnimationFrame(step);
       } else {
+        console.log('🔄 [LOOP] Detenido - Estado:', this.state);
         this.stopLoop();
       }
     };
+    
     this.animationFrameId = requestAnimationFrame(step);
+    console.log('🔄 [LOOP] ✅ Loop iniciado con ID:', this.animationFrameId);
   }
 
   private stopLoop() {
     if (this.animationFrameId !== null) {
+      console.log('🔄 [LOOP] Cancelando loop:', this.animationFrameId);
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
   }
 
   private update() {
-    // ✅ APLICAR VELOCIDADES CON LÍMITES ESTRICTOS
+    // Log ocasional para verificar que update se ejecuta
+    if (Math.random() < 0.005) {
+      console.log('🔄 [UPDATE] Posición mozo:', this.mozo.x.toFixed(2), this.mozo.y.toFixed(2));
+      console.log('🔄 [UPDATE] Velocidad vx:', this.vx.toFixed(2), 'vy:', this.vy.toFixed(2));
+    }
+    
     let newX = this.mozo.x + this.vx;
     let newY = this.mozo.y + this.vy;
 
-    // ✅ CONSTRAIN: Mantener dentro de los límites
-    newX = Math.max(0, Math.min(this.areaWidth - this.mozo.width, newX));
-    newY = Math.max(0, Math.min(this.areaHeight - this.mozo.height, newY));
-
-    // ✅ DETECCIÓN MEJORADA DE COLISIÓN CON BORDES
     if (
-      newX <= 0 ||
-      newY <= 0 ||
-      newX >= this.areaWidth - this.mozo.width ||
-      newY >= this.areaHeight - this.mozo.height
+      newX < 0 ||
+      newY < 0 ||
+      newX + this.mozo.width > this.areaWidth ||
+      newY + this.mozo.height > this.areaHeight
     ) {
-      // Si toca el borde, detener el movimiento en esa dirección
-      if (newX <= 0) newX = 0;
-      if (newX >= this.areaWidth - this.mozo.width) newX = this.areaWidth - this.mozo.width;
-      if (newY <= 0) newY = 0;
-      if (newY >= this.areaHeight - this.mozo.height) newY = this.areaHeight - this.mozo.height;
-      
-      // ✅ OPCIONAL: Descomentar para perder al tocar borde
-      // this.handleLose();
-      // return;
+      console.log('💥 [COLLISION] Colisión con borde!');
+      this.handleLose();
+      return;
     }
 
     this.mozo.x = newX;
     this.mozo.y = newY;
 
-    // Verificar colisiones con obstáculos
     for (const o of this.obstacles) {
       if (this.collide(this.mozo, o)) {
+        console.log('💥 [COLLISION] Colisión con obstáculo:', o.type);
         this.handleLose();
         return;
       }
     }
 
-    // Verificar si llegó a la meta
     if (this.collide(this.mozo, this.mesa)) {
+      console.log('🎉 [WIN] ¡Llegó a la mesa!');
       this.handleWin();
     }
   }
@@ -369,11 +385,15 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private async handleLose() {
-    if (this.state !== 'playing') return;
+    if (this.state !== 'playing') {
+      console.log('❌ [LOSE] Ignorado - Estado:', this.state);
+      return;
+    }
+    
+    console.log('😔 [LOSE] ========== PERDISTE ==========');
     this.state = 'lost';
-    this.mensaje = '😢 Perdiste';
+    this.mensaje = '😔 Perdiste';
 
-    // ✅ RESETEAR VELOCIDADES
     this.vx = 0;
     this.vy = 0;
     this.stopMotion();
@@ -386,14 +406,19 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     } catch {}
 
     await this.registrarResultado(false);
+    console.log('😔 [LOSE] Estado final:', this.state);
   }
 
   private async handleWin() {
-    if (this.state !== 'playing') return;
+    if (this.state !== 'playing') {
+      console.log('❌ [WIN] Ignorado - Estado:', this.state);
+      return;
+    }
+    
+    console.log('🎉 [WIN] ========== GANASTE ==========');
     this.state = 'won';
     this.mensaje = '🎉 ¡Ganaste!';
 
-    // ✅ RESETEAR VELOCIDADES
     this.vx = 0;
     this.vy = 0;
     this.stopMotion();
@@ -402,9 +427,12 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     this.safePlay(this.winSound);
 
     await this.registrarResultado(true);
+    console.log('🎉 [WIN] Estado final:', this.state);
   }
 
   private async registrarResultado(gano: boolean) {
+    console.log('💾 [RESULTADO] Registrando...', gano ? 'GANÓ' : 'PERDIÓ');
+    
     if (this.esDelivery && this.pedidoDeliveryId) {
       await this.guardarDescuentoDelivery(gano ? this.descuentoObtenido : 0);
     } else {
@@ -413,6 +441,7 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
         gano
       );
       
+      console.log('💾 [RESULTADO] Respuesta servicio:', resultado);
       this.mensajeResultado = this.generarMensajeResultado(gano, resultado);
       await this.verificarElegibilidad();
     }
@@ -436,7 +465,7 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
       });
       await toast.present();
     } catch (error) {
-      console.error('Error al guardar descuento delivery:', error);
+      console.error('❌ [DELIVERY] Error al guardar descuento:', error);
     }
   }
 
@@ -446,7 +475,7 @@ export class EquilibrioComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     
     if (!this.yaUsoIntento && !gano) {
-      return '😢 No ganaste el descuento en tu primer intento. ¡Puedes seguir jugando por diversión!';
+      return '😔 No ganaste el descuento en tu primer intento. ¡Puedes seguir jugando por diversión!';
     }
     
     if (this.yaUsoIntento) {
